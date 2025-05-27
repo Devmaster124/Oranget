@@ -1,5 +1,4 @@
-
-import { Calendar, Home, Users, Casino, Heart, ShoppingCart } from "lucide-react"
+import { Calendar, Home, Users, Dice6, Heart, ShoppingCart } from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
@@ -31,7 +30,7 @@ const menuItems = [
   {
     title: "Casino",
     url: "/casino",
-    icon: Casino,
+    icon: Dice6,
   },
   {
     title: "Community",
