@@ -1,3 +1,4 @@
+
 import { Calendar, Home, Users, Dice6, Heart, ShoppingCart } from "lucide-react"
 import {
   Sidebar,
@@ -49,9 +50,11 @@ export function AppSidebar() {
     <Sidebar className="border-r border-orange-200">
       <SidebarHeader className="border-b border-orange-200 p-4">
         <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-fredoka text-lg">O</span>
-          </div>
+          <img 
+            src="/lovable-uploads/5ad45b37-1255-47ae-90ce-f1a0245d392c.png" 
+            alt="Oranget Logo" 
+            className="w-8 h-8 object-contain"
+          />
           <h1 className="font-fredoka text-xl text-orange-600">Oranget</h1>
         </div>
       </SidebarHeader>
