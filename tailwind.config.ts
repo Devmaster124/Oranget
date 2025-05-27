@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -18,6 +19,10 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				'fredoka': ['Fredoka One', 'cursive'],
+				'inter': ['Inter', 'sans-serif'],
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -61,7 +66,29 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				// Orange theme colors
+				orange: {
+					50: '#fff7ed',
+					100: '#ffedd5',
+					200: '#fed7aa',
+					300: '#fdba74',
+					400: '#fb923c',
+					500: '#f97316',
+					600: '#ea580c',
+					700: '#c2410c',
+					800: '#9a3412',
+					900: '#7c2d12',
+				},
+				// Rarity colors
+				uncommon: '#22c55e',
+				rare: '#3b82f6',
+				epic: '#a855f7',
+				legendary: '#eab308',
+				chroma: '#14b8a6',
+				mythical: '#ec4899',
+				master: '#10b981',
+				dev: '#f59e0b',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -84,11 +111,31 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'rainbow': {
+					'0%': { backgroundPosition: '0% 50%' },
+					'50%': { backgroundPosition: '100% 50%' },
+					'100%': { backgroundPosition: '0% 50%' }
+				},
+				'matrix': {
+					'0%': { opacity: '1' },
+					'50%': { opacity: '0.3' },
+					'100%': { opacity: '1' }
+				},
+				'dev-cycle': {
+					'0%': { color: '#f59e0b' },
+					'25%': { color: '#ec4899' },
+					'50%': { color: '#3b82f6' },
+					'75%': { color: '#10b981' },
+					'100%': { color: '#f59e0b' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'rainbow': 'rainbow 3s ease infinite',
+				'matrix': 'matrix 2s ease-in-out infinite',
+				'dev-cycle': 'dev-cycle 2s ease-in-out infinite'
 			}
 		}
 	},
