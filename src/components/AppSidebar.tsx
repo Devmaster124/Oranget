@@ -51,7 +51,7 @@ export function AppSidebar() {
       <SidebarHeader className="border-b border-orange-200 p-4">
         <div className="flex items-center space-x-2">
           <img 
-            src="/lovable-uploads/5ad45b37-1255-47ae-90ce-f1a0245d392c.png" 
+            src="/lovable-uploads/09e55504-38cb-49bf-9019-48c875713ca7.png" 
             alt="Oranget Logo" 
             className="w-8 h-8 object-contain"
           />
