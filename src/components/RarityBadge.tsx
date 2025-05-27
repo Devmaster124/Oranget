@@ -29,7 +29,7 @@ export function RarityBadge({ rarity, className = "" }: RarityBadgeProps) {
   }
 
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getRarityStyle(rarity)} ${className}`}>
+    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-fredoka font-bold border-2 ${getRarityStyle(rarity)} ${className}`}>
       {rarity.toUpperCase()}
     </span>
   )

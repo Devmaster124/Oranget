@@ -18,25 +18,25 @@ const sampleBlooks = [
 const Index = () => {
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-orange-50 to-orange-100">
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-orange-50 to-orange-100 font-fredoka">
         <AppSidebar />
         <main className="flex-1 p-6">
           <div className="max-w-7xl mx-auto">
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center space-x-4">
-                <SidebarTrigger className="hover:bg-orange-100" />
+                <SidebarTrigger className="hover:bg-orange-100 rounded-xl" />
                 <div>
                   <h1 className="text-4xl font-fredoka text-orange-600">Welcome to Oranget!</h1>
-                  <p className="text-orange-500 mt-1">Collect, evolve, and trade amazing blooks</p>
+                  <p className="text-orange-500 mt-1 font-fredoka">Collect, evolve, and trade amazing blooks</p>
                 </div>
               </div>
               
               <div className="flex items-center space-x-4">
-                <Badge variant="secondary" className="bg-orange-100 text-orange-700 border-orange-200">
+                <Badge variant="secondary" className="bg-orange-100 text-orange-700 border-orange-200 rounded-full font-fredoka">
                   Tokens: 1,250
                 </Badge>
-                <Badge variant="secondary" className="bg-orange-100 text-orange-700 border-orange-200">
+                <Badge variant="secondary" className="bg-orange-100 text-orange-700 border-orange-200 rounded-full font-fredoka">
                   Blooks: 24/100
                 </Badge>
               </div>
@@ -44,33 +44,33 @@ const Index = () => {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <Card className="border-orange-200 bg-white/70 backdrop-blur-sm">
+              <Card className="border-orange-200 bg-white/70 backdrop-blur-sm rounded-3xl border-2">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-orange-700 font-fredoka">Collection</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-orange-600">24</div>
-                  <p className="text-orange-500 text-sm">Total Blooks Owned</p>
+                  <div className="text-3xl font-bold text-orange-600 font-fredoka">24</div>
+                  <p className="text-orange-500 text-sm font-fredoka">Total Blooks Owned</p>
                 </CardContent>
               </Card>
 
-              <Card className="border-orange-200 bg-white/70 backdrop-blur-sm">
+              <Card className="border-orange-200 bg-white/70 backdrop-blur-sm rounded-3xl border-2">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-orange-700 font-fredoka">Casino Wins</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-orange-600">12</div>
-                  <p className="text-orange-500 text-sm">Total Victories</p>
+                  <div className="text-3xl font-bold text-orange-600 font-fredoka">12</div>
+                  <p className="text-orange-500 text-sm font-fredoka">Total Victories</p>
                 </CardContent>
               </Card>
 
-              <Card className="border-orange-200 bg-white/70 backdrop-blur-sm">
+              <Card className="border-orange-200 bg-white/70 backdrop-blur-sm rounded-3xl border-2">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-orange-700 font-fredoka">Market Value</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-orange-600">5,670</div>
-                  <p className="text-orange-500 text-sm">Total Collection Worth</p>
+                  <div className="text-3xl font-bold text-orange-600 font-fredoka">5,670</div>
+                  <p className="text-orange-500 text-sm font-fredoka">Total Collection Worth</p>
                 </CardContent>
               </Card>
             </div>
@@ -79,7 +79,7 @@ const Index = () => {
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-fredoka text-orange-700">Your Recent Blooks</h2>
-                <Button className="bg-orange-500 hover:bg-orange-600 text-white">
+                <Button className="bg-orange-500 hover:bg-orange-600 text-white font-fredoka rounded-full">
                   View All Blooks
                 </Button>
               </div>
@@ -98,43 +98,43 @@ const Index = () => {
 
             {/* Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card className="border-orange-200 bg-white/70 backdrop-blur-sm hover:bg-white/90 transition-all cursor-pointer">
+              <Card className="border-orange-200 bg-white/70 backdrop-blur-sm hover:bg-white/90 transition-all cursor-pointer rounded-3xl border-2">
                 <CardContent className="p-6 text-center">
-                  <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full mx-auto mb-3 flex items-center justify-center">
-                    <span className="text-white font-fredoka text-xl">🎰</span>
+                  <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full mx-auto mb-3 flex items-center justify-center">
+                    <span className="text-white font-fredoka text-2xl">🎰</span>
                   </div>
-                  <h3 className="font-fredoka text-orange-700 mb-1">Casino</h3>
-                  <p className="text-orange-500 text-sm">Try your luck!</p>
+                  <h3 className="font-fredoka text-orange-700 mb-1 text-lg">Casino</h3>
+                  <p className="text-orange-500 text-sm font-fredoka">Try your luck!</p>
                 </CardContent>
               </Card>
 
-              <Card className="border-orange-200 bg-white/70 backdrop-blur-sm hover:bg-white/90 transition-all cursor-pointer">
+              <Card className="border-orange-200 bg-white/70 backdrop-blur-sm hover:bg-white/90 transition-all cursor-pointer rounded-3xl border-2">
                 <CardContent className="p-6 text-center">
-                  <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full mx-auto mb-3 flex items-center justify-center">
-                    <span className="text-white font-fredoka text-xl">🛒</span>
+                  <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full mx-auto mb-3 flex items-center justify-center">
+                    <span className="text-white font-fredoka text-2xl">🛒</span>
                   </div>
-                  <h3 className="font-fredoka text-orange-700 mb-1">Marketplace</h3>
-                  <p className="text-orange-500 text-sm">Buy & sell blooks</p>
+                  <h3 className="font-fredoka text-orange-700 mb-1 text-lg">Marketplace</h3>
+                  <p className="text-orange-500 text-sm font-fredoka">Buy & sell blooks</p>
                 </CardContent>
               </Card>
 
-              <Card className="border-orange-200 bg-white/70 backdrop-blur-sm hover:bg-white/90 transition-all cursor-pointer">
+              <Card className="border-orange-200 bg-white/70 backdrop-blur-sm hover:bg-white/90 transition-all cursor-pointer rounded-3xl border-2">
                 <CardContent className="p-6 text-center">
-                  <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full mx-auto mb-3 flex items-center justify-center">
-                    <span className="text-white font-fredoka text-xl">💬</span>
+                  <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full mx-auto mb-3 flex items-center justify-center">
+                    <span className="text-white font-fredoka text-2xl">💬</span>
                   </div>
-                  <h3 className="font-fredoka text-orange-700 mb-1">Community</h3>
-                  <p className="text-orange-500 text-sm">Chat with players</p>
+                  <h3 className="font-fredoka text-orange-700 mb-1 text-lg">Community</h3>
+                  <p className="text-orange-500 text-sm font-fredoka">Chat with players</p>
                 </CardContent>
               </Card>
 
-              <Card className="border-orange-200 bg-white/70 backdrop-blur-sm hover:bg-white/90 transition-all cursor-pointer">
+              <Card className="border-orange-200 bg-white/70 backdrop-blur-sm hover:bg-white/90 transition-all cursor-pointer rounded-3xl border-2">
                 <CardContent className="p-6 text-center">
-                  <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full mx-auto mb-3 flex items-center justify-center">
-                    <span className="text-white font-fredoka text-xl">🔄</span>
+                  <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full mx-auto mb-3 flex items-center justify-center">
+                    <span className="text-white font-fredoka text-2xl">🔄</span>
                   </div>
-                  <h3 className="font-fredoka text-orange-700 mb-1">Exchange</h3>
-                  <p className="text-orange-500 text-sm">Trade with others</p>
+                  <h3 className="font-fredoka text-orange-700 mb-1 text-lg">Exchange</h3>
+                  <p className="text-orange-500 text-sm font-fredoka">Trade with others</p>
                 </CardContent>
               </Card>
             </div>

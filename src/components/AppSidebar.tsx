@@ -47,7 +47,7 @@ const menuItems = [
 
 export function AppSidebar() {
   return (
-    <Sidebar className="border-r border-orange-200">
+    <Sidebar className="border-r border-orange-200 font-fredoka">
       <SidebarHeader className="border-b border-orange-200 p-4">
         <div className="flex items-center space-x-2">
           <img 
@@ -60,14 +60,14 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-orange-700 font-medium">Game Menu</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-orange-700 font-fredoka font-bold">Game Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton 
                     asChild 
-                    className="hover:bg-orange-50 hover:text-orange-700 data-[active=true]:bg-orange-100 data-[active=true]:text-orange-800"
+                    className="hover:bg-orange-50 hover:text-orange-700 data-[active=true]:bg-orange-100 data-[active=true]:text-orange-800 rounded-xl font-fredoka"
                   >
                     <a href={item.url} className="flex items-center space-x-3">
                       <item.icon className="w-5 h-5" />
