@@ -47,27 +47,30 @@ const menuItems = [
 
 export function AppSidebar() {
   return (
-    <Sidebar className="border-r border-orange-200 font-fredoka">
-      <SidebarHeader className="border-b border-orange-200 p-4">
+    <Sidebar className="border-r border-orange-600 font-fredoka bg-orange-500">
+      <SidebarHeader className="border-b border-orange-600 p-4 bg-orange-600">
         <div className="flex items-center space-x-2">
-          <img 
-            src="/lovable-uploads/09e55504-38cb-49bf-9019-48c875713ca7.png" 
-            alt="Oranget Logo" 
-            className="w-8 h-8 object-contain"
-          />
-          <h1 className="font-fredoka text-xl text-orange-600">Oranget</h1>
+          <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center border-2 border-white shadow-sm relative">
+            {/* Blook face */}
+            <div className="w-1.5 h-1.5 bg-white rounded-full absolute top-1.5 left-1.5"></div>
+            <div className="w-1.5 h-1.5 bg-white rounded-full absolute top-1.5 right-1.5"></div>
+            <div className="w-0.5 h-0.5 bg-orange-800 rounded-full absolute top-2 left-2"></div>
+            <div className="w-0.5 h-0.5 bg-orange-800 rounded-full absolute top-2 right-2"></div>
+            <div className="w-2 h-1 bg-orange-800 rounded-full absolute bottom-1.5"></div>
+          </div>
+          <h1 className="font-fredoka text-xl text-white font-bold">Oranget</h1>
         </div>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="bg-orange-500">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-orange-700 font-fredoka font-bold">Game Menu</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-orange-100 font-fredoka font-bold">Game Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton 
                     asChild 
-                    className="hover:bg-orange-50 hover:text-orange-700 data-[active=true]:bg-orange-100 data-[active=true]:text-orange-800 rounded-xl font-fredoka"
+                    className="hover:bg-orange-600 hover:text-white data-[active=true]:bg-orange-600 data-[active=true]:text-white rounded-xl font-fredoka text-orange-100"
                   >
                     <a href={item.url} className="flex items-center space-x-3">
                       <item.icon className="w-5 h-5" />

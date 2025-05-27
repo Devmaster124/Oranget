@@ -17,7 +17,7 @@ export function TokenDisplay({ amount, size = 'md', className = "" }: TokenDispl
       <div className="w-6 h-6 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center border-2 border-orange-300 shadow-sm">
         <span className="text-white text-xs font-fredoka font-bold">T</span>
       </div>
-      <span className="font-bold text-orange-700">{amount.toLocaleString()}</span>
+      <span className="font-fredoka font-bold text-orange-600">{amount.toLocaleString()}</span>
     </div>
   )
 }
