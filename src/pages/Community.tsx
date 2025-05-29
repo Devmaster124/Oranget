@@ -7,24 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Send, Users } from "lucide-react"
-import { initializeApp } from 'firebase/app'
-import { getDatabase, ref, push, onChildAdded, DatabaseReference } from 'firebase/database'
-
-// Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyDV9tQXgzqxUayhvc384tTLOwy0QOEZVcU",
-  authDomain: "chat-e6c93.firebaseapp.com",
-  databaseURL: "https://chat-e6c93-default-rtdb.firebaseio.com",
-  projectId: "chat-e6c93",
-  storageBucket: "chat-e6c93.firebasestorage.app",
-  messagingSenderId: "131547791719",
-  appId: "1:131547791719:web:2f567033f028810345afc2",
-  measurementId: "G-VY49LNJJLG"
-}
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig)
-const database = getDatabase(app)
+import { useAuth } from '@/hooks/useAuth'
 
 interface Message {
   id: string
@@ -36,11 +19,10 @@ interface Message {
 export default function Community() {
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState('')
-  const [username] = useState('Player' + Math.floor(Math.random() * 1000))
   const [onlineUsers] = useState(Math.floor(Math.random() * 200) + 50)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const chatRef = useRef<DatabaseReference>()
+  const { user } = useAuth()
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -51,52 +33,35 @@ export default function Community() {
   }, [messages])
 
   useEffect(() => {
-    // Initialize Firebase chat reference
-    chatRef.current = ref(database, 'oranget-chat/')
-    
-    // Listen for new messages
-    const unsubscribe = onChildAdded(chatRef.current, (snapshot) => {
-      const messageData = snapshot.val()
-      if (messageData) {
-        const message: Message = {
-          id: snapshot.key || Date.now().toString(),
-          username: messageData.username || 'Anonymous',
-          text: messageData.text || '',
-          timestamp: messageData.timestamp || Date.now()
-        }
-        
-        setMessages(prev => {
-          // Check if message already exists to avoid duplicates
-          if (prev.some(msg => msg.id === message.id)) {
-            return prev
-          }
-          return [...prev, message].slice(-50) // Keep last 50 messages
-        })
+    // Simulate some initial messages
+    const initialMessages: Message[] = [
+      {
+        id: '1',
+        username: 'GameMaster',
+        text: 'Welcome to Oranget Community Chat!',
+        timestamp: Date.now() - 60000
+      },
+      {
+        id: '2',
+        username: 'Player123',
+        text: 'Hey everyone! Ready to play some games?',
+        timestamp: Date.now() - 30000
       }
-    })
-
-    return () => {
-      // Cleanup listener
-      if (unsubscribe) {
-        // onChildAdded returns a function to unsubscribe
-      }
-    }
+    ]
+    setMessages(initialMessages)
   }, [])
 
   const sendMessage = async () => {
-    if (newMessage.trim() && chatRef.current) {
-      const messageData = {
-        username,
+    if (newMessage.trim() && user) {
+      const message: Message = {
+        id: Date.now().toString(),
+        username: user.email?.split('@')[0] || 'Player',
         text: newMessage.trim(),
         timestamp: Date.now()
       }
       
-      try {
-        await push(chatRef.current, messageData)
-        setNewMessage('')
-      } catch (error) {
-        console.error('Error sending message:', error)
-      }
+      setMessages(prev => [...prev, message].slice(-50))
+      setNewMessage('')
     }
   }
 
@@ -105,12 +70,6 @@ export default function Community() {
       e.preventDefault()
       sendMessage()
     }
-  }
-
-  const escapeHtml = (text: string) => {
-    const element = document.createElement('div')
-    element.textContent = text
-    return element.innerHTML
   }
 
   return (
@@ -138,7 +97,7 @@ export default function Community() {
             {/* Chat Interface */}
             <Card className="border-orange-200 bg-white/70 backdrop-blur-sm rounded-3xl border-2 h-[600px] flex flex-col">
               <CardHeader className="pb-3">
-                <CardTitle className="text-orange-700 font-fredoka text-xl">Live Chat - Powered by Firebase</CardTitle>
+                <CardTitle className="text-orange-700 font-fredoka text-xl">Live Chat</CardTitle>
               </CardHeader>
               <CardContent className="flex-1 flex flex-col p-4">
                 {/* Messages Area */}
@@ -147,7 +106,7 @@ export default function Community() {
                     {messages.map((msg) => (
                       <div key={msg.id} className="flex items-start space-x-3">
                         <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center border-2 border-white shadow-sm relative flex-shrink-0">
-                          {/* Blook face */}
+                          {/* Simple blook face */}
                           <div className="w-2 h-2 bg-white rounded-full absolute top-2 left-2"></div>
                           <div className="w-2 h-2 bg-white rounded-full absolute top-2 right-2"></div>
                           <div className="w-0.5 h-0.5 bg-orange-800 rounded-full absolute top-2.5 left-2.5"></div>
@@ -164,7 +123,7 @@ export default function Community() {
                             </span>
                           </div>
                           <div className="bg-orange-50 rounded-2xl px-4 py-2 border border-orange-200">
-                            <p className="text-orange-800 font-fredoka" dangerouslySetInnerHTML={{ __html: escapeHtml(msg.text) }}></p>
+                            <p className="text-orange-800 font-fredoka">{msg.text}</p>
                           </div>
                         </div>
                       </div>
@@ -193,7 +152,7 @@ export default function Community() {
                 </div>
                 
                 <p className="text-xs text-orange-400 mt-2 text-center font-fredoka">
-                  You're chatting as: <span className="font-bold text-orange-600">{username}</span> • Real-time chat powered by Firebase
+                  You're chatting as: <span className="font-bold text-orange-600">{user?.email?.split('@')[0] || 'Player'}</span>
                 </p>
               </CardContent>
             </Card>

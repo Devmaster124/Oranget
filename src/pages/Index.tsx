@@ -52,11 +52,7 @@ export default function Index() {
       <div className="relative z-10 container mx-auto px-6 py-12">
         <div className="text-center mb-12">
           <div className="mx-auto w-32 h-32 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center mb-6 border-4 border-white shadow-xl">
-            <img 
-              src="https://i.ibb.co/5GBHSTB/Triangulet-Game-Logo.png" 
-              alt="Oranget Logo" 
-              className="w-20 h-20"
-            />
+            <span className="text-white font-bold text-6xl">O</span>
           </div>
           <h2 className="text-5xl font-bold text-orange-600 mb-4">Welcome to Oranget!</h2>
           <p className="text-xl text-orange-500 max-w-2xl mx-auto">

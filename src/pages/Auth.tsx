@@ -97,11 +97,7 @@ export default function Auth() {
       <Card className="w-full max-w-md mx-4 bg-white/80 backdrop-blur-sm border-orange-200 border-2 rounded-3xl shadow-xl">
         <CardHeader className="text-center pb-6">
           <div className="mx-auto w-20 h-20 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center mb-4 border-4 border-white shadow-lg">
-            <img 
-              src="https://i.ibb.co/5GBHSTB/Triangulet-Game-Logo.png" 
-              alt="Oranget Logo" 
-              className="w-12 h-12"
-            />
+            <span className="text-white font-bold text-2xl">O</span>
           </div>
           <CardTitle className="text-2xl font-bold text-orange-600">
             {isLogin ? 'Welcome Back!' : 'Join Oranget'}
