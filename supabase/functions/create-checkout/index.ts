@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
@@ -43,16 +42,15 @@ serve(async (req) => {
           price_data: {
             currency: "usd",
             product_data: { 
-              name: "Oranget Premium Subscription",
-              description: "Unlock exclusive features: longer messages, higher rate limits, and premium styling!"
+              name: "Oranget Premium Access",
+              description: "One-time payment for lifetime premium access: longer messages, higher rate limits, and premium styling!"
             },
             unit_amount: 999, // $9.99
-            recurring: { interval: "month" },
           },
           quantity: 1,
         },
       ],
-      mode: "subscription",
+      mode: "payment", // Changed from subscription to one-time payment
       success_url: `${req.headers.get("origin")}/community?upgrade=success`,
       cancel_url: `${req.headers.get("origin")}/community?upgrade=cancelled`,
     });

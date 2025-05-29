@@ -1,5 +1,5 @@
-
 import { Calendar, Home, Users, Dice6, Heart, ShoppingCart } from "lucide-react"
+import { useLocation, useNavigate } from "react-router-dom"
 import {
   Sidebar,
   SidebarContent,
@@ -14,8 +14,8 @@ import {
 
 const menuItems = [
   {
-    title: "Profile",
-    url: "/profile",
+    title: "Home",
+    url: "/",
     icon: Home,
   },
   {
@@ -46,6 +46,9 @@ const menuItems = [
 ]
 
 export function AppSidebar() {
+  const location = useLocation()
+  const navigate = useNavigate()
+
   return (
     <Sidebar className="border-r border-orange-600 font-fredoka bg-orange-500">
       <SidebarHeader className="border-b border-orange-600 p-4 bg-orange-600">
@@ -69,13 +72,12 @@ export function AppSidebar() {
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton 
-                    asChild 
+                    onClick={() => navigate(item.url)}
                     className="hover:bg-orange-600 hover:text-white data-[active=true]:bg-orange-600 data-[active=true]:text-white rounded-xl font-fredoka text-orange-100 text-lg py-6 px-4 h-auto"
+                    data-active={location.pathname === item.url}
                   >
-                    <a href={item.url} className="flex items-center space-x-4">
-                      <item.icon className="w-7 h-7" />
-                      <span className="text-lg font-bold">{item.title}</span>
-                    </a>
+                    <item.icon className="w-7 h-7" />
+                    <span className="text-lg font-bold">{item.title}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
