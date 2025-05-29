@@ -9,6 +9,33 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      messages: {
+        Row: {
+          created_at: string
+          id: string
+          text: string
+          timestamp: string
+          user_id: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          text: string
+          timestamp?: string
+          user_id: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          text?: string
+          timestamp?: string
+          user_id?: string
+          username?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -30,6 +57,63 @@ export type Database = {
           tokens?: number | null
           updated_at?: string | null
           username?: string
+        }
+        Relationships: []
+      }
+      subscribers: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          stripe_customer_id: string | null
+          subscribed: boolean
+          subscription_end: string | null
+          subscription_tier: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          stripe_customer_id?: string | null
+          subscribed?: boolean
+          subscription_end?: string | null
+          subscription_tier?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          stripe_customer_id?: string | null
+          subscribed?: boolean
+          subscription_end?: string | null
+          subscription_tier?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_message_rate_limit: {
+        Row: {
+          last_message_at: string
+          message_count: number
+          reset_at: string
+          user_id: string
+        }
+        Insert: {
+          last_message_at?: string
+          message_count?: number
+          reset_at?: string
+          user_id: string
+        }
+        Update: {
+          last_message_at?: string
+          message_count?: number
+          reset_at?: string
+          user_id?: string
         }
         Relationships: []
       }

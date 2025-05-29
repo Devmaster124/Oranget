@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
 import { useNavigate } from 'react-router-dom'
-import { User, Lock, Mail } from 'lucide-react'
+import { User, Lock, Mail, Eye, EyeOff } from 'lucide-react'
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true)
@@ -14,11 +14,39 @@ export default function Auth() {
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [failedAttempts, setFailedAttempts] = useState(0)
   const { toast } = useToast()
   const navigate = useNavigate()
 
+  const validatePassword = (password: string): string | null => {
+    if (password.length < 8) {
+      return "Password must be at least 8 characters long"
+    }
+    if (!/(?=.*[a-z])/.test(password)) {
+      return "Password must contain at least one lowercase letter"
+    }
+    if (!/(?=.*[A-Z])/.test(password)) {
+      return "Password must contain at least one uppercase letter"
+    }
+    if (!/(?=.*\d)/.test(password)) {
+      return "Password must contain at least one number"
+    }
+    return null
+  }
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (failedAttempts >= 5) {
+      toast({
+        title: "Account temporarily locked",
+        description: "Too many failed attempts. Please try again later.",
+        variant: "destructive",
+      })
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -28,20 +56,30 @@ export default function Auth() {
           password,
         })
         
-        if (error) throw error
+        if (error) {
+          setFailedAttempts(prev => prev + 1)
+          throw error
+        }
         
+        setFailedAttempts(0)
         toast({
           title: "Welcome back!",
           description: "You have been logged in successfully.",
         })
         navigate('/')
       } else {
+        // Validate password for signup
+        const passwordError = validatePassword(password)
+        if (passwordError) {
+          throw new Error(passwordError)
+        }
+
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             data: {
-              username: username,
+              username: username || email.split('@')[0],
             }
           }
         })
@@ -54,10 +92,11 @@ export default function Auth() {
         })
         setIsLogin(true)
         setUsername('')
+        setPassword('')
       }
     } catch (error: any) {
       toast({
-        title: "Error",
+        title: "Authentication failed",
         description: error.message,
         variant: "destructive",
       })
@@ -117,7 +156,6 @@ export default function Auth() {
                   placeholder="Username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  required={!isLogin}
                   className="pl-10 border-orange-200 focus:border-orange-400 rounded-xl"
                 />
               </div>
@@ -138,19 +176,43 @@ export default function Auth() {
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-orange-400 w-5 h-5" />
               <Input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="pl-10 border-orange-200 focus:border-orange-400 rounded-xl"
+                className="pl-10 pr-10 border-orange-200 focus:border-orange-400 rounded-xl"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-orange-400"
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
             </div>
+
+            {!isLogin && (
+              <div className="text-xs text-orange-500 space-y-1">
+                <p>Password requirements:</p>
+                <ul className="list-disc list-inside space-y-1 text-orange-400">
+                  <li>At least 8 characters</li>
+                  <li>One uppercase and one lowercase letter</li>
+                  <li>At least one number</li>
+                </ul>
+              </div>
+            )}
+
+            {failedAttempts > 0 && (
+              <p className="text-red-500 text-sm text-center">
+                Failed attempts: {failedAttempts}/5
+              </p>
+            )}
 
             <Button
               type="submit"
-              disabled={loading}
-              className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-200"
+              disabled={loading || failedAttempts >= 5}
+              className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50"
             >
               {loading ? 'Loading...' : (isLogin ? 'Sign In' : 'Create Account')}
             </Button>
