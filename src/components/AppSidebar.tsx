@@ -1,4 +1,4 @@
-import { Calendar, Home, Users, Dice6, Heart, ShoppingCart } from "lucide-react"
+import { Calendar, Home, Users, Gamepad, Heart, ShoppingCart } from "lucide-react"
 import { useLocation, useNavigate } from "react-router-dom"
 import {
   Sidebar,
@@ -29,9 +29,9 @@ const menuItems = [
     icon: ShoppingCart,
   },
   {
-    title: "Casino",
-    url: "/casino",
-    icon: Dice6,
+    title: "Mini Games",
+    url: "/games",
+    icon: Gamepad,
   },
   {
     title: "Community",

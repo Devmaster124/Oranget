@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,6 +9,10 @@ import Index from "./pages/Index";
 import Community from "./pages/Community";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import MiniGames from "./pages/MiniGames";
+import SnakeGame from "./games/SnakeGame";
+import TetrisGame from "./games/TetrisGame";
+import MemoryGame from "./games/MemoryGame";
 
 const queryClient = new QueryClient();
 
@@ -32,7 +35,26 @@ const App = () => (
                 <Community />
               </ProtectedRoute>
             } />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="/games" element={
+              <ProtectedRoute>
+                <MiniGames />
+              </ProtectedRoute>
+            } />
+            <Route path="/games/snake" element={
+              <ProtectedRoute>
+                <SnakeGame />
+              </ProtectedRoute>
+            } />
+            <Route path="/games/tetris" element={
+              <ProtectedRoute>
+                <TetrisGame />
+              </ProtectedRoute>
+            } />
+            <Route path="/games/memory" element={
+              <ProtectedRoute>
+                <MemoryGame />
+              </ProtectedRoute>
+            } />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
