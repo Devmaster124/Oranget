@@ -1,23 +1,28 @@
 
+import { Coins } from 'lucide-react'
+
 interface TokenDisplayProps {
-  amount: number
-  size?: 'sm' | 'md' | 'lg'
+  tokens: number
+  orangeDrips?: number
   className?: string
 }
 
-export function TokenDisplay({ amount, size = 'md', className = "" }: TokenDisplayProps) {
-  const sizeClasses = {
-    sm: 'text-sm',
-    md: 'text-base',
-    lg: 'text-lg'
-  }
-
+export function TokenDisplay({ tokens, orangeDrips = 0, className = "" }: TokenDisplayProps) {
   return (
-    <div className={`inline-flex items-center space-x-1 font-fredoka ${sizeClasses[size]} ${className}`}>
-      <div className="w-6 h-6 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center border-2 border-orange-300 shadow-sm">
-        <span className="text-white text-xs font-fredoka font-bold">T</span>
+    <div className={`flex items-center space-x-4 ${className}`}>
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl px-4 py-2 border-4 border-yellow-300 shadow-lg flex items-center space-x-2">
+        <Coins className="w-6 h-6 text-yellow-600" />
+        <span className="text-2xl font-black text-yellow-700">{tokens.toLocaleString()}</span>
+        <span className="text-yellow-600 font-bold">tokens</span>
       </div>
-      <span className="font-fredoka font-bold text-orange-600">{amount.toLocaleString()}</span>
+      
+      {orangeDrips > 0 && (
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl px-4 py-2 border-4 border-orange-300 shadow-lg flex items-center space-x-2">
+          <span className="text-2xl">🧡</span>
+          <span className="text-2xl font-black text-orange-700">{orangeDrips.toLocaleString()}</span>
+          <span className="text-orange-600 font-bold">drips</span>
+        </div>
+      )}
     </div>
   )
 }

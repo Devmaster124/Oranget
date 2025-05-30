@@ -1,52 +1,33 @@
 
-import { useState } from 'react'
-import { supabase } from '@/integrations/supabase/client'
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { supabase } from '@/integrations/supabase/client'
+import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/use-toast'
-import { useNavigate } from 'react-router-dom'
-import { User, Lock, Mail, Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, Mail, Lock, User, Sparkles } from 'lucide-react'
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
-  const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-  const [failedAttempts, setFailedAttempts] = useState(0)
-  const { toast } = useToast()
+  const [loading, setLoading] = useState(false)
+  const { user } = useAuth()
   const navigate = useNavigate()
+  const { toast } = useToast()
 
-  const validatePassword = (password: string): string | null => {
-    if (password.length < 8) {
-      return "Password must be at least 8 characters long"
+  useEffect(() => {
+    if (user) {
+      navigate('/')
     }
-    if (!/(?=.*[a-z])/.test(password)) {
-      return "Password must contain at least one lowercase letter"
-    }
-    if (!/(?=.*[A-Z])/.test(password)) {
-      return "Password must contain at least one uppercase letter"
-    }
-    if (!/(?=.*\d)/.test(password)) {
-      return "Password must contain at least one number"
-    }
-    return null
-  }
+  }, [user, navigate])
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
-    
-    if (failedAttempts >= 5) {
-      toast({
-        title: "Account temporarily locked",
-        description: "Too many failed attempts. Please try again later.",
-        variant: "destructive",
-      })
-      return
-    }
-
     setLoading(true)
 
     try {
@@ -55,50 +36,35 @@ export default function Auth() {
           email,
           password,
         })
+        if (error) throw error
         
-        if (error) {
-          setFailedAttempts(prev => prev + 1)
-          throw error
-        }
-        
-        setFailedAttempts(0)
         toast({
-          title: "Welcome back!",
-          description: "You have been logged in successfully.",
+          title: "Welcome back! 🎉",
+          description: "Successfully logged in to Oranget!",
         })
-        navigate('/')
       } else {
-        // Validate password for signup
-        const passwordError = validatePassword(password)
-        if (passwordError) {
-          throw new Error(passwordError)
-        }
-
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             data: {
-              username: username || email.split('@')[0],
+              username: username || email.split('@')[0]
             }
           }
         })
-        
         if (error) throw error
         
         toast({
-          title: "Account created!",
-          description: "You have been registered successfully. You can now log in.",
+          title: "Welcome to Oranget! 🧡",
+          description: "Your account has been created successfully!",
         })
-        setIsLogin(true)
-        setUsername('')
-        setPassword('')
       }
     } catch (error: any) {
+      console.error('Auth error:', error)
       toast({
-        title: "Authentication failed",
-        description: error.message,
-        variant: "destructive",
+        title: "Oops! Something went wrong",
+        description: error.message || 'An error occurred during authentication',
+        variant: 'destructive'
       })
     } finally {
       setLoading(false)
@@ -106,129 +72,150 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center font-fredoka">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div 
-          className="w-full h-full"
-          style={{
-            backgroundImage: 'url("https://i.ibb.co/d7GK1cC/background.png")',
-            animation: 'animatedBackground 9s linear infinite'
-          }}
-        />
+    <div className="min-h-screen bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 flex items-center justify-center p-4 font-fredoka relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-4 h-4 bg-white/20 rounded-full animate-bounce"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 3}s`,
+              animationDuration: `${2 + Math.random() * 2}s`
+            }}
+          />
+        ))}
       </div>
 
-      {/* Navigation */}
-      <div className="absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-10">
-        <a href="/" className="text-3xl font-bold text-orange-600 hover:text-orange-700 transition-colors">
-          Oranget
-        </a>
-        <Button
-          variant="outline"
-          onClick={() => setIsLogin(!isLogin)}
-          className="border-orange-300 text-orange-600 hover:bg-orange-50"
-        >
-          {isLogin ? 'Need an account?' : 'Already have an account?'}
-        </Button>
-      </div>
-
-      {/* Auth Form */}
-      <Card className="w-full max-w-md mx-4 bg-white/80 backdrop-blur-sm border-orange-200 border-2 rounded-3xl shadow-xl">
-        <CardHeader className="text-center pb-6">
-          <div className="mx-auto w-20 h-20 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center mb-4 border-4 border-white shadow-lg">
-            <span className="text-white font-bold text-2xl">O</span>
+      <div className="w-full max-w-md relative z-10">
+        {/* Logo Section */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center space-x-4 bg-white/20 backdrop-blur-sm rounded-3xl px-8 py-4 border-4 border-white/30 shadow-2xl">
+            <div className="w-16 h-16 bg-gradient-to-br from-orange-300 to-orange-500 rounded-2xl flex items-center justify-center border-4 border-white shadow-lg relative transform hover:rotate-12 transition-transform duration-500">
+              {/* Animated Blook Face */}
+              <div className="w-4 h-4 bg-white rounded-full absolute top-2 left-2 animate-pulse"></div>
+              <div className="w-4 h-4 bg-white rounded-full absolute top-2 right-2 animate-pulse"></div>
+              <div className="w-1 h-1 bg-orange-800 rounded-full absolute top-3 left-3"></div>
+              <div className="w-1 h-1 bg-orange-800 rounded-full absolute top-3 right-3"></div>
+              <div className="w-5 h-2 bg-orange-800 rounded-full absolute bottom-2 opacity-80"></div>
+            </div>
+            <div>
+              <h1 className="text-4xl font-black text-white drop-shadow-2xl tracking-wider">Oranget</h1>
+              <p className="text-white/90 font-bold text-lg">Your Gaming World</p>
+            </div>
           </div>
-          <CardTitle className="text-2xl font-bold text-orange-600">
-            {isLogin ? 'Welcome Back!' : 'Join Oranget'}
-          </CardTitle>
-          <p className="text-orange-500 text-sm">
-            {isLogin ? 'Sign in to continue your adventure' : 'Create your account to get started'}
-          </p>
-        </CardHeader>
+        </div>
 
-        <CardContent>
-          <form onSubmit={handleAuth} className="space-y-4">
-            {!isLogin && (
+        {/* Auth Card */}
+        <Card className="bg-white/95 backdrop-blur-sm border-4 border-orange-200 rounded-3xl shadow-2xl overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-orange-500 to-orange-600 text-white text-center border-b-4 border-orange-300">
+            <CardTitle className="text-3xl font-black flex items-center justify-center space-x-2">
+              <Sparkles className="w-8 h-8" />
+              <span>{isLogin ? 'Welcome Back!' : 'Join Oranget!'}</span>
+            </CardTitle>
+            <p className="text-orange-100 font-bold text-lg">
+              {isLogin ? 'Ready to continue your adventure?' : 'Start your gaming journey today!'}
+            </p>
+          </CardHeader>
+          
+          <CardContent className="p-8">
+            <form onSubmit={handleAuth} className="space-y-6">
+              {!isLogin && (
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <User className="h-6 w-6 text-orange-500" />
+                  </div>
+                  <Input
+                    type="text"
+                    placeholder="Choose a username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="pl-12 h-14 text-lg font-bold border-4 border-orange-200 rounded-2xl focus:border-orange-400 bg-orange-50/50"
+                    required={!isLogin}
+                  />
+                </div>
+              )}
+              
               <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-orange-400 w-5 h-5" />
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Mail className="h-6 w-6 text-orange-500" />
+                </div>
                 <Input
-                  type="text"
-                  placeholder="Username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="pl-10 border-orange-200 focus:border-orange-400 rounded-xl"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="pl-12 h-14 text-lg font-bold border-4 border-orange-200 rounded-2xl focus:border-orange-400 bg-orange-50/50"
+                  required
                 />
               </div>
-            )}
-
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-orange-400 w-5 h-5" />
-              <Input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="pl-10 border-orange-200 focus:border-orange-400 rounded-xl"
-              />
-            </div>
-
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-orange-400 w-5 h-5" />
-              <Input
-                type={showPassword ? "text" : "password"}
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="pl-10 pr-10 border-orange-200 focus:border-orange-400 rounded-xl"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-orange-400"
-              >
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-              </button>
-            </div>
-
-            {!isLogin && (
-              <div className="text-xs text-orange-500 space-y-1">
-                <p>Password requirements:</p>
-                <ul className="list-disc list-inside space-y-1 text-orange-400">
-                  <li>At least 8 characters</li>
-                  <li>One uppercase and one lowercase letter</li>
-                  <li>At least one number</li>
-                </ul>
+              
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Lock className="h-6 w-6 text-orange-500" />
+                </div>
+                <Input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="pl-12 pr-12 h-14 text-lg font-bold border-4 border-orange-200 rounded-2xl focus:border-orange-400 bg-orange-50/50"
+                  required
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-6 w-6 text-orange-500 hover:text-orange-600" />
+                  ) : (
+                    <Eye className="h-6 w-6 text-orange-500 hover:text-orange-600" />
+                  )}
+                </button>
               </div>
-            )}
-
-            {failedAttempts > 0 && (
-              <p className="text-red-500 text-sm text-center">
-                Failed attempts: {failedAttempts}/5
+              
+              <Button 
+                type="submit" 
+                disabled={loading}
+                className="w-full h-16 text-xl font-black bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-2xl border-4 border-orange-300 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              >
+                {loading ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>{isLogin ? 'Logging In...' : 'Creating Account...'}</span>
+                  </div>
+                ) : (
+                  <span>{isLogin ? '🚀 Log In' : '✨ Create Account'}</span>
+                )}
+              </Button>
+            </form>
+            
+            <div className="mt-8 text-center">
+              <p className="text-orange-600 font-bold">
+                {isLogin ? "Don't have an account yet?" : 'Already have an account?'}
               </p>
-            )}
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setIsLogin(!isLogin)}
+                className="mt-2 text-orange-600 hover:text-orange-700 font-black text-lg hover:bg-orange-100 rounded-xl"
+              >
+                {isLogin ? '🎮 Join Oranget' : '🏠 Back to Login'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
-            <Button
-              type="submit"
-              disabled={loading || failedAttempts >= 5}
-              className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50"
-            >
-              {loading ? 'Loading...' : (isLogin ? 'Sign In' : 'Create Account')}
-            </Button>
-          </form>
-
-          <div className="mt-6 text-center">
-            <button
-              type="button"
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-orange-500 hover:text-orange-600 text-sm font-medium transition-colors"
-            >
-              {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
-            </button>
-          </div>
-        </CardContent>
-      </Card>
+        {/* Fun Footer */}
+        <div className="text-center mt-8">
+          <p className="text-white/90 font-bold text-lg drop-shadow-lg">
+            🧡 Join thousands of players worldwide! 🧡
+          </p>
+        </div>
+      </div>
     </div>
   )
 }

@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react'
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/AppSidebar"
@@ -6,85 +5,61 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Send, Users, Crown } from "lucide-react"
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
-import { Badge } from "@/components/ui/badge"
-import { useQuery } from '@tanstack/react-query'
+import { Send, Users, MessageCircle, Crown } from 'lucide-react'
 
 interface Message {
   id: string
-  username: string
   text: string
-  timestamp: string
+  username: string
   user_id: string
-}
-
-interface UserSubscription {
-  subscribed: boolean
-  subscription_tier: string | null
+  created_at: string
 }
 
 export default function Community() {
-  const [messages, setMessages] = useState<Message[]>([])
-  const [newMessage, setNewMessage] = useState('')
-  const [onlineUsers] = useState(Math.floor(Math.random() * 200) + 50)
-  const scrollAreaRef = useRef<HTMLDivElement>(null)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
   const { user } = useAuth()
   const { toast } = useToast()
+  const [messages, setMessages] = useState<Message[]>([])
+  const [newMessage, setNewMessage] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [sending, setSending] = useState(false)
+  const scrollAreaRef = useRef<HTMLDivElement>(null)
+  const [onlineUsers] = useState(Math.floor(Math.random() * 500) + 100)
 
-  // Fetch user subscription status
-  const { data: subscription } = useQuery({
-    queryKey: ['subscription', user?.id],
-    queryFn: async () => {
-      if (!user) return null
-      const { data } = await supabase
-        .from('subscribers')
-        .select('subscribed, subscription_tier')
-        .eq('user_id', user.id)
-        .maybeSingle()
-      return data as UserSubscription | null
-    },
-    enabled: !!user
-  })
-
-  const isPremium = subscription?.subscribed || false
-  const maxMessageLength = isPremium ? 500 : 100
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }
+  useEffect(() => {
+    if (user) {
+      fetchMessages()
+      subscribeToMessages()
+    }
+  }, [user])
 
   useEffect(() => {
     scrollToBottom()
   }, [messages])
 
-  useEffect(() => {
-    if (!user) return
-
-    // Fetch initial messages
-    const fetchMessages = async () => {
+  const fetchMessages = async () => {
+    try {
       const { data, error } = await supabase
         .from('messages')
         .select('*')
-        .order('timestamp', { ascending: true })
-        .limit(50)
+        .order('created_at', { ascending: true })
+        .limit(100)
 
-      if (error) {
-        console.error('Error fetching messages:', error)
-        return
-      }
-
+      if (error) throw error
       setMessages(data || [])
+    } catch (error) {
+      console.error('Error fetching messages:', error)
+    } finally {
+      setLoading(false)
     }
+  }
 
-    fetchMessages()
-
-    // Set up real-time subscription
+  const subscribeToMessages = () => {
     const channel = supabase
-      .channel('messages')
+      .channel('messages_channel')
       .on(
         'postgres_changes',
         {
@@ -93,8 +68,7 @@ export default function Community() {
           table: 'messages'
         },
         (payload) => {
-          const newMessage = payload.new as Message
-          setMessages(prev => [...prev, newMessage].slice(-50))
+          setMessages(prev => [...prev, payload.new as Message])
         }
       )
       .subscribe()
@@ -102,234 +76,244 @@ export default function Community() {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [user])
+  }
 
-  const sendMessage = async () => {
-    if (!newMessage.trim() || !user) return
+  const scrollToBottom = () => {
+    if (scrollAreaRef.current) {
+      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]')
+      if (scrollContainer) {
+        scrollContainer.scrollTop = scrollContainer.scrollHeight
+      }
+    }
+  }
 
-    // Check message length
-    if (newMessage.trim().length > maxMessageLength) {
+  const checkSpamLimit = async () => {
+    try {
+      const { data, error } = await supabase.rpc('check_message_spam', {
+        user_id_param: user?.id
+      })
+      
+      if (error) throw error
+      return data
+    } catch (error) {
+      console.error('Error checking spam limit:', error)
+      return false
+    }
+  }
+
+  const updateRateLimit = async () => {
+    try {
+      const now = new Date().toISOString()
+      
+      // Get current rate limit data
+      const { data: currentData } = await supabase
+        .from('user_message_rate_limit')
+        .select('message_timestamps')
+        .eq('user_id', user?.id)
+        .single()
+      
+      let timestamps = currentData?.message_timestamps || []
+      
+      // Add current timestamp
+      timestamps.push(now)
+      
+      // Keep only timestamps from last 4.3 seconds
+      const cutoff = new Date(Date.now() - 4300).toISOString()
+      timestamps = timestamps.filter((ts: string) => ts > cutoff)
+      
+      // Upsert the rate limit record
+      await supabase
+        .from('user_message_rate_limit')
+        .upsert({
+          user_id: user?.id,
+          message_timestamps: timestamps
+        })
+    } catch (error) {
+      console.error('Error updating rate limit:', error)
+    }
+  }
+
+  const sendMessage = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newMessage.trim() || !user || sending) return
+
+    // Check spam limit
+    const isSpam = await checkSpamLimit()
+    if (isSpam) {
       toast({
-        title: "Message too long",
-        description: `Maximum ${maxMessageLength} characters allowed. ${isPremium ? '' : 'Upgrade to Premium for longer messages!'}`,
+        title: "Slow down! 🐌",
+        description: "You're sending messages too quickly. Please wait a moment.",
         variant: "destructive"
       })
       return
     }
 
+    setSending(true)
     try {
-      // Check rate limiting
-      const { data: rateLimitData } = await supabase
-        .from('user_message_rate_limit')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle()
-
-      const now = new Date()
-      
-      if (rateLimitData) {
-        const resetTime = new Date(rateLimitData.reset_at)
-        if (now < resetTime && rateLimitData.message_count >= (isPremium ? 10 : 5)) {
-          toast({
-            title: "Rate limit exceeded",
-            description: `Please wait before sending another message. ${isPremium ? '' : 'Premium users have higher limits!'}`,
-            variant: "destructive"
-          })
-          return
-        }
-      }
-
-      // Get username from profiles
+      // Get user profile for username
       const { data: profile } = await supabase
         .from('profiles')
         .select('username')
         .eq('id', user.id)
         .single()
 
-      const username = profile?.username || user.email?.split('@')[0] || 'Player'
-
-      // Insert message
       const { error } = await supabase
         .from('messages')
         .insert({
-          user_id: user.id,
-          username: username,
           text: newMessage.trim(),
-          timestamp: new Date().toISOString()
+          user_id: user.id,
+          username: profile?.username || 'Anonymous'
         })
 
       if (error) throw error
 
-      // Update rate limiting
+      // Update rate limit
+      await updateRateLimit()
+      
+      // Update user stats
       await supabase
-        .from('user_message_rate_limit')
-        .upsert({
-          user_id: user.id,
-          last_message_at: new Date().toISOString(),
-          message_count: rateLimitData ? rateLimitData.message_count + 1 : 1,
-          reset_at: rateLimitData && new Date(rateLimitData.reset_at) > now 
-            ? rateLimitData.reset_at 
-            : new Date(Date.now() + 60000).toISOString() // 1 minute from now
+        .from('profiles')
+        .update({ 
+          total_messages_sent: (profile?.total_messages_sent || 0) + 1
         })
+        .eq('id', user.id)
 
       setNewMessage('')
     } catch (error: any) {
+      console.error('Error sending message:', error)
       toast({
-        title: "Error sending message",
-        description: error.message,
+        title: "Failed to send message",
+        description: error.message || "Please try again.",
         variant: "destructive"
       })
+    } finally {
+      setSending(false)
     }
   }
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      sendMessage()
-    }
-  }
-
-  const handleUpgrade = async () => {
-    try {
-      const { data, error } = await supabase.functions.invoke('create-checkout')
-      if (error) throw error
-      
-      // Open Stripe checkout in a new tab
-      window.open(data.url, '_blank')
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive"
-      })
-    }
+  const formatTime = (timestamp: string) => {
+    return new Date(timestamp).toLocaleTimeString([], { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    })
   }
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-orange-50 to-orange-100 font-fredoka">
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-orange-50 via-orange-100 to-yellow-50 font-fredoka">
         <AppSidebar />
-        <main className="flex-1 p-6">
-          <div className="max-w-6xl mx-auto">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-8">
+        <main className="flex-1 flex flex-col">
+          {/* Header */}
+          <div className="p-6 border-b-4 border-orange-200 bg-white/70 backdrop-blur-sm">
+            <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <SidebarTrigger className="hover:bg-orange-100 rounded-xl" />
                 <div>
-                  <h1 className="text-4xl font-fredoka text-orange-600">Community Chat</h1>
-                  <p className="text-orange-500 mt-1 font-fredoka">Connect with other players in real-time!</p>
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-4">
-                {!isPremium && (
-                  <Button
-                    onClick={handleUpgrade}
-                    className="bg-gradient-to-r from-purple-500 to-purple-600 text-white hover:from-purple-600 hover:to-purple-700 rounded-full font-fredoka"
-                  >
-                    <Crown className="w-4 h-4 mr-2" />
-                    Upgrade to Premium
-                  </Button>
-                )}
-                
-                <div className="flex items-center space-x-2 bg-orange-500 text-white px-4 py-2 rounded-full">
-                  <Users className="w-5 h-5" />
-                  <span className="font-fredoka font-bold">{onlineUsers} Online</span>
+                  <h1 className="text-4xl font-fredoka text-orange-600 font-black drop-shadow-lg flex items-center">
+                    <Users className="w-10 h-10 mr-3" />
+                    Community Chat
+                  </h1>
+                  <p className="text-orange-500 mt-1 font-bold flex items-center">
+                    <div className="w-3 h-3 bg-green-500 rounded-full mr-2 animate-pulse"></div>
+                    {onlineUsers} players online • Chat freely with everyone!
+                  </p>
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* Premium Status */}
-            {isPremium && (
-              <Card className="mb-6 bg-gradient-to-r from-purple-100 to-purple-200 border-purple-300 border-2 rounded-3xl">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-center space-x-2">
-                    <Crown className="w-6 h-6 text-purple-600" />
-                    <span className="text-purple-700 font-fredoka font-bold text-lg">
-                      Premium Member - {subscription?.subscription_tier}
-                    </span>
-                    <Badge variant="secondary" className="bg-purple-600 text-white">
-                      Longer Messages • Higher Rate Limits
-                    </Badge>
+          {/* Chat Area */}
+          <div className="flex-1 flex flex-col p-6">
+            <Card className="flex-1 bg-white/80 backdrop-blur-sm border-4 border-orange-200 rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+              <CardHeader className="bg-gradient-to-r from-orange-500 to-orange-600 text-white border-b-4 border-orange-300">
+                <CardTitle className="text-2xl font-black flex items-center">
+                  <MessageCircle className="w-8 h-8 mr-3" />
+                  Global Chat Room
+                  <div className="ml-auto flex items-center space-x-2">
+                    <Crown className="w-6 h-6 text-yellow-300" />
+                    <span className="text-lg font-bold">Free for Everyone!</span>
                   </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Chat Interface */}
-            <Card className="border-orange-200 bg-white/70 backdrop-blur-sm rounded-3xl border-2 h-[600px] flex flex-col">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-orange-700 font-fredoka text-xl">Live Chat</CardTitle>
+                </CardTitle>
               </CardHeader>
-              <CardContent className="flex-1 flex flex-col p-4">
-                {/* Messages Area */}
-                <ScrollArea className="flex-1 pr-4 mb-4" ref={scrollAreaRef}>
-                  <div className="space-y-4">
-                    {messages.map((msg) => (
-                      <div key={msg.id} className="flex items-start space-x-3">
-                        <div className={`w-12 h-12 bg-gradient-to-br ${
-                          msg.user_id === user?.id 
-                            ? 'from-purple-400 to-purple-600' 
-                            : 'from-orange-400 to-orange-600'
-                        } rounded-full flex items-center justify-center border-2 border-white shadow-sm relative flex-shrink-0`}>
-                          {/* Simple avatar face */}
-                          <div className="w-2 h-2 bg-white rounded-full absolute top-2 left-2"></div>
-                          <div className="w-2 h-2 bg-white rounded-full absolute top-2 right-2"></div>
-                          <div className="w-0.5 h-0.5 bg-orange-800 rounded-full absolute top-2.5 left-2.5"></div>
-                          <div className="w-0.5 h-0.5 bg-orange-800 rounded-full absolute top-2.5 right-2.5"></div>
-                          <div className="w-3 h-1.5 bg-orange-800 rounded-full absolute bottom-2"></div>
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <span className={`font-fredoka font-bold ${
-                              msg.user_id === user?.id ? 'text-purple-600' : 'text-orange-600'
-                            }`}>
-                              {msg.username}
-                            </span>
-                            {msg.user_id === user?.id && isPremium && (
-                              <Crown className="w-4 h-4 text-purple-500" />
-                            )}
-                            <span className="text-xs text-orange-400 font-fredoka">
-                              {new Date(msg.timestamp).toLocaleTimeString()}
-                            </span>
-                          </div>
-                          <div className={`rounded-2xl px-4 py-2 border ${
-                            msg.user_id === user?.id 
-                              ? 'bg-purple-50 border-purple-200' 
-                              : 'bg-orange-50 border-orange-200'
-                          }`}>
-                            <p className="text-orange-800 font-fredoka">{msg.text}</p>
-                          </div>
-                        </div>
+              
+              <CardContent className="flex-1 flex flex-col p-0">
+                {/* Messages */}
+                <ScrollArea className="flex-1 p-6" ref={scrollAreaRef}>
+                  {loading ? (
+                    <div className="flex items-center justify-center h-64">
+                      <div className="text-center">
+                        <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                        <p className="text-orange-600 font-bold">Loading messages...</p>
                       </div>
-                    ))}
-                    <div ref={messagesEndRef} />
-                  </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {messages.map((message, index) => (
+                        <div 
+                          key={message.id}
+                          className={`flex items-start space-x-3 p-3 rounded-2xl transition-all duration-300 hover:bg-orange-50 ${
+                            message.user_id === user?.id ? 'bg-orange-100 ml-8' : 'mr-8'
+                          }`}
+                        >
+                          <Avatar className="w-10 h-10 border-2 border-orange-300 shadow-md">
+                            <AvatarFallback className="bg-gradient-to-br from-orange-400 to-orange-600 text-white font-black text-lg">
+                              {message.username[0]?.toUpperCase() || '?'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center space-x-2 mb-1">
+                              <span className="font-black text-orange-700">{message.username}</span>
+                              <span className="text-xs text-orange-500 font-bold">
+                                {formatTime(message.created_at)}
+                              </span>
+                              {message.user_id === user?.id && (
+                                <span className="text-xs bg-orange-200 text-orange-700 px-2 py-1 rounded-full font-bold">
+                                  You
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-gray-800 font-bold break-words">{message.text}</p>
+                          </div>
+                        </div>
+                      ))}
+                      {messages.length === 0 && !loading && (
+                        <div className="text-center py-12">
+                          <MessageCircle className="w-16 h-16 text-orange-300 mx-auto mb-4" />
+                          <p className="text-orange-500 font-bold text-xl">No messages yet!</p>
+                          <p className="text-orange-400 font-bold">Be the first to say hello! 👋</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </ScrollArea>
 
                 {/* Message Input */}
-                <div className="flex space-x-3">
-                  <Input
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder={`Type your message... (${newMessage.length}/${maxMessageLength})`}
-                    className="flex-1 border-orange-200 focus:border-orange-400 rounded-full font-fredoka"
-                    maxLength={maxMessageLength}
-                  />
-                  <Button
-                    onClick={sendMessage}
-                    disabled={!newMessage.trim()}
-                    className="bg-orange-500 hover:bg-orange-600 text-white rounded-full px-6 font-fredoka disabled:opacity-50"
-                  >
-                    <Send className="w-4 h-4" />
-                  </Button>
+                <div className="p-6 border-t-4 border-orange-200 bg-orange-50/50">
+                  <form onSubmit={sendMessage} className="flex space-x-3">
+                    <Input
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      placeholder="Type your message here... (no limits!)"
+                      className="flex-1 h-12 text-lg font-bold border-4 border-orange-200 rounded-2xl focus:border-orange-400 bg-white"
+                      disabled={sending}
+                      maxLength={2000}
+                    />
+                    <Button 
+                      type="submit" 
+                      disabled={!newMessage.trim() || sending}
+                      className="h-12 px-6 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-black rounded-2xl border-4 border-orange-300 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    >
+                      {sending ? (
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Send className="w-5 h-5" />
+                      )}
+                    </Button>
+                  </form>
+                  <p className="text-orange-500 text-sm font-bold mt-2">
+                    💬 Chat freely! Spam protection: max 10 messages per 4.3 seconds
+                  </p>
                 </div>
-                
-                <p className="text-xs text-orange-400 mt-2 text-center font-fredoka">
-                  You're chatting as: <span className="font-bold text-orange-600">{user?.email?.split('@')[0] || 'Player'}</span>
-                  {isPremium && <span className="text-purple-600 ml-2">👑 Premium</span>}
-                </p>
               </CardContent>
             </Card>
           </div>

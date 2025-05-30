@@ -8,7 +8,6 @@ interface AuthContextType {
   session: Session | null
   loading: boolean
   signOut: () => Promise<void>
-  checkSubscription: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -16,7 +15,6 @@ const AuthContext = createContext<AuthContextType>({
   session: null,
   loading: true,
   signOut: async () => {},
-  checkSubscription: async () => {},
 })
 
 export const useAuth = () => {
@@ -32,16 +30,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
 
-  const checkSubscription = async () => {
-    if (!session) return
-    
-    try {
-      await supabase.functions.invoke('check-subscription')
-    } catch (error) {
-      console.error('Error checking subscription:', error)
-    }
-  }
-
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -49,13 +37,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setSession(session)
         setUser(session?.user ?? null)
         setLoading(false)
-        
-        // Check subscription status when user logs in
-        if (event === 'SIGNED_IN' && session) {
-          setTimeout(() => {
-            checkSubscription()
-          }, 0)
-        }
       }
     )
 
@@ -64,12 +45,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setSession(session)
       setUser(session?.user ?? null)
       setLoading(false)
-      
-      if (session) {
-        setTimeout(() => {
-          checkSubscription()
-        }, 0)
-      }
     })
 
     return () => subscription.unsubscribe()
@@ -80,7 +55,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signOut, checkSubscription }}>
+    <AuthContext.Provider value={{ user, session, loading, signOut }}>
       {children}
     </AuthContext.Provider>
   )

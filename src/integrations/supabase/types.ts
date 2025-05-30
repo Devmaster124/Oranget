@@ -9,6 +9,115 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      blooks: {
+        Row: {
+          created_at: string | null
+          id: string
+          image_url: string | null
+          name: string
+          pack_id: string | null
+          rarity: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          name: string
+          pack_id?: string | null
+          rarity: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          pack_id?: string | null
+          rarity?: string
+        }
+        Relationships: []
+      }
+      game_session_players: {
+        Row: {
+          id: string
+          joined_at: string | null
+          position: number | null
+          score: number | null
+          session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          id?: string
+          joined_at?: string | null
+          position?: number | null
+          score?: number | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          id?: string
+          joined_at?: string | null
+          position?: number | null
+          score?: number | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_session_players_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "game_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      game_sessions: {
+        Row: {
+          created_at: string | null
+          current_players: number | null
+          finished_at: string | null
+          game_id: string | null
+          host_user_id: string | null
+          id: string
+          max_players: number | null
+          session_data: Json | null
+          started_at: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          current_players?: number | null
+          finished_at?: string | null
+          game_id?: string | null
+          host_user_id?: string | null
+          id?: string
+          max_players?: number | null
+          session_data?: Json | null
+          started_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          current_players?: number | null
+          finished_at?: string | null
+          game_id?: string | null
+          host_user_id?: string | null
+          id?: string
+          max_players?: number | null
+          session_data?: Json | null
+          started_at?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_sessions_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "mini_games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           created_at: string
@@ -36,83 +145,154 @@ export type Database = {
         }
         Relationships: []
       }
-      profiles: {
+      mini_games: {
         Row: {
           created_at: string | null
+          description: string | null
           id: string
+          image_url: string | null
+          max_players: number | null
+          name: string
+          route: string
+          type: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          max_players?: number | null
+          name: string
+          route: string
+          type: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          max_players?: number | null
+          name?: string
+          route?: string
+          type?: string
+        }
+        Relationships: []
+      }
+      packs: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          image_url: string | null
+          name: string
+          orange_drip_cost: number
+          rarity_weights: Json | null
+          token_cost: number
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name: string
+          orange_drip_cost?: number
+          rarity_weights?: Json | null
+          token_cost?: number
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          orange_drip_cost?: number
+          rarity_weights?: Json | null
+          token_cost?: number
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          blooks_unlocked: number | null
+          created_at: string | null
+          id: string
+          orange_drips: number | null
+          profile_picture: string | null
           tokens: number | null
+          total_chats_participated: number | null
+          total_messages_sent: number | null
           updated_at: string | null
           username: string
         }
         Insert: {
+          blooks_unlocked?: number | null
           created_at?: string | null
           id: string
+          orange_drips?: number | null
+          profile_picture?: string | null
           tokens?: number | null
+          total_chats_participated?: number | null
+          total_messages_sent?: number | null
           updated_at?: string | null
           username: string
         }
         Update: {
+          blooks_unlocked?: number | null
           created_at?: string | null
           id?: string
+          orange_drips?: number | null
+          profile_picture?: string | null
           tokens?: number | null
+          total_chats_participated?: number | null
+          total_messages_sent?: number | null
           updated_at?: string | null
           username?: string
         }
         Relationships: []
       }
-      subscribers: {
+      user_blooks: {
         Row: {
-          created_at: string
-          email: string
+          blook_id: string | null
           id: string
-          stripe_customer_id: string | null
-          subscribed: boolean
-          subscription_end: string | null
-          subscription_tier: string | null
-          updated_at: string
+          obtained_at: string | null
           user_id: string | null
         }
         Insert: {
-          created_at?: string
-          email: string
+          blook_id?: string | null
           id?: string
-          stripe_customer_id?: string | null
-          subscribed?: boolean
-          subscription_end?: string | null
-          subscription_tier?: string | null
-          updated_at?: string
+          obtained_at?: string | null
           user_id?: string | null
         }
         Update: {
-          created_at?: string
-          email?: string
+          blook_id?: string | null
           id?: string
-          stripe_customer_id?: string | null
-          subscribed?: boolean
-          subscription_end?: string | null
-          subscription_tier?: string | null
-          updated_at?: string
+          obtained_at?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_blooks_blook_id_fkey"
+            columns: ["blook_id"]
+            isOneToOne: false
+            referencedRelation: "blooks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_message_rate_limit: {
         Row: {
-          last_message_at: string
-          message_count: number
-          reset_at: string
+          created_at: string | null
+          message_timestamps: string[] | null
           user_id: string
         }
         Insert: {
-          last_message_at?: string
-          message_count?: number
-          reset_at?: string
+          created_at?: string | null
+          message_timestamps?: string[] | null
           user_id: string
         }
         Update: {
-          last_message_at?: string
-          message_count?: number
-          reset_at?: string
+          created_at?: string | null
+          message_timestamps?: string[] | null
           user_id?: string
         }
         Relationships: []
@@ -122,7 +302,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_message_spam: {
+        Args: { user_id_param: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
