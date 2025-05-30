@@ -36,6 +36,30 @@ export type Database = {
         }
         Relationships: []
       }
+      friends: {
+        Row: {
+          created_at: string
+          friend_id: string
+          id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          friend_id: string
+          id?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          friend_id?: string
+          id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       game_session_players: {
         Row: {
           id: string
@@ -247,6 +271,71 @@ export type Database = {
           total_messages_sent?: number | null
           updated_at?: string | null
           username?: string
+        }
+        Relationships: []
+      }
+      trade_messages: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          sender_id: string
+          trade_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          sender_id: string
+          trade_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          sender_id?: string
+          trade_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trade_messages_trade_id_fkey"
+            columns: ["trade_id"]
+            isOneToOne: false
+            referencedRelation: "trade_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trade_requests: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          receiver_blooks: Json | null
+          receiver_id: string
+          sender_blooks: Json | null
+          sender_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          receiver_blooks?: Json | null
+          receiver_id: string
+          sender_blooks?: Json | null
+          sender_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          receiver_blooks?: Json | null
+          receiver_id?: string
+          sender_blooks?: Json | null
+          sender_id?: string
+          status?: string
         }
         Relationships: []
       }
