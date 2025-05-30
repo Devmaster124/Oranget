@@ -1,4 +1,3 @@
-
 import { Calendar, Home, Users, Gamepad, Heart, ShoppingCart, User } from "lucide-react"
 import { useLocation, useNavigate } from "react-router-dom"
 import {
@@ -59,14 +58,11 @@ export function AppSidebar() {
     <Sidebar className="border-r-4 border-orange-400 font-fredoka bg-gradient-to-b from-orange-400 via-orange-500 to-orange-600 shadow-2xl">
       <SidebarHeader className="border-b-4 border-orange-300 p-6 bg-gradient-to-r from-orange-500 to-orange-600">
         <div className="flex items-center space-x-3">
-          <div className="w-12 h-12 bg-gradient-to-br from-orange-300 to-orange-500 rounded-2xl flex items-center justify-center border-4 border-white shadow-lg relative transform rotate-12 hover:rotate-0 transition-transform duration-500">
-            {/* Blook face with personality */}
-            <div className="w-3 h-3 bg-white rounded-full absolute top-2 left-2 animate-pulse"></div>
-            <div className="w-3 h-3 bg-white rounded-full absolute top-2 right-2 animate-pulse"></div>
-            <div className="w-1 h-1 bg-orange-800 rounded-full absolute top-3 left-3"></div>
-            <div className="w-1 h-1 bg-orange-800 rounded-full absolute top-3 right-3"></div>
-            <div className="w-4 h-2 bg-orange-800 rounded-full absolute bottom-2 opacity-80"></div>
-          </div>
+          <img 
+            src="/lovable-uploads/09e55504-38cb-49bf-9019-48c875713ca7.png"
+            alt="Oranget Logo"
+            className="w-12 h-12 rounded-full border-4 border-white shadow-lg"
+          />
           <div>
             <h1 className="font-fredoka text-3xl text-white font-black drop-shadow-lg tracking-wide">Oranget</h1>
             <p className="text-orange-100 text-sm font-bold opacity-90">Your Gaming World!</p>
@@ -75,9 +71,6 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent className="bg-gradient-to-b from-orange-500 to-orange-600 p-2">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-orange-100 font-fredoka font-black text-xl px-4 py-4 drop-shadow-md">
-            🎮 Adventure Menu
-          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-2">
               {menuItems.map((item) => (
