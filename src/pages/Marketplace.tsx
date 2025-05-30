@@ -4,162 +4,154 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/AppSidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { TokenDisplay } from "@/components/TokenDisplay"
 import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
-import { TokenDisplay } from '@/components/TokenDisplay'
-import { ShoppingCart, Sparkles, Coins, Gift } from 'lucide-react'
+import { ShoppingCart, Package, Sparkles } from 'lucide-react'
+
+interface Pack {
+  id: string
+  name: string
+  description: string
+  token_cost: number
+  orange_drip_cost: number
+  image_url: string
+}
+
+interface UserProfile {
+  tokens: number
+  orange_drips: number
+}
 
 export default function Marketplace() {
   const { user } = useAuth()
   const { toast } = useToast()
-  const [packs, setPacks] = useState<any[]>([])
-  const [profile, setProfile] = useState<any>(null)
+  const [packs, setPacks] = useState<Pack[]>([])
+  const [userProfile, setUserProfile] = useState<UserProfile>({ tokens: 0, orange_drips: 0 })
   const [loading, setLoading] = useState(true)
-  const [opening, setOpening] = useState<string | null>(null)
+  const [purchasing, setPurchasing] = useState<string | null>(null)
 
   useEffect(() => {
     if (user) {
-      fetchData()
+      fetchPacks()
+      fetchUserProfile()
     }
   }, [user])
 
-  const fetchData = async () => {
+  const fetchPacks = async () => {
     try {
-      // Fetch packs
-      const { data: packsData, error: packsError } = await supabase
+      const { data, error } = await supabase
         .from('packs')
         .select('*')
         .order('token_cost', { ascending: true })
-      
-      if (packsError) throw packsError
-      setPacks(packsData || [])
 
-      // Fetch profile
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user?.id)
-        .single()
-      
-      if (profileError) throw profileError
-      setProfile(profileData)
+      if (error) throw error
+      setPacks(data || [])
     } catch (error) {
-      console.error('Error fetching data:', error)
+      console.error('Error fetching packs:', error)
     } finally {
       setLoading(false)
     }
   }
 
-  const openPack = async (pack: any) => {
-    if (!profile || profile.tokens < pack.token_cost) {
+  const fetchUserProfile = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('tokens, orange_drips')
+        .eq('id', user?.id)
+        .single()
+
+      if (error) throw error
+      setUserProfile(data || { tokens: 0, orange_drips: 0 })
+    } catch (error) {
+      console.error('Error fetching user profile:', error)
+    }
+  }
+
+  const purchasePack = async (pack: Pack) => {
+    if (!user) return
+
+    const totalCost = pack.token_cost + pack.orange_drip_cost
+    if (userProfile.tokens < pack.token_cost || userProfile.orange_drips < pack.orange_drip_cost) {
       toast({
-        title: "Not enough tokens!",
-        description: `You need ${pack.token_cost} tokens to open this pack.`,
+        title: "Insufficient funds! 💸",
+        description: "You don't have enough tokens or orange drips for this pack.",
         variant: "destructive"
       })
       return
     }
 
-    setOpening(pack.id)
-    
+    setPurchasing(pack.id)
+
     try {
-      // Get blooks from this pack
-      const { data: packBlooks, error: blooksError } = await supabase
+      // Simulate pack opening with random blook
+      const { data: blooksInPack } = await supabase
         .from('blooks')
         .select('*')
         .eq('pack_id', pack.id)
-      
-      if (blooksError) throw blooksError
-      
-      if (!packBlooks || packBlooks.length === 0) {
-        throw new Error('No blooks in this pack')
+
+      if (!blooksInPack || blooksInPack.length === 0) {
+        throw new Error('No blooks available in this pack')
       }
 
-      // Simulate pack opening with weighted random selection
-      const weights = pack.rarity_weights || {
-        common: 70, uncommon: 20, rare: 7, epic: 2, legendary: 0.9, chroma: 0.1
-      }
-      
-      const totalWeight = Object.values(weights).reduce((a: any, b: any) => a + b, 0)
-      const random = Math.random() * totalWeight
-      let currentWeight = 0
-      let selectedRarity = 'common'
-      
-      for (const [rarity, weight] of Object.entries(weights)) {
-        currentWeight += weight as number
-        if (random <= currentWeight) {
-          selectedRarity = rarity
-          break
-        }
-      }
-      
-      // Get a random blook of the selected rarity
-      const rarityBlooks = packBlooks.filter(b => b.rarity === selectedRarity)
-      const selectedBlook = rarityBlooks[Math.floor(Math.random() * rarityBlooks.length)] || packBlooks[0]
-      
-      // Add blook to user's collection (if not already owned)
-      const { error: insertError } = await supabase
+      // Simple random selection (you can implement weighted random later)
+      const randomBlook = blooksInPack[Math.floor(Math.random() * blooksInPack.length)]
+
+      // Add blook to user's collection
+      const { error: blookError } = await supabase
         .from('user_blooks')
         .insert({
-          user_id: user?.id,
-          blook_id: selectedBlook.id
+          user_id: user.id,
+          blook_id: randomBlook.id
         })
-      
-      // Update user tokens and blooks count
-      const newTokens = profile.tokens - pack.token_cost
+
+      if (blookError && !blookError.message.includes('duplicate')) {
+        throw blookError
+      }
+
+      // Update user's tokens and orange drips
+      const newTokens = userProfile.tokens - pack.token_cost
+      const newOrangeDrips = userProfile.orange_drips - pack.orange_drip_cost
+
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ 
+        .update({
           tokens: newTokens,
-          blooks_unlocked: (profile.blooks_unlocked || 0) + (insertError ? 0 : 1)
+          orange_drips: newOrangeDrips
         })
-        .eq('id', user?.id)
-      
+        .eq('id', user.id)
+
       if (updateError) throw updateError
-      
+
       // Update local state
-      setProfile({
-        ...profile,
+      setUserProfile({
         tokens: newTokens,
-        blooks_unlocked: (profile.blooks_unlocked || 0) + (insertError ? 0 : 1)
+        orange_drips: newOrangeDrips
       })
-      
-      // Show result
+
       toast({
-        title: insertError ? "Duplicate blook!" : "Pack opened! 🎉",
-        description: insertError 
-          ? `You got ${selectedBlook.name} but you already own it!`
-          : `You got a ${selectedRarity} ${selectedBlook.name}!`,
+        title: "Pack opened! 🎉",
+        description: `You got a ${randomBlook.rarity} ${randomBlook.name}!`,
       })
-      
-    } catch (error) {
-      console.error('Error opening pack:', error)
+
+    } catch (error: any) {
+      console.error('Error purchasing pack:', error)
       toast({
-        title: "Error",
-        description: "Failed to open pack. Please try again.",
+        title: "Purchase failed",
+        description: error.message || "Please try again.",
         variant: "destructive"
       })
     } finally {
-      setOpening(null)
+      setPurchasing(null)
     }
   }
 
-  if (loading) {
-    return (
-      <SidebarProvider>
-        <div className="min-h-screen flex w-full bg-gradient-to-br from-orange-50 via-orange-100 to-yellow-50 font-fredoka">
-          <AppSidebar />
-          <main className="flex-1 p-6 flex items-center justify-center">
-            <div className="text-center">
-              <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-orange-600 text-xl font-bold">Loading marketplace...</p>
-            </div>
-          </main>
-        </div>
-      </SidebarProvider>
-    )
+  const getRarityColor = (cost: number) => {
+    if (cost <= 20) return 'from-green-400 to-green-600'
+    if (cost <= 25) return 'from-blue-400 to-blue-600'
+    return 'from-purple-400 to-purple-600'
   }
 
   return (
@@ -173,89 +165,78 @@ export default function Marketplace() {
               <div className="flex items-center space-x-4">
                 <SidebarTrigger className="hover:bg-orange-100 rounded-xl" />
                 <div>
-                  <h1 className="text-4xl font-fredoka text-orange-600 font-black drop-shadow-lg">
-                    🛒 Marketplace
+                  <h1 className="text-4xl font-fredoka text-orange-600 font-black drop-shadow-lg flex items-center">
+                    <ShoppingCart className="w-10 h-10 mr-3" />
+                    Marketplace
                   </h1>
-                  <p className="text-orange-500 mt-1 font-bold">Open packs and collect blooks!</p>
+                  <p className="text-orange-500 mt-1 font-bold">Open packs and discover new blooks!</p>
                 </div>
               </div>
-              {profile && <TokenDisplay tokens={profile.tokens} orangeDrips={profile.orange_drips} />}
+              <TokenDisplay tokens={userProfile.tokens} orangeDrips={userProfile.orange_drips} />
             </div>
 
             {/* Packs Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {packs.map((pack) => (
-                <Card 
-                  key={pack.id}
-                  className="bg-white/80 backdrop-blur-sm border-4 border-orange-200 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 overflow-hidden"
-                >
-                  <div className="relative h-48 overflow-hidden">
-                    <img 
-                      src={pack.image_url || 'https://images.unsplash.com/photo-1606041008023-472dfb5e530f?w=400'} 
-                      alt={pack.name}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                    <div className="absolute top-4 right-4">
-                      <Badge className="bg-orange-500 text-white border-2 border-orange-300 font-black text-lg px-3 py-1">
-                        <Gift className="w-4 h-4 mr-1" />
-                        PACK
-                      </Badge>
-                    </div>
-                  </div>
-                  
-                  <CardHeader>
-                    <CardTitle className="text-2xl text-orange-600 font-black">{pack.name}</CardTitle>
-                    <p className="text-orange-500 font-bold">{pack.description}</p>
-                  </CardHeader>
-                  
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <Coins className="w-6 h-6 text-yellow-600" />
-                        <span className="text-2xl font-black text-orange-700">{pack.token_cost}</span>
-                        <span className="text-orange-600 font-bold">tokens</span>
+            {loading ? (
+              <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                  <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                  <p className="text-orange-600 font-bold">Loading packs...</p>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {packs.map((pack) => (
+                  <Card key={pack.id} className="bg-white/80 backdrop-blur-sm border-4 border-orange-200 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 overflow-hidden">
+                    <CardHeader className={`bg-gradient-to-r ${getRarityColor(pack.token_cost)} text-white border-b-4 border-orange-300`}>
+                      <CardTitle className="text-2xl font-black flex items-center">
+                        <Package className="w-8 h-8 mr-3" />
+                        {pack.name}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-6">
+                      <div className="aspect-square bg-gradient-to-br from-orange-100 to-orange-200 rounded-2xl mb-4 flex items-center justify-center border-4 border-orange-300 overflow-hidden">
+                        {pack.image_url ? (
+                          <img src={pack.image_url} alt={pack.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="text-center">
+                            <Sparkles className="w-16 h-16 text-orange-500 mx-auto mb-2" />
+                            <span className="text-orange-600 font-black">Mystery Pack!</span>
+                          </div>
+                        )}
                       </div>
-                      {pack.orange_drip_cost > 0 && (
-                        <div className="flex items-center space-x-2">
-                          <span className="text-lg">🧡</span>
-                          <span className="text-lg font-black text-orange-700">{pack.orange_drip_cost}</span>
+                      
+                      <p className="text-gray-700 font-bold mb-4 text-center">{pack.description}</p>
+                      
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-orange-600 font-bold">Tokens:</span>
+                          <span className="text-yellow-600 font-black text-lg">{pack.token_cost}</span>
                         </div>
-                      )}
-                    </div>
-                    
-                    <Button 
-                      onClick={() => openPack(pack)}
-                      disabled={!profile || profile.tokens < pack.token_cost || opening === pack.id}
-                      className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-black text-lg py-3 rounded-2xl border-4 border-orange-300 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                    >
-                      {opening === pack.id ? (
-                        <div className="flex items-center space-x-2">
-                          <Sparkles className="w-5 h-5 animate-spin" />
-                          <span>Opening...</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center space-x-2">
-                          <ShoppingCart className="w-5 h-5" />
-                          <span>Open Pack</span>
-                        </div>
-                      )}
-                    </Button>
-                    
-                    {profile && profile.tokens < pack.token_cost && (
-                      <p className="text-red-500 text-sm font-bold text-center">
-                        Need {pack.token_cost - profile.tokens} more tokens!
-                      </p>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {packs.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-orange-500 text-xl font-bold">No packs available yet!</p>
-                <p className="text-orange-400 mt-2">Check back soon for new packs to open.</p>
+                        {pack.orange_drip_cost > 0 && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-orange-600 font-bold">Orange Drips:</span>
+                            <span className="text-orange-600 font-black text-lg">{pack.orange_drip_cost}</span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <Button
+                        onClick={() => purchasePack(pack)}
+                        disabled={purchasing === pack.id || userProfile.tokens < pack.token_cost || userProfile.orange_drips < pack.orange_drip_cost}
+                        className="w-full mt-6 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-black rounded-2xl py-3 border-4 border-orange-300 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                      >
+                        {purchasing === pack.id ? (
+                          <div className="flex items-center justify-center">
+                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                            Opening...
+                          </div>
+                        ) : (
+                          'Open Pack! 🎁'
+                        )}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             )}
           </div>

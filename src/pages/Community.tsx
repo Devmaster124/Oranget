@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react'
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/AppSidebar"
@@ -153,7 +154,7 @@ export default function Community() {
       // Get user profile for username
       const { data: profile } = await supabase
         .from('profiles')
-        .select('username')
+        .select('username, total_messages_sent')
         .eq('id', user.id)
         .single()
 
