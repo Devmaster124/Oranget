@@ -305,15 +305,11 @@ export default function Community() {
                 <CardTitle className="text-2xl font-black flex items-center">
                   <MessageCircle className="w-8 h-8 mr-3" />
                   Global Chat Room
-                  <div className="ml-auto flex items-center space-x-2">
-                    <Crown className="w-6 h-6 text-yellow-300" />
-                    <span className="text-lg font-bold">Free for Everyone!</span>
-                  </div>
                 </CardTitle>
               </CardHeader>
               
-              <CardContent className="flex-1 flex flex-col p-0">
-                <ScrollArea className="flex-1 p-6" ref={scrollAreaRef}>
+              <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
+                <ScrollArea className="flex-1 p-6 overflow-y-auto">
                   {loading ? (
                     <div className="flex items-center justify-center h-64">
                       <div className="text-center">
