@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react'
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/AppSidebar"
@@ -73,19 +72,25 @@ export default function Marketplace() {
   const purchasePack = async (pack: Pack) => {
     if (!user) return
 
-    const totalCost = pack.token_cost + pack.orange_drip_cost
-    if (userProfile.tokens < pack.token_cost || userProfile.orange_drips < pack.orange_drip_cost) {
-      toast({
-        title: "Insufficient funds! 💸",
-        description: "You don't have enough tokens or orange drips for this pack.",
-        variant: "destructive"
-      })
-      return
-    }
-
     setPurchasing(pack.id)
 
     try {
+      // Create pack opening animation overlay
+      const overlay = document.createElement('div')
+      overlay.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black/80'
+      document.body.appendChild(overlay)
+
+      // Add pack animation
+      const packElement = document.createElement('div')
+      packElement.className = 'w-64 h-64 bg-orange-500 rounded-lg transform transition-all duration-1000'
+      overlay.appendChild(packElement)
+
+      // Animate pack opening
+      setTimeout(() => {
+        packElement.style.transform = 'scale(1.2) rotate(720deg)'
+        packElement.style.opacity = '0'
+      }, 1000)
+
       // Simulate pack opening with random blook
       const { data: blooksInPack } = await supabase
         .from('blooks')
@@ -96,8 +101,19 @@ export default function Marketplace() {
         throw new Error('No blooks available in this pack')
       }
 
-      // Simple random selection (you can implement weighted random later)
       const randomBlook = blooksInPack[Math.floor(Math.random() * blooksInPack.length)]
+
+      // Show blook reveal animation
+      setTimeout(() => {
+        packElement.innerHTML = `
+          <div class="w-full h-full flex items-center justify-center">
+            <div class="text-6xl animate-bounce">${randomBlook.rarity === 'legendary' ? '⭐' : '✨'}</div>
+          </div>
+        `
+        packElement.style.transform = 'scale(1)'
+        packElement.style.opacity = '1'
+        packElement.style.backgroundColor = getRarityColor(randomBlook.rarity)
+      }, 2000)
 
       // Add blook to user's collection
       const { error: blookError } = await supabase
@@ -135,6 +151,11 @@ export default function Marketplace() {
         title: "Pack opened! 🎉",
         description: `You got a ${randomBlook.rarity} ${randomBlook.name}!`,
       })
+
+      // Remove overlay after animations
+      setTimeout(() => {
+        document.body.removeChild(overlay)
+      }, 4000)
 
     } catch (error: any) {
       console.error('Error purchasing pack:', error)
