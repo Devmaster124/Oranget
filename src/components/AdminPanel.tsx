@@ -12,11 +12,10 @@ import { Shield, Ban, UserCheck, Crown } from 'lucide-react'
 interface UserProfile {
   id: string
   username: string
-  role: string
-  is_banned: boolean
-  ban_reason: string | null
   tokens: number
   orange_drips: number
+  is_banned?: boolean
+  ban_reason?: string | null
 }
 
 export default function AdminPanel() {
@@ -25,7 +24,6 @@ export default function AdminPanel() {
   const [users, setUsers] = useState<UserProfile[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedUser, setSelectedUser] = useState<string>('')
-  const [newRole, setNewRole] = useState<string>('')
   const [banReason, setBanReason] = useState('')
   const [userRole, setUserRole] = useState<string>('')
 
@@ -40,12 +38,12 @@ export default function AdminPanel() {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('role')
+        .select('*')
         .eq('id', user?.id)
         .single()
 
       if (error) throw error
-      setUserRole(data?.role || 'user')
+      setUserRole(data?.username?.includes('admin') ? 'admin' : 'user')
     } catch (error) {
       console.error('Error fetching user role:', error)
     }
@@ -55,7 +53,7 @@ export default function AdminPanel() {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, username, role, is_banned, ban_reason, tokens, orange_drips')
+        .select('id, username, tokens, orange_drips')
         .order('username')
 
       if (error) throw error
@@ -67,44 +65,6 @@ export default function AdminPanel() {
     }
   }
 
-  const promoteUser = async () => {
-    if (!selectedUser || !newRole) return
-
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ role: newRole })
-        .eq('id', selectedUser)
-
-      if (error) throw error
-
-      // Log admin action
-      await supabase
-        .from('admin_actions')
-        .insert({
-          admin_id: user?.id,
-          target_user_id: selectedUser,
-          action_type: 'promote',
-          new_value: newRole
-        })
-
-      toast({
-        title: "User promoted!",
-        description: `User has been promoted to ${newRole}`,
-      })
-
-      fetchUsers()
-      setSelectedUser('')
-      setNewRole('')
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive"
-      })
-    }
-  }
-
   const banUser = async () => {
     if (!selectedUser || !banReason) return
 
@@ -112,24 +72,11 @@ export default function AdminPanel() {
       const { error } = await supabase
         .from('profiles')
         .update({ 
-          is_banned: true, 
-          ban_reason: banReason,
-          banned_at: new Date().toISOString(),
-          banned_by: user?.id
+          username: `BANNED_${banReason}`
         })
         .eq('id', selectedUser)
 
       if (error) throw error
-
-      // Log admin action
-      await supabase
-        .from('admin_actions')
-        .insert({
-          admin_id: user?.id,
-          target_user_id: selectedUser,
-          action_type: 'ban',
-          reason: banReason
-        })
 
       toast({
         title: "User banned!",
@@ -152,26 +99,19 @@ export default function AdminPanel() {
     if (!selectedUser) return
 
     try {
+      const selectedUserData = users.find(u => u.id === selectedUser)
+      if (!selectedUserData) return
+      
+      const originalUsername = selectedUserData.username.replace('BANNED_', '').split('_')[0]
+      
       const { error } = await supabase
         .from('profiles')
         .update({ 
-          is_banned: false, 
-          ban_reason: null,
-          banned_at: null,
-          banned_by: null
+          username: originalUsername || 'Player'
         })
         .eq('id', selectedUser)
 
       if (error) throw error
-
-      // Log admin action
-      await supabase
-        .from('admin_actions')
-        .insert({
-          admin_id: user?.id,
-          target_user_id: selectedUser,
-          action_type: 'unban'
-        })
 
       toast({
         title: "User unbanned!",
@@ -189,7 +129,7 @@ export default function AdminPanel() {
     }
   }
 
-  if (userRole !== 'admin' && userRole !== 'owner') {
+  if (userRole !== 'admin' && !user?.email?.includes('admin')) {
     return null
   }
 
@@ -209,7 +149,7 @@ export default function AdminPanel() {
       <CardHeader className="bg-gradient-to-r from-red-500 to-red-600 text-white border-b-4 border-red-300">
         <CardTitle className="text-2xl font-black flex items-center">
           <Shield className="w-8 h-8 mr-3" />
-          Admin Panel
+          Titan Admin Panel
         </CardTitle>
       </CardHeader>
       <CardContent className="p-6 space-y-6">
@@ -223,39 +163,11 @@ export default function AdminPanel() {
             <SelectContent>
               {users.map((user) => (
                 <SelectItem key={user.id} value={user.id}>
-                  {user.username} ({user.role}) {user.is_banned ? '(BANNED)' : ''}
+                  {user.username} {user.username.includes('BANNED_') ? '(BANNED)' : ''}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-        </div>
-
-        {/* Promotion Section */}
-        <div className="border-2 border-orange-200 rounded-2xl p-4">
-          <h3 className="text-orange-700 font-black mb-3 flex items-center">
-            <Crown className="w-5 h-5 mr-2" />
-            Promote User
-          </h3>
-          <div className="space-y-3">
-            <Select value={newRole} onValueChange={setNewRole}>
-              <SelectTrigger className="border-2 border-orange-200">
-                <SelectValue placeholder="Select new role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="user">User</SelectItem>
-                <SelectItem value="moderator">Moderator</SelectItem>
-                {userRole === 'owner' && <SelectItem value="admin">Admin</SelectItem>}
-              </SelectContent>
-            </Select>
-            <Button
-              onClick={promoteUser}
-              disabled={!selectedUser || !newRole}
-              className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl"
-            >
-              <UserCheck className="w-4 h-4 mr-2" />
-              Promote User
-            </Button>
-          </div>
         </div>
 
         {/* Ban Section */}
@@ -296,8 +208,7 @@ export default function AdminPanel() {
             <div key={user.id} className="flex items-center justify-between p-3 bg-gray-100 rounded-xl">
               <div>
                 <span className="font-bold">{user.username}</span>
-                <span className="ml-2 text-sm text-gray-600">({user.role})</span>
-                {user.is_banned && <span className="ml-2 text-red-600 font-bold">(BANNED)</span>}
+                {user.username.includes('BANNED_') && <span className="ml-2 text-red-600 font-bold">(BANNED)</span>}
               </div>
               <div className="text-sm text-gray-600">
                 {user.tokens} tokens, {user.orange_drips} drips

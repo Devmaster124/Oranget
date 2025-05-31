@@ -27,7 +27,7 @@ export default function Auth() {
   const checkIfBanned = async (userId: string) => {
     const { data, error } = await supabase
       .from('profiles')
-      .select('is_banned, ban_reason')
+      .select('username')
       .eq('id', userId)
       .single()
 
@@ -36,11 +36,12 @@ export default function Auth() {
       return false
     }
 
-    if (data?.is_banned) {
+    if (data?.username?.includes('BANNED_')) {
       await supabase.auth.signOut()
+      const banReason = data.username.replace('BANNED_', '')
       toast({
         title: "Account Banned",
-        description: `Your account has been banned. Reason: ${data.ban_reason || 'No reason provided'}`,
+        description: `Your account has been banned. Reason: ${banReason || 'No reason provided'}`,
         variant: 'destructive'
       })
       return true
@@ -66,7 +67,7 @@ export default function Auth() {
           const isBanned = await checkIfBanned(data.user.id)
           if (!isBanned) {
             toast({
-              title: "Welcome back to Oranget!",
+              title: "Welcome back to Titan!",
               description: "Successfully logged in!",
             })
           }
@@ -84,7 +85,7 @@ export default function Auth() {
         if (error) throw error
         
         toast({
-          title: "Welcome to Oranget!",
+          title: "Welcome to Titan!",
           description: "Your account has been created successfully!",
         })
       }
@@ -144,11 +145,11 @@ export default function Auth() {
           <div className="inline-flex items-center space-x-4 bg-white/20 backdrop-blur-sm rounded-3xl px-8 py-4 border-4 border-white/30 shadow-2xl">
             <img 
               src="/lovable-uploads/09e55504-38cb-49bf-9019-48c875713ca7.png"
-              alt="Oranget Logo"
+              alt="Titan Logo"
               className="w-16 h-16 rounded-full border-4 border-white shadow-lg"
             />
             <div>
-              <h1 className="text-4xl font-black text-white drop-shadow-2xl tracking-wider">Oranget</h1>
+              <h1 className="text-4xl font-black text-white drop-shadow-2xl tracking-wider">Titan</h1>
               <p className="text-white/90 font-bold text-lg">Gaming Titan Platform</p>
             </div>
           </div>
@@ -205,7 +206,7 @@ export default function Auth() {
                     <span>{isLogin ? 'Logging In...' : 'Creating Account...'}</span>
                   </div>
                 ) : (
-                  <span>{isLogin ? 'Enter Game' : 'Become Titan'}</span>
+                  <span>{isLogin ? 'Enter Titan' : 'Become Titan'}</span>
                 )}
               </Button>
             </form>

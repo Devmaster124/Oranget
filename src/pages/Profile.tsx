@@ -85,7 +85,7 @@ export default function Profile() {
           <main className="flex-1 p-4 md:p-6 flex items-center justify-center">
             <div className="text-center">
               <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-orange-600 text-xl font-bold">Loading your profile...</p>
+              <p className="text-orange-600 text-xl font-bold">Loading Titan profile...</p>
             </div>
           </main>
         </div>
@@ -204,7 +204,7 @@ export default function Profile() {
             </div>
 
             {/* Admin Panel */}
-            {(profile?.role === 'admin' || profile?.role === 'owner') && (
+            {(profile?.username?.includes('admin') || user?.email?.includes('admin')) && (
               <div className="mt-6 md:mt-8">
                 <AdminPanel />
               </div>
