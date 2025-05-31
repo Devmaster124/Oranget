@@ -1,3 +1,4 @@
+
 import { Calendar, Home, Users, Gamepad, Heart, ShoppingCart, User } from "lucide-react"
 import { useLocation, useNavigate } from "react-router-dom"
 import {
@@ -55,7 +56,7 @@ export function AppSidebar() {
   const navigate = useNavigate()
 
   return (
-    <Sidebar className="border-r-4 border-orange-400 font-fredoka bg-gradient-to-b from-orange-400 via-orange-500 to-orange-600 shadow-2xl">
+    <Sidebar className="border-r-4 border-orange-400 font-titan bg-gradient-to-b from-orange-400 via-orange-500 to-orange-600 shadow-2xl">
       <SidebarHeader className="border-b-4 border-orange-300 p-6 bg-gradient-to-r from-orange-500 to-orange-600">
         <div className="flex items-center space-x-3">
           <img 
@@ -64,7 +65,7 @@ export function AppSidebar() {
             className="w-12 h-12 rounded-full border-4 border-white shadow-lg"
           />
           <div>
-            <h1 className="font-fredoka text-3xl text-white font-black drop-shadow-lg tracking-wide">Oranget</h1>
+            <h1 className="font-titan text-3xl text-white font-black drop-shadow-lg tracking-wide">Oranget</h1>
             <p className="text-orange-100 text-sm font-bold opacity-90">Your Gaming World!</p>
           </div>
         </div>
@@ -77,7 +78,7 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton 
                     onClick={() => navigate(item.url)}
-                    className="hover:bg-orange-400 hover:text-white hover:scale-105 hover:shadow-lg data-[active=true]:bg-orange-400 data-[active=true]:text-white data-[active=true]:scale-105 data-[active=true]:shadow-lg rounded-2xl font-fredoka text-orange-100 text-lg py-4 px-4 h-auto transition-all duration-300 transform border-2 border-transparent hover:border-orange-200 group"
+                    className="hover:bg-orange-400 hover:text-white hover:scale-105 hover:shadow-lg data-[active=true]:bg-orange-400 data-[active=true]:text-white data-[active=true]:scale-105 data-[active=true]:shadow-lg rounded-2xl font-titan text-orange-100 text-lg py-4 px-4 h-auto transition-all duration-300 transform border-2 border-transparent hover:border-orange-200 group"
                     data-active={location.pathname === item.url}
                   >
                     <item.icon className="w-7 h-7 group-hover:animate-bounce" />

@@ -22,6 +22,7 @@ export default {
 			fontFamily: {
 				'fredoka': ['Fredoka One', 'cursive'],
 				'inter': ['Inter', 'sans-serif'],
+				'titan': ['Titan One', 'cursive'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',
