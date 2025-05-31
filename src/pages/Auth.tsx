@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
@@ -6,13 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/use-toast'
-import { User, Lock } from 'lucide-react'
+import { User, Lock, MessageSquare } from 'lucide-react'
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true)
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -20,9 +20,34 @@ export default function Auth() {
 
   useEffect(() => {
     if (user) {
-      navigate('/')
+      navigate('/profile')
     }
   }, [user, navigate])
+
+  const checkIfBanned = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('is_banned, ban_reason')
+      .eq('id', userId)
+      .single()
+
+    if (error) {
+      console.error('Error checking ban status:', error)
+      return false
+    }
+
+    if (data?.is_banned) {
+      await supabase.auth.signOut()
+      toast({
+        title: "Account Banned",
+        description: `Your account has been banned. Reason: ${data.ban_reason || 'No reason provided'}`,
+        variant: 'destructive'
+      })
+      return true
+    }
+
+    return false
+  }
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -30,18 +55,24 @@ export default function Auth() {
 
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email: `${username}@oranget.com`,
           password,
         })
+        
         if (error) throw error
         
-        toast({
-          title: "Welcome back!",
-          description: "Successfully logged in to Oranget!",
-        })
+        if (data.user) {
+          const isBanned = await checkIfBanned(data.user.id)
+          if (!isBanned) {
+            toast({
+              title: "Welcome back to Oranget!",
+              description: "Successfully logged in!",
+            })
+          }
+        }
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email: `${username}@oranget.com`,
           password,
           options: {
@@ -60,11 +91,33 @@ export default function Auth() {
     } catch (error: any) {
       console.error('Auth error:', error)
       toast({
-        title: "Oops! Something went wrong",
+        title: "Authentication Error",
         description: error.message || 'An error occurred during authentication',
         variant: 'destructive'
       })
     } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDiscordLogin = async () => {
+    setLoading(true)
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'discord',
+        options: {
+          redirectTo: `${window.location.origin}/profile`
+        }
+      })
+      
+      if (error) throw error
+    } catch (error: any) {
+      console.error('Discord auth error:', error)
+      toast({
+        title: "Discord Login Error",
+        description: error.message || 'Failed to login with Discord',
+        variant: 'destructive'
+      })
       setLoading(false)
     }
   }
@@ -96,7 +149,7 @@ export default function Auth() {
             />
             <div>
               <h1 className="text-4xl font-black text-white drop-shadow-2xl tracking-wider">Oranget</h1>
-              <p className="text-white/90 font-bold text-lg">Your Gaming World</p>
+              <p className="text-white/90 font-bold text-lg">Gaming Titan Platform</p>
             </div>
           </div>
         </div>
@@ -104,10 +157,10 @@ export default function Auth() {
         <Card className="bg-white/95 backdrop-blur-sm border-4 border-orange-200 rounded-3xl shadow-2xl overflow-hidden">
           <CardHeader className="bg-gradient-to-r from-orange-500 to-orange-600 text-white text-center border-b-4 border-orange-300">
             <CardTitle className="text-3xl font-black">
-              {isLogin ? 'Welcome Back!' : 'Join Oranget!'}
+              {isLogin ? 'Welcome Back, Titan!' : 'Join the Titans!'}
             </CardTitle>
             <p className="text-orange-100 font-bold text-lg">
-              {isLogin ? 'Ready to continue?' : 'Start your journey today!'}
+              {isLogin ? 'Ready to dominate?' : 'Become a gaming legend!'}
             </p>
           </CardHeader>
           
@@ -132,7 +185,7 @@ export default function Auth() {
                   <Lock className="h-6 w-6 text-orange-500" />
                 </div>
                 <Input
-                  type={showPassword ? 'text' : 'password'}
+                  type="password"
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -152,14 +205,35 @@ export default function Auth() {
                     <span>{isLogin ? 'Logging In...' : 'Creating Account...'}</span>
                   </div>
                 ) : (
-                  <span>{isLogin ? 'Log In' : 'Create Account'}</span>
+                  <span>{isLogin ? 'Enter Game' : 'Become Titan'}</span>
                 )}
               </Button>
             </form>
+
+            <div className="mt-6">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-orange-200"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white text-orange-600 font-bold">OR</span>
+                </div>
+              </div>
+
+              <Button
+                type="button"
+                onClick={handleDiscordLogin}
+                disabled={loading}
+                className="w-full mt-4 h-14 text-lg font-black bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-2xl border-4 border-indigo-300 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50"
+              >
+                <MessageSquare className="w-6 h-6 mr-3" />
+                Continue with Discord
+              </Button>
+            </div>
             
             <div className="mt-8 text-center">
               <p className="text-orange-600 font-bold">
-                {isLogin ? "Don't have an account yet?" : 'Already have an account?'}
+                {isLogin ? "New to the arena?" : 'Already a titan?'}
               </p>
               <Button
                 type="button"
@@ -167,7 +241,7 @@ export default function Auth() {
                 onClick={() => setIsLogin(!isLogin)}
                 className="mt-2 text-orange-600 hover:text-orange-700 font-black text-lg hover:bg-orange-100 rounded-xl"
               >
-                {isLogin ? 'Join Oranget' : 'Back to Login'}
+                {isLogin ? 'Join the Titans' : 'Back to Battle'}
               </Button>
             </div>
           </CardContent>

@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,6 +17,8 @@ import ExchangeCart from "./pages/ExchangeCart";
 import SnakeGame from "./games/SnakeGame";
 import TetrisGame from "./games/TetrisGame";
 import MemoryGame from "./games/MemoryGame";
+import FlappyGame from "./games/FlappyGame";
+import Game2048 from "./games/Game2048";
 
 const queryClient = new QueryClient();
 
@@ -78,6 +79,16 @@ const App = () => (
             <Route path="/games/memory" element={
               <ProtectedRoute>
                 <MemoryGame />
+              </ProtectedRoute>
+            } />
+            <Route path="/games/flappy" element={
+              <ProtectedRoute>
+                <FlappyGame />
+              </ProtectedRoute>
+            } />
+            <Route path="/games/2048" element={
+              <ProtectedRoute>
+                <Game2048 />
               </ProtectedRoute>
             } />
             <Route path="*" element={<NotFound />} />

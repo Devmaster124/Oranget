@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react'
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/AppSidebar"
@@ -10,6 +9,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
 import { Camera, Trophy, MessageCircle, Heart, Coins } from 'lucide-react'
+import AdminPanel from '@/components/AdminPanel'
 
 export default function Profile() {
   const { user } = useAuth()
@@ -82,7 +82,7 @@ export default function Profile() {
       <SidebarProvider>
         <div className="min-h-screen flex w-full bg-gradient-to-br from-orange-50 via-orange-100 to-yellow-50 font-fredoka">
           <AppSidebar />
-          <main className="flex-1 p-6 flex items-center justify-center">
+          <main className="flex-1 p-4 md:p-6 flex items-center justify-center">
             <div className="text-center">
               <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
               <p className="text-orange-600 text-xl font-bold">Loading your profile...</p>
@@ -97,50 +97,62 @@ export default function Profile() {
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-orange-50 via-orange-100 to-yellow-50 font-fredoka">
         <AppSidebar />
-        <main className="flex-1 p-6">
-          <div className="max-w-4xl mx-auto">
+        <main className="flex-1 p-4 md:p-6">
+          <div className="max-w-6xl mx-auto">
             {/* Header */}
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 md:mb-8 space-y-4 md:space-y-0">
               <div className="flex items-center space-x-4">
                 <SidebarTrigger className="hover:bg-orange-100 rounded-xl" />
                 <div>
-                  <h1 className="text-4xl font-fredoka text-orange-600 font-black drop-shadow-lg">
-                    🎭 Your Profile
+                  <h1 className="text-3xl md:text-4xl font-fredoka text-orange-600 font-black drop-shadow-lg">
+                    🏆 Titan Profile
                   </h1>
-                  <p className="text-orange-500 mt-1 font-bold">Customize your Oranget experience!</p>
+                  <p className="text-orange-500 mt-1 font-bold text-sm md:text-base">Master your gaming empire!</p>
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
               {/* Profile Info Card */}
               <Card className="bg-white/80 backdrop-blur-sm border-4 border-orange-200 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105">
                 <CardHeader className="text-center pb-4">
                   <div className="relative mx-auto mb-4">
-                    <Avatar className="w-32 h-32 border-6 border-orange-300 shadow-2xl">
+                    <Avatar className="w-24 h-24 md:w-32 md:h-32 border-6 border-orange-300 shadow-2xl">
                       <AvatarImage src={profile?.profile_picture} />
-                      <AvatarFallback className="bg-gradient-to-br from-orange-400 to-orange-600 text-white text-4xl font-black">
-                        {profile?.username?.[0]?.toUpperCase() || 'O'}
+                      <AvatarFallback className="bg-gradient-to-br from-orange-400 to-orange-600 text-white text-2xl md:text-4xl font-black">
+                        {profile?.username?.[0]?.toUpperCase() || 'T'}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center border-4 border-white shadow-lg hover:bg-orange-600 transition-colors cursor-pointer">
-                      <Camera className="w-5 h-5 text-white" />
+                    <div className="absolute -bottom-2 -right-2 w-8 h-8 md:w-10 md:h-10 bg-orange-500 rounded-full flex items-center justify-center border-4 border-white shadow-lg hover:bg-orange-600 transition-colors cursor-pointer">
+                      <Camera className="w-4 h-4 md:w-5 md:h-5 text-white" />
                     </div>
                   </div>
-                  <CardTitle className="text-3xl text-orange-600 font-black">{profile?.username}</CardTitle>
-                  <p className="text-orange-500 font-bold">{user?.email}</p>
+                  <CardTitle className="text-2xl md:text-3xl text-orange-600 font-black">{profile?.username}</CardTitle>
+                  <p className="text-orange-500 font-bold text-sm md:text-base">{user?.email}</p>
+                  {profile?.role && (
+                    <div className="mt-2">
+                      <span className={`px-4 py-2 rounded-full text-sm font-black ${
+                        profile.role === 'owner' ? 'bg-purple-500 text-white' :
+                        profile.role === 'admin' ? 'bg-red-500 text-white' :
+                        profile.role === 'moderator' ? 'bg-blue-500 text-white' :
+                        'bg-green-500 text-white'
+                      }`}>
+                        {profile.role.toUpperCase()}
+                      </span>
+                    </div>
+                  )}
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center p-4 bg-gradient-to-br from-orange-100 to-orange-200 rounded-2xl border-2 border-orange-300">
-                      <Coins className="w-8 h-8 text-orange-600 mx-auto mb-2" />
-                      <p className="text-2xl font-black text-orange-700">{profile?.tokens || 0}</p>
-                      <p className="text-orange-600 text-sm font-bold">Tokens</p>
+                    <div className="text-center p-3 md:p-4 bg-gradient-to-br from-orange-100 to-orange-200 rounded-2xl border-2 border-orange-300">
+                      <Coins className="w-6 h-6 md:w-8 md:h-8 text-orange-600 mx-auto mb-2" />
+                      <p className="text-xl md:text-2xl font-black text-orange-700">{profile?.tokens || 0}</p>
+                      <p className="text-orange-600 text-xs md:text-sm font-bold">Tokens</p>
                     </div>
-                    <div className="text-center p-4 bg-gradient-to-br from-yellow-100 to-orange-200 rounded-2xl border-2 border-orange-300">
-                      <div className="text-2xl mb-2">🧡</div>
-                      <p className="text-2xl font-black text-orange-700">{profile?.orange_drips || 0}</p>
-                      <p className="text-orange-600 text-sm font-bold">Orange Drips</p>
+                    <div className="text-center p-3 md:p-4 bg-gradient-to-br from-yellow-100 to-orange-200 rounded-2xl border-2 border-orange-300">
+                      <div className="text-xl md:text-2xl mb-2">🧡</div>
+                      <p className="text-xl md:text-2xl font-black text-orange-700">{profile?.orange_drips || 0}</p>
+                      <p className="text-orange-600 text-xs md:text-sm font-bold">Orange Drips</p>
                     </div>
                   </div>
                 </CardContent>
@@ -191,8 +203,15 @@ export default function Profile() {
               </Card>
             </div>
 
+            {/* Admin Panel */}
+            {(profile?.role === 'admin' || profile?.role === 'owner') && (
+              <div className="mt-6 md:mt-8">
+                <AdminPanel />
+              </div>
+            )}
+
             {/* Profile Picture Selection */}
-            <Card className="mt-8 bg-white/80 backdrop-blur-sm border-4 border-orange-200 rounded-3xl shadow-2xl">
+            <Card className="mt-6 md:mt-8 bg-white/80 backdrop-blur-sm border-4 border-orange-200 rounded-3xl shadow-2xl">
               <CardHeader>
                 <CardTitle className="text-2xl text-orange-600 font-black flex items-center">
                   <Camera className="w-8 h-8 mr-3" />
