@@ -28,13 +28,24 @@ export default function Auth() {
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!formData.username || !formData.password) {
+      toast({
+        title: "Missing Information",
+        description: "Please enter both username and password",
+        variant: "destructive"
+      })
+      return
+    }
+
     setLoading(true)
 
     try {
       if (isSignUp) {
-        // Create a simple account with username
-        const { error } = await supabase.auth.signUp({
-          email: `${formData.username}@oranget.local`,
+        // Create account with username as email (internal only)
+        const fakeEmail = `${formData.username}@oranget.internal`
+        
+        const { data, error } = await supabase.auth.signUp({
+          email: fakeEmail,
           password: formData.password,
           options: {
             data: {
@@ -43,20 +54,45 @@ export default function Auth() {
           }
         })
 
-        if (error) throw error
+        if (error) {
+          if (error.message.includes('already registered')) {
+            toast({
+              title: "Username Taken",
+              description: "This username is already taken. Please choose another.",
+              variant: "destructive"
+            })
+          } else {
+            throw error
+          }
+          return
+        }
 
         toast({
-          title: "Account created!",
+          title: "Account Created!",
           description: "Welcome to Oranget!",
         })
         navigate('/')
       } else {
+        // Sign in with username
+        const fakeEmail = `${formData.username}@oranget.internal`
+        
         const { error } = await supabase.auth.signInWithPassword({
-          email: `${formData.username}@oranget.local`,
+          email: fakeEmail,
           password: formData.password,
         })
 
-        if (error) throw error
+        if (error) {
+          if (error.message.includes('Invalid login credentials')) {
+            toast({
+              title: "Login Failed",
+              description: "Invalid username or password. Please try again.",
+              variant: "destructive"
+            })
+          } else {
+            throw error
+          }
+          return
+        }
 
         toast({
           title: "Welcome back!",
@@ -110,7 +146,7 @@ export default function Auth() {
             alt="Logo"
             className="w-24 h-24 mx-auto mb-4 rounded-full border-4 border-white shadow-2xl"
           />
-          <h1 className="text-5xl text-white font-black drop-shadow-lg">Gaming Hub</h1>
+          <h1 className="text-5xl text-white font-black drop-shadow-lg">Oranget</h1>
           <p className="text-orange-100 text-xl font-bold mt-2">Join the Adventure!</p>
         </div>
 

@@ -3,7 +3,7 @@ import { CapacitorConfig } from '@capacitor/core';
 
 const config: CapacitorConfig = {
   appId: 'app.lovable.c9eb9dfb83a045cd8dd862b3d1b997e2',
-  appName: 'iamorangeonschoolwifi',
+  appName: 'Oranget',
   webDir: 'dist',
   server: {
     url: 'https://c9eb9dfb-83a0-45cd-8dd8-62b3d1b997e2.lovableproject.com?forceHideBadge=true',

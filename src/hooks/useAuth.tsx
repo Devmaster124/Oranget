@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               .eq('id', session.user.id)
               .single()
 
-            if (error) {
+            if (error && error.code !== 'PGRST116') {
               console.error('Error checking user profile:', error)
               return
             }
