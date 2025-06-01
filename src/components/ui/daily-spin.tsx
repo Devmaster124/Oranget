@@ -29,21 +29,30 @@ export function DailySpin() {
     try {
       // Check if user already spun today
       const today = new Date().toDateString()
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('last_daily_spin')
+        .select('*')
         .eq('id', user.id)
         .single()
 
-      if (profile?.last_daily_spin && new Date(profile.last_daily_spin).toDateString() === today) {
-        toast({
-          title: "Already spun today!",
-          description: "Come back tomorrow for another spin!",
-          variant: "destructive"
-        })
-        setCanSpin(false)
-        setSpinning(false)
-        return
+      if (profileError) {
+        console.error('Error fetching profile:', profileError)
+        throw profileError
+      }
+
+      // Check last spin date if it exists
+      if (profile?.updated_at) {
+        const lastSpinDate = new Date(profile.updated_at).toDateString()
+        if (lastSpinDate === today) {
+          toast({
+            title: "Already spun today!",
+            description: "Come back tomorrow for another spin!",
+            variant: "destructive"
+          })
+          setCanSpin(false)
+          setSpinning(false)
+          return
+        }
       }
 
       // Calculate reward
@@ -59,18 +68,16 @@ export function DailySpin() {
         }
       }
 
-      // Update user tokens and last spin date
-      const { error } = await supabase.rpc('add_tokens_to_user', {
-        user_id_param: user.id,
-        token_amount: reward.tokens
-      })
-
-      if (error) throw error
-
-      await supabase
+      // Update user tokens
+      const { error: updateError } = await supabase
         .from('profiles')
-        .update({ last_daily_spin: new Date().toISOString() })
+        .update({ 
+          tokens: (profile?.tokens || 0) + reward.tokens,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', user.id)
+
+      if (updateError) throw updateError
 
       toast({
         title: "🎉 Daily Spin Complete!",
@@ -93,7 +100,7 @@ export function DailySpin() {
   return (
     <Card className="bg-gradient-to-br from-purple-500 to-pink-500 text-white border-4 border-purple-300">
       <CardHeader className="text-center">
-        <CardTitle className="flex items-center justify-center space-x-2 text-2xl">
+        <CardTitle className="flex items-center justify-center space-x-2 text-2xl font-titan">
           <Sparkles className="w-6 h-6" />
           <span>Daily Spin</span>
           <Sparkles className="w-6 h-6" />
@@ -102,14 +109,14 @@ export function DailySpin() {
       <CardContent className="text-center">
         <div className="mb-4">
           <Gift className="w-16 h-16 mx-auto mb-2" />
-          <p className="text-lg opacity-90">
+          <p className="text-lg opacity-90 font-titan">
             Spin once per day for free tokens!
           </p>
         </div>
         <Button
           onClick={handleSpin}
           disabled={!canSpin || spinning}
-          className="bg-white text-purple-600 hover:bg-purple-50 text-lg font-black py-3 px-6"
+          className="bg-white text-purple-600 hover:bg-purple-50 text-lg font-titan py-3 px-6"
         >
           {spinning ? "Spinning..." : canSpin ? "Spin Now!" : "Come Back Tomorrow"}
         </Button>
