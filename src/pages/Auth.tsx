@@ -1,62 +1,45 @@
 
 import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { useNavigate } from 'react-router-dom'
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { supabase } from '@/integrations/supabase/client'
+import { useNavigate } from 'react-router-dom'
 import { useToast } from '@/hooks/use-toast'
-import { Mail, Lock, User, ArrowRight, MessageCircle } from 'lucide-react'
+import { Eye, EyeOff, User, Mail, Lock, MessageCircle } from 'lucide-react'
 
 export default function Auth() {
-  const [isLogin, setIsLogin] = useState(true)
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [username, setUsername] = useState('')
-  const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
   const { toast } = useToast()
+  const [isSignUp, setIsSignUp] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    username: ''
+  })
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }))
+  }
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
-    
-    if (!email || !password || (!isLogin && !username)) {
-      toast({
-        title: "Missing fields",
-        description: "Please fill in all required fields",
-        variant: "destructive"
-      })
-      return
-    }
-
     setLoading(true)
 
     try {
-      if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        })
-
-        if (error) throw error
-
-        toast({
-          title: "Welcome back!",
-          description: "Successfully signed in",
-        })
-        
-        navigate('/profile')
-      } else {
-        const redirectUrl = `${window.location.origin}/`
-        
+      if (isSignUp) {
         const { error } = await supabase.auth.signUp({
-          email,
-          password,
+          email: formData.email,
+          password: formData.password,
           options: {
-            emailRedirectTo: redirectUrl,
+            emailRedirectTo: `${window.location.origin}/`,
             data: {
-              username: username
+              username: formData.username || formData.email.split('@')[0]
             }
           }
         })
@@ -65,14 +48,27 @@ export default function Auth() {
 
         toast({
           title: "Account created!",
-          description: "Please check your email to verify your account",
+          description: "Please check your email to verify your account.",
         })
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        })
+
+        if (error) throw error
+
+        toast({
+          title: "Welcome back!",
+          description: "You have successfully signed in.",
+        })
+        navigate('/')
       }
     } catch (error: any) {
       console.error('Auth error:', error)
       toast({
-        title: "Authentication failed",
-        description: error.message || "Please try again",
+        title: "Authentication Error",
+        description: error.message || "An error occurred during authentication.",
         variant: "destructive"
       })
     } finally {
@@ -80,172 +76,161 @@ export default function Auth() {
     }
   }
 
-  const handleDiscordAuth = async () => {
+  const handleDiscordLogin = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'discord',
         options: {
-          redirectTo: `${window.location.origin}/profile`
+          redirectTo: `${window.location.origin}/`
         }
       })
 
       if (error) throw error
+
+      toast({
+        title: "Redirecting to Discord...",
+        description: "You'll be redirected to Discord to complete the login.",
+      })
     } catch (error: any) {
       console.error('Discord auth error:', error)
       toast({
-        title: "Discord authentication failed",
-        description: error.message || "Please try again",
+        title: "Discord Login Error",
+        description: error.message || "Failed to connect with Discord.",
         variant: "destructive"
       })
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-orange-100 to-yellow-50 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        {[...Array(20)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute w-4 h-4 bg-orange-300/20 rounded-full animate-bounce"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 3}s`,
-              animationDuration: `${2 + Math.random() * 3}s`
-            }}
-          />
-        ))}
-      </div>
-
-      <div className="w-full max-w-md relative z-10">
-        {/* Header */}
+    <div className="min-h-screen bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 flex items-center justify-center p-6">
+      <div className="w-full max-w-md">
+        {/* Logo */}
         <div className="text-center mb-8">
-          <div className="mx-auto w-24 h-24 bg-gradient-to-br from-orange-400 to-orange-600 rounded-3xl flex items-center justify-center mb-6 border-6 border-white shadow-2xl transform hover:rotate-6 transition-transform duration-500">
-            <span className="text-white font-black text-4xl drop-shadow-lg">🧡</span>
-          </div>
-          <h1 className="text-5xl font-black text-orange-600 mb-2 drop-shadow-lg">Oranget</h1>
-          <p className="text-xl text-orange-500 font-bold">Join the Gaming Revolution!</p>
+          <img 
+            src="/lovable-uploads/09e55504-38cb-49bf-9019-48c875713ca7.png"
+            alt="Logo"
+            className="w-24 h-24 mx-auto mb-4 rounded-full border-4 border-white shadow-2xl"
+          />
+          <h1 className="text-5xl text-white font-black drop-shadow-lg">Gaming Hub</h1>
+          <p className="text-orange-100 text-xl font-bold mt-2">Join the Adventure!</p>
         </div>
 
-        <Card className="bg-white/90 backdrop-blur-lg border-4 border-orange-200 rounded-3xl shadow-2xl overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-orange-500 to-orange-600 text-white border-b-4 border-orange-300">
-            <CardTitle className="text-center text-2xl font-black">
-              {isLogin ? 'Welcome Back!' : 'Join Oranget!'}
+        {/* Auth Card */}
+        <Card className="bg-white/95 backdrop-blur-sm border-4 border-orange-200 rounded-3xl shadow-2xl">
+          <CardHeader className="text-center">
+            <CardTitle className="text-3xl text-orange-600 font-black">
+              {isSignUp ? 'Create Account' : 'Welcome Back'}
             </CardTitle>
-            <p className="text-center text-orange-100 font-bold">
-              {isLogin ? 'Sign in to continue your adventure' : 'Create your gaming account'}
+            <p className="text-orange-500 text-lg">
+              {isSignUp ? 'Join thousands of players!' : 'Sign in to continue your journey'}
             </p>
           </CardHeader>
-          
-          <CardContent className="p-8 space-y-6">
-            <form onSubmit={handleAuth} className="space-y-6">
-              {!isLogin && (
-                <div className="space-y-2">
-                  <Label htmlFor="username" className="text-orange-700 font-bold flex items-center">
-                    <User className="w-4 h-4 mr-2" />
-                    Username
-                  </Label>
+
+          <CardContent className="space-y-6">
+            <form onSubmit={handleAuth} className="space-y-4">
+              {isSignUp && (
+                <div className="relative">
+                  <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-orange-500 w-5 h-5" />
                   <Input
-                    id="username"
+                    name="username"
                     type="text"
-                    placeholder="Enter your username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    className="h-12 border-3 border-orange-200 rounded-xl focus:border-orange-400 text-lg font-bold"
-                    required={!isLogin}
+                    placeholder="Choose a username"
+                    value={formData.username}
+                    onChange={handleInputChange}
+                    required={isSignUp}
+                    className="pl-12 border-2 border-orange-200 rounded-2xl text-lg py-4 font-bold focus:border-orange-400"
                   />
                 </div>
               )}
-              
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-orange-700 font-bold flex items-center">
-                  <Mail className="w-4 h-4 mr-2" />
-                  Email
-                </Label>
+
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-orange-500 w-5 h-5" />
                 <Input
-                  id="email"
+                  name="email"
                   type="email"
                   placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="h-12 border-3 border-orange-200 rounded-xl focus:border-orange-400 text-lg font-bold"
+                  value={formData.email}
+                  onChange={handleInputChange}
                   required
+                  className="pl-12 border-2 border-orange-200 rounded-2xl text-lg py-4 font-bold focus:border-orange-400"
                 />
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-orange-700 font-bold flex items-center">
-                  <Lock className="w-4 h-4 mr-2" />
-                  Password
-                </Label>
+
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-orange-500 w-5 h-5" />
                 <Input
-                  id="password"
-                  type="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="h-12 border-3 border-orange-200 rounded-xl focus:border-orange-400 text-lg font-bold"
+                  value={formData.password}
+                  onChange={handleInputChange}
                   required
-                  minLength={6}
+                  className="pl-12 pr-12 border-2 border-orange-200 rounded-2xl text-lg py-4 font-bold focus:border-orange-400"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-orange-500"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
-              
+
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full h-12 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-black text-lg rounded-xl border-3 border-orange-300 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-xl font-black py-4 rounded-2xl"
               >
                 {loading ? (
                   <div className="flex items-center space-x-2">
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Please wait...</span>
+                    <span>{isSignUp ? 'Creating Account...' : 'Signing In...'}</span>
                   </div>
                 ) : (
-                  <div className="flex items-center space-x-2">
-                    <span>{isLogin ? 'Sign In' : 'Create Account'}</span>
-                    <ArrowRight className="w-5 h-5" />
-                  </div>
+                  isSignUp ? 'Create Account' : 'Sign In'
                 )}
               </Button>
             </form>
 
-            {/* Discord OAuth */}
+            {/* Discord Login */}
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t-2 border-orange-200" />
+                <div className="w-full border-t border-orange-200"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-orange-600 font-bold">or</span>
+                <span className="px-4 bg-white text-orange-500 font-bold">or continue with</span>
               </div>
             </div>
 
             <Button
-              onClick={handleDiscordAuth}
-              className="w-full h-12 bg-[#5865F2] hover:bg-[#4752C4] text-white font-black text-lg rounded-xl border-3 border-[#4752C4] shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+              onClick={handleDiscordLogin}
+              variant="outline"
+              className="w-full border-2 border-purple-300 text-purple-600 hover:bg-purple-50 text-xl font-black py-4 rounded-2xl"
             >
-              <MessageCircle className="w-5 h-5 mr-2" />
+              <MessageCircle className="w-6 h-6 mr-3" />
               Continue with Discord
             </Button>
 
+            {/* Toggle Sign Up/Sign In */}
             <div className="text-center">
               <button
                 type="button"
-                onClick={() => setIsLogin(!isLogin)}
-                className="text-orange-600 font-bold hover:text-orange-700 hover:underline transition-colors"
+                onClick={() => setIsSignUp(!isSignUp)}
+                className="text-orange-600 hover:text-orange-700 font-bold text-lg underline"
               >
-                {isLogin 
-                  ? "Don't have an account? Sign up!" 
-                  : "Already have an account? Sign in!"
+                {isSignUp 
+                  ? 'Already have an account? Sign in' 
+                  : "Don't have an account? Sign up"
                 }
               </button>
             </div>
           </CardContent>
         </Card>
 
-        <div className="text-center mt-6">
-          <p className="text-orange-500 font-bold text-lg">
-            🎮 Join thousands of players worldwide! 🌟
+        {/* Footer */}
+        <div className="text-center mt-8">
+          <p className="text-orange-100 text-lg font-bold">
+            🎮 Join thousands of players in epic adventures!
           </p>
         </div>
       </div>

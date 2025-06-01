@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { TokenDisplay } from "@/components/TokenDisplay"
-import { BlookCard } from "@/components/BlookCard"
 import { DailySpin } from "@/components/ui/daily-spin"
 import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/integrations/supabase/client'
@@ -174,25 +173,12 @@ export default function Marketplace() {
     }
   }
 
-  const getRarityColor = (rarity: string) => {
-    const colors = {
-      common: 'bg-gray-500',
-      uncommon: 'bg-green-500',
-      rare: 'bg-blue-500',
-      epic: 'bg-purple-500',
-      legendary: 'bg-yellow-500',
-      chroma: 'bg-teal-500',
-      mythical: 'bg-pink-500'
-    }
-    return colors[rarity as keyof typeof colors] || 'bg-gray-500'
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-orange-600 text-xl">Loading marketplace...</p>
+          <p className="text-orange-600 text-2xl font-black">Loading marketplace...</p>
         </div>
       </div>
     )
@@ -209,8 +195,8 @@ export default function Marketplace() {
               <div className="flex items-center space-x-4">
                 <SidebarTrigger className="hover:bg-orange-100 rounded-xl" />
                 <div>
-                  <h1 className="text-4xl text-orange-600">Marketplace</h1>
-                  <p className="text-orange-500 mt-1">Open packs and collect amazing blooks!</p>
+                  <h1 className="text-5xl text-orange-600 font-black">Marketplace</h1>
+                  <p className="text-orange-500 mt-1 text-xl">Open packs and collect amazing blooks!</p>
                 </div>
               </div>
               <div className="flex items-center space-x-4">
@@ -243,22 +229,22 @@ export default function Marketplace() {
                   </div>
                   
                   <CardHeader>
-                    <CardTitle className="text-2xl text-orange-600">{pack.name}</CardTitle>
-                    <p className="text-orange-500">{pack.description}</p>
+                    <CardTitle className="text-3xl text-orange-600 font-black">{pack.name}</CardTitle>
+                    <p className="text-orange-500 text-lg">{pack.description}</p>
                   </CardHeader>
                   
                   <CardContent>
                     <div className="mb-4">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-bold text-gray-600">Cost:</span>
+                        <span className="text-lg font-black text-gray-600">Cost:</span>
                         <div className="flex items-center space-x-2">
                           {pack.token_cost > 0 && (
-                            <Badge variant="secondary" className="bg-orange-100 text-orange-700">
+                            <Badge variant="secondary" className="bg-orange-100 text-orange-700 text-lg py-2 px-4">
                               {pack.token_cost} tokens
                             </Badge>
                           )}
                           {pack.orange_drip_cost > 0 && (
-                            <Badge variant="secondary" className="bg-orange-200 text-orange-800">
+                            <Badge variant="secondary" className="bg-orange-200 text-orange-800 text-lg py-2 px-4">
                               {pack.orange_drip_cost} drips
                             </Badge>
                           )}
@@ -269,7 +255,7 @@ export default function Marketplace() {
                     <Button 
                       onClick={() => openPack(pack)}
                       disabled={opening === pack.id || tokens < pack.token_cost || orangeDrips < pack.orange_drip_cost}
-                      className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+                      className="w-full bg-orange-500 hover:bg-orange-600 text-white text-xl font-black py-4"
                     >
                       {opening === pack.id ? (
                         <div className="flex items-center space-x-2">
@@ -278,7 +264,7 @@ export default function Marketplace() {
                         </div>
                       ) : (
                         <div className="flex items-center space-x-2">
-                          <Gift className="w-4 h-4" />
+                          <Gift className="w-5 h-5" />
                           <span>Open Pack</span>
                         </div>
                       )}
@@ -296,14 +282,22 @@ export default function Marketplace() {
                     <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center">
                       <Sparkles className="w-10 h-10 text-white" />
                     </div>
-                    <CardTitle className="text-3xl text-orange-600">Congratulations!</CardTitle>
-                    <p className="text-orange-500">You unlocked a new blook!</p>
+                    <CardTitle className="text-4xl text-orange-600 font-black">Congratulations!</CardTitle>
+                    <p className="text-orange-500 text-xl">You unlocked a new blook!</p>
                   </CardHeader>
                   <CardContent className="text-center">
-                    <BlookCard blook={unlockedBlook} />
+                    <div className="bg-gradient-to-br from-orange-100 to-orange-200 rounded-2xl p-6 mb-6">
+                      <img 
+                        src={unlockedBlook.image_url} 
+                        alt={unlockedBlook.name}
+                        className="w-24 h-24 mx-auto mb-4 rounded-lg"
+                      />
+                      <h3 className="text-2xl font-black text-orange-700">{unlockedBlook.name}</h3>
+                      <p className="text-orange-600 text-lg capitalize">{unlockedBlook.rarity}</p>
+                    </div>
                     <Button 
                       onClick={() => setUnlockedBlook(null)}
-                      className="mt-6 w-full bg-orange-500 hover:bg-orange-600 text-white"
+                      className="mt-6 w-full bg-orange-500 hover:bg-orange-600 text-white text-xl font-black py-4"
                     >
                       Awesome!
                     </Button>
