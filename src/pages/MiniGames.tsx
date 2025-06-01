@@ -1,3 +1,4 @@
+
 import { useState } from 'react'
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/AppSidebar"
@@ -26,6 +27,48 @@ const games = [
     description: 'Match pairs of cards in this memory challenge!',
     image: 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
     route: '/games/memory'
+  },
+  {
+    id: 'flappy',
+    title: 'Flappy Bird',
+    description: 'Navigate through pipes in this challenging game!',
+    image: 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+    route: '/games/flappy'
+  },
+  {
+    id: '2048',
+    title: '2048',
+    description: 'Combine tiles to reach 2048!',
+    image: 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+    route: '/games/2048'
+  },
+  {
+    id: 'minecraft',
+    title: '3D Minecraft',
+    description: 'Build and explore in a 3D minecraft-style world!',
+    image: 'https://images.pexels.com/photos/21067/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+    route: '/games/minecraft'
+  },
+  {
+    id: 'halo',
+    title: '3D Halo Arena',
+    description: 'Epic 3D combat arena with futuristic weapons!',
+    image: 'https://images.pexels.com/photos/5428100/pexels-photo-5428100.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+    route: '/games/halo'
+  },
+  {
+    id: 'splitgate',
+    title: '3D Splitgate Portal',
+    description: 'Portal-based 3D shooter with teleportation mechanics!',
+    image: 'https://images.pexels.com/photos/2047905/pexels-photo-2047905.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+    route: '/games/splitgate'
+  },
+  {
+    id: 'fortnite',
+    title: '3D Battle Royale',
+    description: 'Fortnite-style battle royale with building mechanics!',
+    image: 'https://images.pexels.com/photos/3945683/pexels-photo-3945683.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+    route: '/games/fortnite'
   }
 ]
 
@@ -35,7 +78,7 @@ export default function MiniGames() {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-orange-50 to-orange-100 font-fredoka">
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-orange-50 to-orange-100">
         <AppSidebar />
         <main className="flex-1 p-6">
           <div className="max-w-6xl mx-auto">
@@ -44,7 +87,7 @@ export default function MiniGames() {
               <div className="flex items-center space-x-4">
                 <SidebarTrigger className="hover:bg-orange-100 rounded-xl" />
                 <div>
-                  <h1 className="text-4xl font-fredoka text-orange-600">Mini Games</h1>
+                  <h1 className="text-4xl text-orange-600">Mini Games</h1>
                   <p className="text-orange-500 mt-1">Play fun games and earn tokens!</p>
                 </div>
               </div>

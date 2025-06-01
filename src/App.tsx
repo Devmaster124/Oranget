@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -14,11 +15,16 @@ import Profile from "./pages/Profile";
 import Blooks from "./pages/Blooks";
 import Marketplace from "./pages/Marketplace";
 import ExchangeCart from "./pages/ExchangeCart";
+import Music from "./pages/Music";
 import SnakeGame from "./games/SnakeGame";
 import TetrisGame from "./games/TetrisGame";
 import MemoryGame from "./games/MemoryGame";
 import FlappyGame from "./games/FlappyGame";
 import Game2048 from "./games/Game2048";
+import MinecraftGame from "./games/MinecraftGame";
+import HaloGame from "./games/HaloGame";
+import SplitgateGame from "./games/SplitgateGame";
+import FortniteGame from "./games/FortniteGame";
 
 const queryClient = new QueryClient();
 
@@ -66,6 +72,11 @@ const App = () => (
                 <MiniGames />
               </ProtectedRoute>
             } />
+            <Route path="/music" element={
+              <ProtectedRoute>
+                <Music />
+              </ProtectedRoute>
+            } />
             <Route path="/games/snake" element={
               <ProtectedRoute>
                 <SnakeGame />
@@ -89,6 +100,26 @@ const App = () => (
             <Route path="/games/2048" element={
               <ProtectedRoute>
                 <Game2048 />
+              </ProtectedRoute>
+            } />
+            <Route path="/games/minecraft" element={
+              <ProtectedRoute>
+                <MinecraftGame />
+              </ProtectedRoute>
+            } />
+            <Route path="/games/halo" element={
+              <ProtectedRoute>
+                <HaloGame />
+              </ProtectedRoute>
+            } />
+            <Route path="/games/splitgate" element={
+              <ProtectedRoute>
+                <SplitgateGame />
+              </ProtectedRoute>
+            } />
+            <Route path="/games/fortnite" element={
+              <ProtectedRoute>
+                <FortniteGame />
               </ProtectedRoute>
             } />
             <Route path="*" element={<NotFound />} />

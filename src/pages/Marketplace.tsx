@@ -1,40 +1,49 @@
+
 import { useState, useEffect } from 'react'
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/AppSidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { TokenDisplay } from "@/components/TokenDisplay"
+import { BlookCard } from "@/components/BlookCard"
+import { DailySpin } from "@/components/ui/daily-spin"
 import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
-import { ShoppingCart, Package, Sparkles } from 'lucide-react'
+import { Package, Sparkles, Gift } from 'lucide-react'
 
 interface Pack {
   id: string
   name: string
   description: string
+  image_url: string
   token_cost: number
   orange_drip_cost: number
-  image_url: string
+  rarity_weights: any
 }
 
-interface UserProfile {
-  tokens: number
-  orange_drips: number
+interface Blook {
+  id: string
+  name: string
+  image_url: string
+  rarity: string
 }
 
 export default function Marketplace() {
   const { user } = useAuth()
   const { toast } = useToast()
   const [packs, setPacks] = useState<Pack[]>([])
-  const [userProfile, setUserProfile] = useState<UserProfile>({ tokens: 0, orange_drips: 0 })
+  const [tokens, setTokens] = useState(0)
+  const [orangeDrips, setOrangeDrips] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [purchasing, setPurchasing] = useState<string | null>(null)
+  const [opening, setOpening] = useState<string | null>(null)
+  const [unlockedBlook, setUnlockedBlook] = useState<Blook | null>(null)
 
   useEffect(() => {
     if (user) {
       fetchPacks()
-      fetchUserProfile()
+      fetchUserCurrency()
     }
   }, [user])
 
@@ -54,7 +63,7 @@ export default function Marketplace() {
     }
   }
 
-  const fetchUserProfile = async () => {
+  const fetchUserCurrency = async () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -63,121 +72,135 @@ export default function Marketplace() {
         .single()
 
       if (error) throw error
-      setUserProfile(data || { tokens: 0, orange_drips: 0 })
+      setTokens(data?.tokens || 0)
+      setOrangeDrips(data?.orange_drips || 0)
     } catch (error) {
-      console.error('Error fetching user profile:', error)
+      console.error('Error fetching user currency:', error)
     }
   }
 
-  const purchasePack = async (pack: Pack) => {
-    if (!user) return
+  const selectRandomBlook = (pack: Pack) => {
+    const weights = pack.rarity_weights
+    const totalWeight = Object.values(weights).reduce((sum: number, weight: any) => sum + Number(weight), 0)
+    let random = Math.random() * totalWeight
+    
+    for (const [rarity, weight] of Object.entries(weights)) {
+      random -= Number(weight)
+      if (random <= 0) {
+        return rarity
+      }
+    }
+    return 'common'
+  }
 
-    setPurchasing(pack.id)
+  const openPack = async (pack: Pack) => {
+    if (!user || opening) return
+
+    const hasEnoughTokens = tokens >= pack.token_cost
+    const hasEnoughOrangeDrips = orangeDrips >= pack.orange_drip_cost
+
+    if (!hasEnoughTokens || !hasEnoughOrangeDrips) {
+      toast({
+        title: "Insufficient currency",
+        description: `You need ${pack.token_cost} tokens${pack.orange_drip_cost > 0 ? ` and ${pack.orange_drip_cost} orange drips` : ''} to open this pack.`,
+        variant: "destructive"
+      })
+      return
+    }
+
+    setOpening(pack.id)
 
     try {
-      // Create pack opening animation overlay
-      const overlay = document.createElement('div')
-      overlay.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black/80'
-      document.body.appendChild(overlay)
-
-      // Add pack animation
-      const packElement = document.createElement('div')
-      packElement.className = 'w-64 h-64 bg-orange-500 rounded-lg transform transition-all duration-1000'
-      overlay.appendChild(packElement)
-
-      // Animate pack opening
-      setTimeout(() => {
-        packElement.style.transform = 'scale(1.2) rotate(720deg)'
-        packElement.style.opacity = '0'
-      }, 1000)
-
-      // Simulate pack opening with random blook
-      const { data: blooksInPack } = await supabase
+      // Select random rarity
+      const selectedRarity = selectRandomBlook(pack)
+      
+      // Get random blook of that rarity from this pack
+      const { data: availableBlooks, error: blooksError } = await supabase
         .from('blooks')
         .select('*')
         .eq('pack_id', pack.id)
+        .eq('rarity', selectedRarity)
 
-      if (!blooksInPack || blooksInPack.length === 0) {
-        throw new Error('No blooks available in this pack')
+      if (blooksError) throw blooksError
+
+      if (!availableBlooks || availableBlooks.length === 0) {
+        throw new Error('No blooks available for this rarity')
       }
 
-      const randomBlook = blooksInPack[Math.floor(Math.random() * blooksInPack.length)]
-
-      // Show blook reveal animation
-      setTimeout(() => {
-        packElement.innerHTML = `
-          <div class="w-full h-full flex items-center justify-center">
-            <div class="text-6xl animate-bounce">${randomBlook.rarity === 'legendary' ? '⭐' : '✨'}</div>
-          </div>
-        `
-        packElement.style.transform = 'scale(1)'
-        packElement.style.opacity = '1'
-        packElement.style.backgroundColor = getRarityColor(randomBlook.rarity)
-      }, 2000)
+      const randomBlook = availableBlooks[Math.floor(Math.random() * availableBlooks.length)]
 
       // Add blook to user's collection
-      const { error: blookError } = await supabase
+      const { error: userBlookError } = await supabase
         .from('user_blooks')
         .insert({
           user_id: user.id,
           blook_id: randomBlook.id
         })
 
-      if (blookError && !blookError.message.includes('duplicate')) {
-        throw blookError
-      }
+      if (userBlookError) throw userBlookError
 
-      // Update user's tokens and orange drips
-      const newTokens = userProfile.tokens - pack.token_cost
-      const newOrangeDrips = userProfile.orange_drips - pack.orange_drip_cost
+      // Deduct currency
+      const newTokens = tokens - pack.token_cost
+      const newOrangeDrips = orangeDrips - pack.orange_drip_cost
 
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
           tokens: newTokens,
-          orange_drips: newOrangeDrips
+          orange_drips: newOrangeDrips,
+          blooks_unlocked: (await supabase.from('user_blooks').select('id').eq('user_id', user.id)).data?.length || 0
         })
         .eq('id', user.id)
 
       if (updateError) throw updateError
 
-      // Update local state
-      setUserProfile({
-        tokens: newTokens,
-        orange_drips: newOrangeDrips
-      })
+      setTokens(newTokens)
+      setOrangeDrips(newOrangeDrips)
+      setUnlockedBlook(randomBlook)
 
       toast({
-        title: "Pack opened! 🎉",
-        description: `You got a ${randomBlook.rarity} ${randomBlook.name}!`,
+        title: "Pack opened!",
+        description: `You unlocked ${randomBlook.name}!`,
       })
-
-      // Remove overlay after animations
-      setTimeout(() => {
-        document.body.removeChild(overlay)
-      }, 4000)
-
     } catch (error: any) {
-      console.error('Error purchasing pack:', error)
+      console.error('Error opening pack:', error)
       toast({
-        title: "Purchase failed",
+        title: "Error opening pack",
         description: error.message || "Please try again.",
         variant: "destructive"
       })
     } finally {
-      setPurchasing(null)
+      setOpening(null)
     }
   }
 
-  const getRarityColor = (cost: number) => {
-    if (cost <= 20) return 'from-green-400 to-green-600'
-    if (cost <= 25) return 'from-blue-400 to-blue-600'
-    return 'from-purple-400 to-purple-600'
+  const getRarityColor = (rarity: string) => {
+    const colors = {
+      common: 'bg-gray-500',
+      uncommon: 'bg-green-500',
+      rare: 'bg-blue-500',
+      epic: 'bg-purple-500',
+      legendary: 'bg-yellow-500',
+      chroma: 'bg-teal-500',
+      mythical: 'bg-pink-500'
+    }
+    return colors[rarity as keyof typeof colors] || 'bg-gray-500'
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-orange-600 text-xl">Loading marketplace...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-orange-50 via-orange-100 to-yellow-50 font-fredoka">
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-orange-50 to-orange-100">
         <AppSidebar />
         <main className="flex-1 p-6">
           <div className="max-w-6xl mx-auto">
@@ -186,78 +209,106 @@ export default function Marketplace() {
               <div className="flex items-center space-x-4">
                 <SidebarTrigger className="hover:bg-orange-100 rounded-xl" />
                 <div>
-                  <h1 className="text-4xl font-fredoka text-orange-600 font-black drop-shadow-lg flex items-center">
-                    <ShoppingCart className="w-10 h-10 mr-3" />
-                    Marketplace
-                  </h1>
-                  <p className="text-orange-500 mt-1 font-bold">Open packs and discover new blooks!</p>
+                  <h1 className="text-4xl text-orange-600">Marketplace</h1>
+                  <p className="text-orange-500 mt-1">Open packs and collect amazing blooks!</p>
                 </div>
               </div>
-              <TokenDisplay tokens={userProfile.tokens} orangeDrips={userProfile.orange_drips} />
+              <div className="flex items-center space-x-4">
+                <TokenDisplay tokens={tokens} orangeDrips={orangeDrips} />
+              </div>
+            </div>
+
+            {/* Daily Spin */}
+            <div className="mb-8">
+              <DailySpin />
             </div>
 
             {/* Packs Grid */}
-            {loading ? (
-              <div className="flex items-center justify-center h-64">
-                <div className="text-center">
-                  <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                  <p className="text-orange-600 font-bold">Loading packs...</p>
-                </div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {packs.map((pack) => (
-                  <Card key={pack.id} className="bg-white/80 backdrop-blur-sm border-4 border-orange-200 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 overflow-hidden">
-                    <CardHeader className={`bg-gradient-to-r ${getRarityColor(pack.token_cost)} text-white border-b-4 border-orange-300`}>
-                      <CardTitle className="text-2xl font-black flex items-center">
-                        <Package className="w-8 h-8 mr-3" />
-                        {pack.name}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-6">
-                      <div className="aspect-square bg-gradient-to-br from-orange-100 to-orange-200 rounded-2xl mb-4 flex items-center justify-center border-4 border-orange-300 overflow-hidden">
-                        {pack.image_url ? (
-                          <img src={pack.image_url} alt={pack.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="text-center">
-                            <Sparkles className="w-16 h-16 text-orange-500 mx-auto mb-2" />
-                            <span className="text-orange-600 font-black">Mystery Pack!</span>
-                          </div>
-                        )}
-                      </div>
-                      
-                      <p className="text-gray-700 font-bold mb-4 text-center">{pack.description}</p>
-                      
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-orange-600 font-bold">Tokens:</span>
-                          <span className="text-yellow-600 font-black text-lg">{pack.token_cost}</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {packs.map((pack) => (
+                <Card 
+                  key={pack.id}
+                  className="group hover:shadow-xl transition-all duration-300 hover:scale-105 border-orange-200 bg-white/70 backdrop-blur-sm rounded-3xl overflow-hidden"
+                >
+                  <div className="relative h-48 overflow-hidden">
+                    <img 
+                      src={pack.image_url} 
+                      alt={pack.name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                    <div className="absolute top-4 right-4">
+                      <Package className="w-8 h-8 text-white drop-shadow-lg" />
+                    </div>
+                  </div>
+                  
+                  <CardHeader>
+                    <CardTitle className="text-2xl text-orange-600">{pack.name}</CardTitle>
+                    <p className="text-orange-500">{pack.description}</p>
+                  </CardHeader>
+                  
+                  <CardContent>
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-bold text-gray-600">Cost:</span>
+                        <div className="flex items-center space-x-2">
+                          {pack.token_cost > 0 && (
+                            <Badge variant="secondary" className="bg-orange-100 text-orange-700">
+                              {pack.token_cost} tokens
+                            </Badge>
+                          )}
+                          {pack.orange_drip_cost > 0 && (
+                            <Badge variant="secondary" className="bg-orange-200 text-orange-800">
+                              {pack.orange_drip_cost} drips
+                            </Badge>
+                          )}
                         </div>
-                        {pack.orange_drip_cost > 0 && (
-                          <div className="flex items-center justify-between">
-                            <span className="text-orange-600 font-bold">Orange Drips:</span>
-                            <span className="text-orange-600 font-black text-lg">{pack.orange_drip_cost}</span>
-                          </div>
-                        )}
                       </div>
-                      
-                      <Button
-                        onClick={() => purchasePack(pack)}
-                        disabled={purchasing === pack.id || userProfile.tokens < pack.token_cost || userProfile.orange_drips < pack.orange_drip_cost}
-                        className="w-full mt-6 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-black rounded-2xl py-3 border-4 border-orange-300 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                      >
-                        {purchasing === pack.id ? (
-                          <div className="flex items-center justify-center">
-                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                            Opening...
-                          </div>
-                        ) : (
-                          'Open Pack! 🎁'
-                        )}
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
+                    </div>
+                    
+                    <Button 
+                      onClick={() => openPack(pack)}
+                      disabled={opening === pack.id || tokens < pack.token_cost || orangeDrips < pack.orange_drip_cost}
+                      className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+                    >
+                      {opening === pack.id ? (
+                        <div className="flex items-center space-x-2">
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          <span>Opening...</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center space-x-2">
+                          <Gift className="w-4 h-4" />
+                          <span>Open Pack</span>
+                        </div>
+                      )}
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Unlocked Blook Modal */}
+            {unlockedBlook && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                <Card className="bg-white rounded-3xl max-w-md w-full">
+                  <CardHeader className="text-center">
+                    <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center">
+                      <Sparkles className="w-10 h-10 text-white" />
+                    </div>
+                    <CardTitle className="text-3xl text-orange-600">Congratulations!</CardTitle>
+                    <p className="text-orange-500">You unlocked a new blook!</p>
+                  </CardHeader>
+                  <CardContent className="text-center">
+                    <BlookCard blook={unlockedBlook} />
+                    <Button 
+                      onClick={() => setUnlockedBlook(null)}
+                      className="mt-6 w-full bg-orange-500 hover:bg-orange-600 text-white"
+                    >
+                      Awesome!
+                    </Button>
+                  </CardContent>
+                </Card>
               </div>
             )}
           </div>

@@ -42,8 +42,13 @@ export default function Community() {
   useEffect(() => {
     if (user) {
       fetchMessages()
-      subscribeToMessages()
-      subscribeToTradeRequests()
+      const unsubscribe = subscribeToMessages()
+      const unsubscribeTrades = subscribeToTradeRequests()
+      
+      return () => {
+        unsubscribe()
+        unsubscribeTrades()
+      }
     }
   }, [user])
 
@@ -70,7 +75,7 @@ export default function Community() {
 
   const subscribeToMessages = () => {
     const channel = supabase
-      .channel('messages_channel')
+      .channel('realtime_messages')
       .on(
         'postgres_changes',
         {
@@ -79,10 +84,13 @@ export default function Community() {
           table: 'messages'
         },
         (payload) => {
+          console.log('New message received:', payload.new)
           setMessages(prev => [...prev, payload.new as Message])
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+        console.log('Realtime subscription status:', status)
+      })
 
     return () => {
       supabase.removeChannel(channel)
@@ -90,10 +98,10 @@ export default function Community() {
   }
 
   const subscribeToTradeRequests = () => {
-    if (!user) return
+    if (!user) return () => {}
 
     const channel = supabase
-      .channel('trade_requests_channel')
+      .channel('trade_requests_realtime')
       .on(
         'postgres_changes',
         {

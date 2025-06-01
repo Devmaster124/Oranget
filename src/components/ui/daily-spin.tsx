@@ -1,105 +1,119 @@
-import { useState } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { useAuth } from '@/hooks/useAuth'
-import { supabase } from '@/integrations/supabase/client'
-import { useToast } from '@/hooks/use-toast'
 
-interface DailySpinProps {
-  isOpen: boolean
-  onClose: () => void
-}
+import React, { useState } from 'react';
+import { Button } from './button';
+import { Card, CardContent, CardHeader, CardTitle } from './card';
+import { Gift, Sparkles } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 
-const rewards = [
-  { type: 'tokens', amount: 100 },
-  { type: 'orange_drips', amount: 5 },
-  { type: 'tokens', amount: 200 },
-  { type: 'orange_drips', amount: 10 },
-  { type: 'tokens', amount: 500 },
-  { type: 'orange_drips', amount: 20 },
-  { type: 'tokens', amount: 1000 },
-  { type: 'orange_drips', amount: 50 },
-]
+const DAILY_REWARDS = [
+  { tokens: 50, probability: 0.4 },
+  { tokens: 100, probability: 0.3 },
+  { tokens: 200, probability: 0.2 },
+  { tokens: 500, probability: 0.08 },
+  { tokens: 1000, probability: 0.02 }
+];
 
-export function DailySpin({ isOpen, onClose }: DailySpinProps) {
-  const { user } = useAuth()
-  const { toast } = useToast()
-  const [spinning, setSpinning] = useState(false)
-  const [rotation, setRotation] = useState(0)
+export function DailySpin() {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [spinning, setSpinning] = useState(false);
+  const [canSpin, setCanSpin] = useState(true);
 
-  const spin = async () => {
-    if (!user || spinning) return
+  const handleSpin = async () => {
+    if (!user || spinning || !canSpin) return;
 
-    setSpinning(true)
-    const randomDegrees = Math.floor(Math.random() * 360)
-    const totalRotation = 1800 + randomDegrees // 5 full spins + random
-    setRotation(totalRotation)
+    setSpinning(true);
+    
+    try {
+      // Check if user already spun today
+      const today = new Date().toDateString();
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('last_daily_spin')
+        .eq('id', user.id)
+        .single();
 
-    // Calculate reward based on final position
-    const section = Math.floor((totalRotation % 360) / (360 / rewards.length))
-    const reward = rewards[section]
-
-    setTimeout(async () => {
-      try {
-        const { error } = await supabase
-          .from('profiles')
-          .update({
-            [reward.type]: supabase.sql`${reward.type} + ${reward.amount}`
-          })
-          .eq('id', user.id)
-
-        if (error) throw error
-
+      if (profile?.last_daily_spin && new Date(profile.last_daily_spin).toDateString() === today) {
         toast({
-          title: "Congratulations!",
-          description: `You won ${reward.amount} ${reward.type === 'tokens' ? 'tokens' : 'orange drips'}!`,
-        })
-      } catch (error) {
-        console.error('Error updating rewards:', error)
+          title: "Already spun today!",
+          description: "Come back tomorrow for another spin!",
+          variant: "destructive"
+        });
+        setCanSpin(false);
+        setSpinning(false);
+        return;
       }
-      
-      setSpinning(false)
-      onClose()
-    }, 5000)
-  }
+
+      // Calculate reward
+      const random = Math.random();
+      let cumulativeProbability = 0;
+      let reward = DAILY_REWARDS[0];
+
+      for (const item of DAILY_REWARDS) {
+        cumulativeProbability += item.probability;
+        if (random <= cumulativeProbability) {
+          reward = item;
+          break;
+        }
+      }
+
+      // Update user tokens and last spin date
+      const { error } = await supabase.rpc('add_tokens_to_user', {
+        user_id: user.id,
+        token_amount: reward.tokens
+      });
+
+      if (error) throw error;
+
+      await supabase
+        .from('profiles')
+        .update({ last_daily_spin: new Date().toISOString() })
+        .eq('id', user.id);
+
+      toast({
+        title: "🎉 Daily Spin Complete!",
+        description: `You won ${reward.tokens} tokens!`,
+      });
+
+      setCanSpin(false);
+    } catch (error: any) {
+      console.error('Error with daily spin:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to complete daily spin",
+        variant: "destructive"
+      });
+    } finally {
+      setSpinning(false);
+    }
+  };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-white rounded-3xl border-4 border-orange-200 max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-2xl text-orange-600 font-black text-center">
-            Daily Spin
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="relative w-64 h-64 mx-auto">
-          <div 
-            className="absolute inset-0 rounded-full border-8 border-orange-400 bg-gradient-to-r from-orange-500 to-orange-600 transition-transform duration-5000 ease-out"
-            style={{ transform: `rotate(${rotation}deg)` }}
-          >
-            {rewards.map((_, index) => (
-              <div
-                key={index}
-                className="absolute top-0 left-1/2 h-1/2 origin-bottom rotate-45 -translate-x-1/2 text-white font-bold"
-                style={{ 
-                  transform: `rotate(${(360 / rewards.length) * index}deg) translateX(-50%)` 
-                }}
-              >
-                {rewards[index].amount} {rewards[index].type === 'tokens' ? '🪙' : '🧡'}
-              </div>
-            ))}
-          </div>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-white transform rotate-45"></div>
+    <Card className="bg-gradient-to-br from-purple-500 to-pink-500 text-white border-4 border-purple-300">
+      <CardHeader className="text-center">
+        <CardTitle className="flex items-center justify-center space-x-2">
+          <Sparkles className="w-6 h-6" />
+          <span>Daily Spin</span>
+          <Sparkles className="w-6 h-6" />
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="text-center">
+        <div className="mb-4">
+          <Gift className="w-16 h-16 mx-auto mb-2" />
+          <p className="text-sm opacity-90">
+            Spin once per day for free tokens!
+          </p>
         </div>
-
         <Button
-          onClick={spin}
-          disabled={spinning}
-          className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white font-black rounded-2xl py-3"
+          onClick={handleSpin}
+          disabled={!canSpin || spinning}
+          className="bg-white text-purple-600 hover:bg-purple-50 font-black"
         >
-          {spinning ? 'Spinning...' : 'Spin!'}
+          {spinning ? "Spinning..." : canSpin ? "Spin Now!" : "Come Back Tomorrow"}
         </Button>
-      </DialogContent>
-    </Dialog>
-  )
+      </CardContent>
+    </Card>
+  );
 }
