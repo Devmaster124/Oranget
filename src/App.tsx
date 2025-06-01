@@ -10,7 +10,6 @@ import Index from "./pages/Index";
 import Community from "./pages/Community";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
-import MiniGames from "./pages/MiniGames";
 import Profile from "./pages/Profile";
 import Blooks from "./pages/Blooks";
 import Marketplace from "./pages/Marketplace";
@@ -65,11 +64,6 @@ const App = () => (
             <Route path="/community" element={
               <ProtectedRoute>
                 <Community />
-              </ProtectedRoute>
-            } />
-            <Route path="/games" element={
-              <ProtectedRoute>
-                <MiniGames />
               </ProtectedRoute>
             } />
             <Route path="/music" element={

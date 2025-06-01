@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { supabase } from '@/integrations/supabase/client'
 import { useNavigate } from 'react-router-dom'
 import { useToast } from '@/hooks/use-toast'
-import { Eye, EyeOff, User, Mail, Lock, MessageCircle } from 'lucide-react'
+import { Eye, EyeOff, User, Lock, MessageCircle } from 'lucide-react'
 
 export default function Auth() {
   const navigate = useNavigate()
@@ -15,7 +15,6 @@ export default function Auth() {
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
-    email: '',
     password: '',
     username: ''
   })
@@ -33,13 +32,13 @@ export default function Auth() {
 
     try {
       if (isSignUp) {
+        // Create a simple account with username
         const { error } = await supabase.auth.signUp({
-          email: formData.email,
+          email: `${formData.username}@oranget.local`,
           password: formData.password,
           options: {
-            emailRedirectTo: `${window.location.origin}/`,
             data: {
-              username: formData.username || formData.email.split('@')[0]
+              username: formData.username
             }
           }
         })
@@ -48,11 +47,12 @@ export default function Auth() {
 
         toast({
           title: "Account created!",
-          description: "Please check your email to verify your account.",
+          description: "Welcome to Oranget!",
         })
+        navigate('/')
       } else {
         const { error } = await supabase.auth.signInWithPassword({
-          email: formData.email,
+          email: `${formData.username}@oranget.local`,
           password: formData.password,
         })
 
@@ -102,9 +102,8 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 flex items-center justify-center p-6 font-['Titan_One']">
       <div className="w-full max-w-md">
-        {/* Logo */}
         <div className="text-center mb-8">
           <img 
             src="/lovable-uploads/09e55504-38cb-49bf-9019-48c875713ca7.png"
@@ -115,7 +114,6 @@ export default function Auth() {
           <p className="text-orange-100 text-xl font-bold mt-2">Join the Adventure!</p>
         </div>
 
-        {/* Auth Card */}
         <Card className="bg-white/95 backdrop-blur-sm border-4 border-orange-200 rounded-3xl shadow-2xl">
           <CardHeader className="text-center">
             <CardTitle className="text-3xl text-orange-600 font-black">
@@ -128,28 +126,13 @@ export default function Auth() {
 
           <CardContent className="space-y-6">
             <form onSubmit={handleAuth} className="space-y-4">
-              {isSignUp && (
-                <div className="relative">
-                  <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-orange-500 w-5 h-5" />
-                  <Input
-                    name="username"
-                    type="text"
-                    placeholder="Choose a username"
-                    value={formData.username}
-                    onChange={handleInputChange}
-                    required={isSignUp}
-                    className="pl-12 border-2 border-orange-200 rounded-2xl text-lg py-4 font-bold focus:border-orange-400"
-                  />
-                </div>
-              )}
-
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-orange-500 w-5 h-5" />
+                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-orange-500 w-5 h-5" />
                 <Input
-                  name="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  value={formData.email}
+                  name="username"
+                  type="text"
+                  placeholder="Choose a username"
+                  value={formData.username}
                   onChange={handleInputChange}
                   required
                   className="pl-12 border-2 border-orange-200 rounded-2xl text-lg py-4 font-bold focus:border-orange-400"
@@ -192,7 +175,6 @@ export default function Auth() {
               </Button>
             </form>
 
-            {/* Discord Login */}
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-orange-200"></div>
@@ -211,7 +193,6 @@ export default function Auth() {
               Continue with Discord
             </Button>
 
-            {/* Toggle Sign Up/Sign In */}
             <div className="text-center">
               <button
                 type="button"
@@ -227,10 +208,9 @@ export default function Auth() {
           </CardContent>
         </Card>
 
-        {/* Footer */}
         <div className="text-center mt-8">
           <p className="text-orange-100 text-lg font-bold">
-            🎮 Join thousands of players in epic adventures!
+            Join thousands of players in epic adventures!
           </p>
         </div>
       </div>

@@ -166,14 +166,13 @@ export default function Community() {
   const handleTradeResponse = (accepted: boolean) => {
     setTradeRequest(null)
     if (accepted) {
-      // Open trading interface
       console.log('Opening trade interface')
     }
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 flex items-center justify-center font-['Titan_One']">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-blue-600 text-2xl font-black">Loading community...</p>
@@ -184,11 +183,10 @@ export default function Community() {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-blue-50 to-purple-100">
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-blue-50 to-purple-100 font-['Titan_One']">
         <AppSidebar />
         <main className="flex-1 p-6">
           <div className="max-w-4xl mx-auto">
-            {/* Header */}
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center space-x-4">
                 <SidebarTrigger className="hover:bg-blue-100 rounded-xl" />
@@ -203,7 +201,6 @@ export default function Community() {
               </div>
             </div>
 
-            {/* Chat Card */}
             <Card className="bg-white/80 backdrop-blur-sm border-4 border-blue-200 rounded-3xl overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
                 <CardTitle className="text-3xl font-black flex items-center">
@@ -213,7 +210,6 @@ export default function Community() {
               </CardHeader>
               
               <CardContent className="p-0">
-                {/* Messages */}
                 <ScrollArea className="h-96 p-6">
                   <div className="space-y-4">
                     {messages.map((message) => (
@@ -245,7 +241,6 @@ export default function Community() {
                   </div>
                 </ScrollArea>
 
-                {/* Message Input */}
                 <div className="border-t-4 border-blue-200 p-6 bg-gradient-to-r from-blue-50 to-purple-50">
                   <form onSubmit={sendMessage} className="flex space-x-4">
                     <Input
@@ -269,7 +264,6 @@ export default function Community() {
           </div>
         </main>
 
-        {/* User Profile Modal */}
         {showUserProfile && selectedUserId && (
           <UserProfile
             userId={selectedUserId}
@@ -280,7 +274,6 @@ export default function Community() {
           />
         )}
 
-        {/* Trade Request Modal */}
         {tradeRequest && (
           <TradeRequest
             tradeRequest={tradeRequest}
