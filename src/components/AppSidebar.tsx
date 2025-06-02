@@ -1,5 +1,5 @@
 
-import { Calendar, Home, Users, Heart, ShoppingCart, User, Music } from "lucide-react"
+import { Calendar, Home, Users, Heart, ShoppingCart, User, Music, Gamepad2, Settings, Newspaper } from "lucide-react"
 import { useLocation, useNavigate } from "react-router-dom"
 import {
   Sidebar,
@@ -10,11 +10,14 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader,
+  SidebarFooter,
 } from "@/components/ui/sidebar"
+import { useAuth } from '@/hooks/useAuth'
+import { Button } from "@/components/ui/button"
 
 const menuItems = [
   {
-    title: "Home",
+    title: "Dashboard",
     url: "/",
     icon: Home,
   },
@@ -34,14 +37,19 @@ const menuItems = [
     icon: ShoppingCart,
   },
   {
+    title: "Chat",
+    url: "/community",
+    icon: Users,
+  },
+  {
     title: "Music",
     url: "/music",
     icon: Music,
   },
   {
-    title: "Community",
-    url: "/community",
-    icon: Users,
+    title: "Minigames",
+    url: "/games/snake",
+    icon: Gamepad2,
   },
   {
     title: "Exchange Cart",
@@ -50,18 +58,37 @@ const menuItems = [
   },
 ]
 
+const bottomItems = [
+  {
+    title: "Settings",
+    url: "/settings",
+    icon: Settings,
+  },
+  {
+    title: "News",
+    url: "/news",
+    icon: Newspaper,
+  },
+]
+
 export function AppSidebar() {
   const location = useLocation()
   const navigate = useNavigate()
+  const { signOut } = useAuth()
+
+  const handleSignOut = async () => {
+    await signOut()
+    navigate('/auth')
+  }
 
   return (
-    <Sidebar className="border-r-4 border-orange-400 bg-gradient-to-b from-orange-400 via-orange-500 to-orange-600 shadow-2xl">
-      <SidebarHeader className="border-b-4 border-orange-300 p-6 bg-gradient-to-r from-orange-500 to-orange-600">
+    <Sidebar className="border-r-4 border-orange-400 bg-gradient-to-b from-orange-500 to-orange-600 shadow-2xl">
+      <SidebarHeader className="border-b-4 border-orange-300 p-6 bg-gradient-to-r from-orange-600 to-orange-700">
         <div className="flex items-center space-x-3">
           <img 
             src="/lovable-uploads/09e55504-38cb-49bf-9019-48c875713ca7.png"
             alt="Oranget Logo"
-            className="w-12 h-12 rounded-full border-4 border-white shadow-lg"
+            className="w-12 h-12 rounded-lg border-4 border-white shadow-lg"
           />
           <div>
             <h1 className="text-3xl text-white font-black drop-shadow-lg tracking-wide font-['Titan_One']">Oranget</h1>
@@ -69,8 +96,9 @@ export function AppSidebar() {
           </div>
         </div>
       </SidebarHeader>
-      <SidebarContent className="bg-gradient-to-b from-orange-500 to-orange-600 p-2">
-        <SidebarGroup>
+      
+      <SidebarContent className="bg-gradient-to-b from-orange-500 to-orange-600 p-2 flex-1">
+        <SidebarGroup className="flex-1">
           <SidebarGroupContent>
             <SidebarMenu className="space-y-2">
               {menuItems.map((item) => (
@@ -89,6 +117,31 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
+      <SidebarFooter className="p-4 bg-gradient-to-r from-orange-600 to-orange-700 border-t-4 border-orange-300">
+        <SidebarMenu className="space-y-2">
+          {bottomItems.map((item) => (
+            <SidebarMenuItem key={item.title}>
+              <SidebarMenuButton 
+                onClick={() => navigate(item.url)}
+                className="hover:bg-orange-400 hover:text-white rounded-2xl text-orange-100 text-base py-3 px-3 h-auto transition-all duration-300 border-2 border-transparent hover:border-orange-200 font-['Titan_One']"
+              >
+                <item.icon className="w-5 h-5" />
+                <span className="text-base font-bold">{item.title}</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+          <SidebarMenuItem>
+            <Button
+              onClick={handleSignOut}
+              variant="outline"
+              className="w-full text-orange-100 border-orange-300 hover:bg-orange-400 hover:text-white rounded-2xl text-base py-3 h-auto font-['Titan_One'] font-bold transition-all duration-300"
+            >
+              Logout
+            </Button>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   )
 }

@@ -111,3 +111,21 @@
     animation: matrix 2s ease-in-out infinite;
   }
 }
+
+/* Animated background like the Glitch project */
+@keyframes animatedBackground {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes rainbow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes matrix {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}

@@ -2,15 +2,12 @@
 import { useState, useEffect } from 'react'
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/AppSidebar"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
-import { Send, Users, MessageCircle, Crown } from 'lucide-react'
+import { Send, Users } from 'lucide-react'
 import UserProfile from '@/components/UserProfile'
 import TradeRequest from '@/components/TradeRequest'
 
@@ -172,10 +169,10 @@ export default function Community() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 flex items-center justify-center font-['Titan_One']">
+      <div className="min-h-screen bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center font-['Titan_One']">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-blue-600 text-2xl font-black">Loading community...</p>
+          <div className="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-white text-2xl font-black">Loading community...</p>
         </div>
       </div>
     )
@@ -183,84 +180,75 @@ export default function Community() {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-blue-50 to-purple-100 font-['Titan_One']">
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-orange-400 to-orange-600 font-['Titan_One']">
         <AppSidebar />
-        <main className="flex-1 p-6">
-          <div className="max-w-4xl mx-auto">
-            <div className="flex items-center justify-between mb-8">
+        
+        {/* Main Chat Container */}
+        <main className="flex-1 flex flex-col">
+          {/* Header */}
+          <div className="bg-black/20 p-4 border-b-2 border-orange-300">
+            <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <SidebarTrigger className="hover:bg-blue-100 rounded-xl" />
-                <div>
-                  <h1 className="text-5xl text-blue-600 font-black">Community</h1>
-                  <p className="text-blue-500 mt-1 text-xl">Chat with other players!</p>
-                </div>
+                <SidebarTrigger className="text-white hover:bg-orange-400/20 rounded-xl p-2" />
+                <h1 className="text-3xl text-white font-black">Community Chat</h1>
               </div>
-              <div className="flex items-center space-x-2 text-blue-500">
-                <Users className="w-8 h-8" />
-                <span className="text-2xl font-black">{messages.length > 0 ? new Set(messages.map(m => m.user_id)).size : 0} online</span>
+              <div className="flex items-center space-x-2 text-white">
+                <Users className="w-6 h-6" />
+                <span className="text-lg font-black">
+                  {messages.length > 0 ? new Set(messages.map(m => m.user_id)).size : 0} online
+                </span>
               </div>
             </div>
+          </div>
 
-            <Card className="bg-white/80 backdrop-blur-sm border-4 border-blue-200 rounded-3xl overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-                <CardTitle className="text-3xl font-black flex items-center">
-                  <MessageCircle className="w-8 h-8 mr-3" />
-                  Global Chat
-                </CardTitle>
-              </CardHeader>
-              
-              <CardContent className="p-0">
-                <ScrollArea className="h-96 p-6">
-                  <div className="space-y-4">
-                    {messages.map((message) => (
-                      <div key={message.id} className="flex items-start space-x-3 group">
-                        <Avatar className="w-12 h-12 border-2 border-blue-200">
-                          <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-white text-xl font-black">
-                            {message.username[0]?.toUpperCase() || '?'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-4 border-2 border-blue-100">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <span 
-                              className="text-lg font-black text-blue-600 cursor-pointer hover:text-blue-800 transition-colors"
-                              onClick={() => handleUsernameClick(message.user_id, message.username)}
-                            >
-                              {message.username}
-                            </span>
-                            {message.user_id === user?.id && (
-                              <Crown className="w-4 h-4 text-yellow-500" />
-                            )}
-                            <span className="text-sm text-blue-400">
-                              {new Date(message.timestamp).toLocaleTimeString()}
-                            </span>
-                          </div>
-                          <p className="text-gray-800 text-lg">{message.text}</p>
-                        </div>
-                      </div>
-                    ))}
+          {/* Chat Messages */}
+          <div className="flex-1 p-4 overflow-y-auto bg-gradient-to-b from-orange-400/20 to-orange-500/20">
+            <div className="space-y-4">
+              {messages.map((message) => (
+                <div key={message.id} className="flex items-start space-x-3">
+                  <img 
+                    src="/lovable-uploads/09e55504-38cb-49bf-9019-48c875713ca7.png"
+                    alt="User Icon"
+                    className="w-12 h-12 rounded-lg border-2 border-white shadow-lg"
+                  />
+                  <div className="flex-1 bg-white/90 backdrop-blur-sm rounded-2xl p-4 border-2 border-orange-200 shadow-lg">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <span 
+                        className="text-lg font-black text-orange-600 cursor-pointer hover:text-orange-800 transition-colors"
+                        onClick={() => handleUsernameClick(message.user_id, message.username)}
+                      >
+                        {message.username}
+                      </span>
+                      <span className="text-sm text-orange-400 font-bold">
+                        {new Date(message.timestamp).toLocaleTimeString()}
+                      </span>
+                    </div>
+                    <p className="text-gray-800 text-lg font-medium">{message.text}</p>
                   </div>
-                </ScrollArea>
-
-                <div className="border-t-4 border-blue-200 p-6 bg-gradient-to-r from-blue-50 to-purple-50">
-                  <form onSubmit={sendMessage} className="flex space-x-4">
-                    <Input
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      placeholder="Type your message..."
-                      className="flex-1 border-2 border-blue-200 rounded-2xl text-lg py-4"
-                      maxLength={500}
-                    />
-                    <Button 
-                      type="submit" 
-                      className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 rounded-2xl text-lg font-black"
-                    >
-                      <Send className="w-5 h-5 mr-2" />
-                      Send
-                    </Button>
-                  </form>
                 </div>
-              </CardContent>
-            </Card>
+              ))}
+            </div>
+          </div>
+
+          {/* Message Input */}
+          <div className="bg-black/20 p-4 border-t-2 border-orange-300">
+            <form onSubmit={sendMessage} className="flex space-x-4">
+              <Input
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="Type your message..."
+                className="flex-1 border-2 border-orange-200 rounded-2xl text-lg py-3 px-4 bg-white/90 font-medium focus:border-orange-400"
+                maxLength={500}
+                style={{ width: '80%' }}
+              />
+              <Button 
+                type="submit" 
+                className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-6 rounded-2xl text-lg font-black"
+              >
+                <Send className="w-5 h-5 mr-2" />
+                Send
+              </Button>
+            </form>
           </div>
         </main>
 
