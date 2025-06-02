@@ -11,12 +11,10 @@ import { Send } from 'lucide-react'
 
 interface Message {
   id: string
-  content: string
+  text: string
   created_at: string
   user_id: string
-  profiles: {
-    username: string
-  }
+  username: string
 }
 
 export default function Community() {
@@ -59,13 +57,7 @@ export default function Community() {
     try {
       const { data, error } = await supabase
         .from('messages')
-        .select(`
-          id,
-          content,
-          created_at,
-          user_id,
-          profiles:user_id (username)
-        `)
+        .select('*')
         .order('created_at', { ascending: true })
         .limit(50)
 
@@ -91,8 +83,9 @@ export default function Community() {
         .from('messages')
         .insert([
           {
-            content: newMessage.trim(),
+            text: newMessage.trim(),
             user_id: user.id,
+            username: user.user_metadata?.username || 'User'
           }
         ])
 
@@ -164,14 +157,14 @@ export default function Community() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2 mb-1">
                       <span className="text-white font-black text-lg">
-                        {message.profiles?.username || 'User'}
+                        {message.username || 'User'}
                       </span>
                       <span className="text-orange-200 text-sm font-bold">
                         {formatTime(message.created_at)}
                       </span>
                     </div>
                     <p className="text-orange-100 font-bold break-words">
-                      {message.content}
+                      {message.text}
                     </p>
                   </div>
                 </div>

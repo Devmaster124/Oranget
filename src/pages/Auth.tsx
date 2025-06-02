@@ -1,21 +1,26 @@
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { supabase } from '@/integrations/supabase/client'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useToast } from '@/hooks/use-toast'
 import { User, Lock } from 'lucide-react'
 
 export default function Auth() {
   const navigate = useNavigate()
   const { toast } = useToast()
-  const [isSignUp, setIsSignUp] = useState(false)
+  const [searchParams] = useSearchParams()
+  const [isSignUp, setIsSignUp] = useState(searchParams.get('mode') === 'register')
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     password: '',
     username: ''
   })
+
+  useEffect(() => {
+    setIsSignUp(searchParams.get('mode') === 'register')
+  }, [searchParams])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({
@@ -39,7 +44,8 @@ export default function Auth() {
 
     try {
       if (isSignUp) {
-        const fakeEmail = `${formData.username}@oranget.internal`
+        // Create fake email for Supabase
+        const fakeEmail = `${formData.username.toLowerCase()}@oranget.local`
         
         const { data, error } = await supabase.auth.signUp({
           email: fakeEmail,
@@ -47,13 +53,12 @@ export default function Auth() {
           options: {
             data: {
               username: formData.username
-            },
-            emailRedirectTo: undefined
+            }
           }
         })
 
         if (error) {
-          if (error.message.includes('already registered')) {
+          if (error.message.includes('already registered') || error.message.includes('duplicate')) {
             toast({
               title: "Username Taken",
               description: "This username is already taken. Please choose another.",
@@ -71,7 +76,8 @@ export default function Auth() {
         })
         navigate('/profile')
       } else {
-        const fakeEmail = `${formData.username}@oranget.internal`
+        // Login with fake email
+        const fakeEmail = `${formData.username.toLowerCase()}@oranget.local`
         
         const { error } = await supabase.auth.signInWithPassword({
           email: fakeEmail,
@@ -123,13 +129,16 @@ export default function Auth() {
       </div>
 
       {/* Navigation */}
-      <div className="relative z-10 flex justify-between items-center p-4">
-        <h1 className="text-4xl text-white font-black drop-shadow-lg">
+      <div className="relative z-10 flex justify-between items-center p-6">
+        <button 
+          onClick={() => navigate('/')}
+          className="text-6xl text-white font-black drop-shadow-lg hover:text-orange-100 transition-colors"
+        >
           Oranget
-        </h1>
+        </button>
         <button 
           onClick={() => setIsSignUp(!isSignUp)}
-          className="text-white text-xl font-bold underline hover:text-orange-100 transition-colors"
+          className="text-white text-xl font-bold hover:text-orange-100 transition-colors px-6 py-3 border-2 border-white rounded-xl hover:bg-white/10"
         >
           {isSignUp ? 'Login' : 'Register'}
         </button>
@@ -140,7 +149,7 @@ export default function Auth() {
         <div className="w-full max-w-md">
           {/* Auth Form */}
           <form onSubmit={handleAuth} className="bg-orange-800/90 backdrop-blur-sm border-4 border-orange-300 rounded-3xl p-8 shadow-2xl">
-            <h1 className="text-3xl text-white font-black text-center mb-8">
+            <h1 className="text-4xl text-white font-black text-center mb-8 drop-shadow-lg">
               {isSignUp ? 'Register' : 'Login'}
             </h1>
 
