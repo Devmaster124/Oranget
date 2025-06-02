@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import { supabase } from '@/integrations/supabase/client'
 import { useNavigate } from 'react-router-dom'
 import { useToast } from '@/hooks/use-toast'
-import { User, Lock, MessageCircle } from 'lucide-react'
+import { User, Lock } from 'lucide-react'
 
 export default function Auth() {
   const navigate = useNavigate()
@@ -47,7 +47,8 @@ export default function Auth() {
           options: {
             data: {
               username: formData.username
-            }
+            },
+            emailRedirectTo: undefined
           }
         })
 
@@ -68,7 +69,7 @@ export default function Auth() {
           title: "Account Created!",
           description: "Welcome to Oranget!",
         })
-        navigate('/')
+        navigate('/profile')
       } else {
         const fakeEmail = `${formData.username}@oranget.internal`
         
@@ -94,7 +95,7 @@ export default function Auth() {
           title: "Welcome back!",
           description: "You have successfully signed in.",
         })
-        navigate('/')
+        navigate('/profile')
       }
     } catch (error: any) {
       console.error('Auth error:', error)
@@ -108,70 +109,44 @@ export default function Auth() {
     }
   }
 
-  const handleDiscordLogin = async () => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'discord',
-        options: {
-          redirectTo: `${window.location.origin}/`
-        }
-      })
-
-      if (error) throw error
-
-      toast({
-        title: "Redirecting to Discord...",
-        description: "You'll be redirected to Discord to complete the login.",
-      })
-    } catch (error: any) {
-      console.error('Discord auth error:', error)
-      toast({
-        title: "Discord Login Error",
-        description: error.message || "Failed to connect with Discord.",
-        variant: "destructive"
-      })
-    }
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 flex flex-col font-['Titan_One']">
-      {/* Navigation Bar */}
-      <div className="flex justify-between items-center p-6 bg-black/20">
-        <a href="/" className="text-4xl text-white font-black drop-shadow-lg">
-          Oranget
-        </a>
-        <a 
-          href="#" 
-          onClick={(e) => {
-            e.preventDefault()
-            setIsSignUp(!isSignUp)
+    <div className="min-h-screen relative font-titan overflow-hidden">
+      {/* Background */}
+      <div className="fixed inset-0 bg-gradient-to-br from-amber-900 via-orange-900 to-red-900">
+        <div 
+          className="w-full h-full opacity-30"
+          style={{
+            backgroundImage: 'url("https://i.ibb.co/S4BD0J48/download.png")',
+            animation: 'animatedBackground 9s linear infinite'
           }}
+        />
+      </div>
+
+      {/* Navigation */}
+      <div className="relative z-10 flex justify-between items-center p-4">
+        <h1 className="text-4xl text-white font-black drop-shadow-lg">
+          Oranget
+        </h1>
+        <button 
+          onClick={() => setIsSignUp(!isSignUp)}
           className="text-white text-xl font-bold underline hover:text-orange-100 transition-colors"
         >
           {isSignUp ? 'Login' : 'Register'}
-        </a>
+        </button>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex items-center justify-center p-6">
+      <div className="relative z-10 flex items-center justify-center min-h-[80vh] p-6">
         <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <img 
-              src="/lovable-uploads/09e55504-38cb-49bf-9019-48c875713ca7.png"
-              alt="Logo"
-              className="w-24 h-24 mx-auto mb-4 rounded-lg border-4 border-white shadow-2xl"
-            />
-          </div>
-
           {/* Auth Form */}
-          <form onSubmit={handleAuth} className="bg-white/95 backdrop-blur-sm border-4 border-orange-200 rounded-3xl p-8 shadow-2xl">
-            <h1 className="text-3xl text-orange-600 font-black text-center mb-8">
+          <form onSubmit={handleAuth} className="bg-orange-800/90 backdrop-blur-sm border-4 border-orange-300 rounded-3xl p-8 shadow-2xl">
+            <h1 className="text-3xl text-white font-black text-center mb-8">
               {isSignUp ? 'Register' : 'Login'}
             </h1>
 
             <div className="space-y-6">
               <div className="relative">
-                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-orange-500 w-6 h-6" />
+                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-orange-300 w-6 h-6" />
                 <Input
                   name="username"
                   type="text"
@@ -179,12 +154,12 @@ export default function Auth() {
                   value={formData.username}
                   onChange={handleInputChange}
                   required
-                  className="pl-12 border-2 border-orange-200 rounded-2xl text-lg py-4 font-bold focus:border-orange-400 bg-white"
+                  className="pl-12 border-2 border-orange-400 rounded-2xl text-lg py-4 font-bold focus:border-orange-200 bg-orange-700/50 text-white placeholder:text-orange-200"
                 />
               </div>
 
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-orange-500 w-6 h-6" />
+                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-orange-300 w-6 h-6" />
                 <Input
                   name="password"
                   type="password"
@@ -192,14 +167,14 @@ export default function Auth() {
                   value={formData.password}
                   onChange={handleInputChange}
                   required
-                  className="pl-12 border-2 border-orange-200 rounded-2xl text-lg py-4 font-bold focus:border-orange-400 bg-white"
+                  className="pl-12 border-2 border-orange-400 rounded-2xl text-lg py-4 font-bold focus:border-orange-200 bg-orange-700/50 text-white placeholder:text-orange-200"
                 />
               </div>
 
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-xl font-black py-4 rounded-2xl h-auto"
+                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-xl font-black py-4 rounded-2xl h-auto border-2 border-orange-300"
               >
                 {loading ? (
                   <div className="flex items-center space-x-2">
@@ -210,45 +185,15 @@ export default function Auth() {
                   isSignUp ? 'Register' : 'Login'
                 )}
               </Button>
-
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-orange-200"></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-white text-orange-500 font-bold">or continue with</span>
-                </div>
-              </div>
-
-              <Button
-                type="button"
-                onClick={handleDiscordLogin}
-                variant="outline"
-                className="w-full border-2 border-purple-300 text-purple-600 hover:bg-purple-50 text-xl font-black py-4 rounded-2xl h-auto"
-              >
-                <MessageCircle className="w-6 h-6 mr-3" />
-                Continue with Discord
-              </Button>
             </div>
           </form>
 
           <div className="text-center mt-8">
-            <p className="text-orange-100 text-lg font-bold">
+            <p className="text-orange-100 text-lg font-bold drop-shadow-lg">
               Join thousands of players in epic adventures!
             </p>
           </div>
         </div>
-      </div>
-
-      {/* Animated Background */}
-      <div className="fixed inset-0 -z-10">
-        <div 
-          className="w-full h-full opacity-20"
-          style={{
-            backgroundImage: 'url("https://i.ibb.co/S4BD0J48/download.png")',
-            animation: 'animatedBackground 9s linear infinite'
-          }}
-        />
       </div>
     </div>
   )

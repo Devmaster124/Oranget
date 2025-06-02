@@ -1,74 +1,51 @@
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/AppSidebar"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { useAuth } from '@/hooks/useAuth'
+import { Button } from "@/components/ui/button"
 import { supabase } from '@/integrations/supabase/client'
+import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/use-toast'
-import { Send, Users } from 'lucide-react'
-import UserProfile from '@/components/UserProfile'
-import TradeRequest from '@/components/TradeRequest'
+import { Send } from 'lucide-react'
 
 interface Message {
   id: string
-  text: string
-  username: string
-  user_id: string
-  timestamp: string
+  content: string
   created_at: string
+  user_id: string
+  profiles: {
+    username: string
+  }
 }
 
 export default function Community() {
-  const { user } = useAuth()
-  const { toast } = useToast()
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState('')
-  const [loading, setLoading] = useState(true)
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
-  const [selectedUsername, setSelectedUsername] = useState<string>('')
-  const [showUserProfile, setShowUserProfile] = useState(false)
-  const [tradeRequest, setTradeRequest] = useState<any>(null)
+  const [loading, setLoading] = useState(false)
+  const { user } = useAuth()
+  const { toast } = useToast()
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const chatContainerRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    if (user) {
-      fetchMessages()
-      subscribeToMessages()
-      checkForTradeRequests()
-    }
-  }, [user])
-
-  const fetchMessages = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('messages')
-        .select('*')
-        .order('created_at', { ascending: true })
-        .limit(100)
-
-      if (error) throw error
-      setMessages(data || [])
-    } catch (error) {
-      console.error('Error fetching messages:', error)
-    } finally {
-      setLoading(false)
-    }
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  const subscribeToMessages = () => {
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages])
+
+  useEffect(() => {
+    fetchMessages()
+
     const channel = supabase
-      .channel('messages_realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages'
-        },
+      .channel('messages')
+      .on('postgres_changes', 
+        { event: 'INSERT', schema: 'public', table: 'messages' }, 
         (payload) => {
           console.log('New message received:', payload.new)
-          setMessages(prev => [...prev, payload.new as Message])
+          fetchMessages()
         }
       )
       .subscribe()
@@ -76,43 +53,51 @@ export default function Community() {
     return () => {
       supabase.removeChannel(channel)
     }
-  }
+  }, [])
 
-  const checkForTradeRequests = async () => {
+  const fetchMessages = async () => {
     try {
       const { data, error } = await supabase
-        .from('trade_requests')
-        .select('*')
-        .eq('receiver_id', user?.id)
-        .eq('status', 'pending')
-        .gt('expires_at', new Date().toISOString())
-        .limit(1)
-        .single()
+        .from('messages')
+        .select(`
+          id,
+          content,
+          created_at,
+          user_id,
+          profiles:user_id (username)
+        `)
+        .order('created_at', { ascending: true })
+        .limit(50)
 
-      if (error && error.code !== 'PGRST116') throw error
-      if (data) {
-        setTradeRequest(data)
-      }
-    } catch (error) {
-      console.error('Error checking trade requests:', error)
+      if (error) throw error
+      setMessages(data || [])
+    } catch (error: any) {
+      console.error('Error fetching messages:', error)
+      toast({
+        title: "Error loading messages",
+        description: error.message,
+        variant: "destructive"
+      })
     }
   }
 
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newMessage.trim() || !user) return
+    if (!newMessage.trim() || !user || loading) return
 
+    setLoading(true)
     try {
       const { error } = await supabase
         .from('messages')
-        .insert({
-          text: newMessage.trim(),
-          username: user.email?.split('@')[0] || 'Anonymous',
-          user_id: user.id,
-          timestamp: new Date().toISOString()
-        })
+        .insert([
+          {
+            content: newMessage.trim(),
+            user_id: user.id,
+          }
+        ])
 
       if (error) throw error
+
       setNewMessage('')
     } catch (error: any) {
       console.error('Error sending message:', error)
@@ -121,153 +106,101 @@ export default function Community() {
         description: error.message,
         variant: "destructive"
       })
+    } finally {
+      setLoading(false)
     }
   }
 
-  const handleUsernameClick = (userId: string, username: string) => {
-    if (userId === user?.id) return
-    setSelectedUserId(userId)
-    setSelectedUsername(username)
-    setShowUserProfile(true)
-  }
-
-  const handleTradeRequest = async (userId: string, username: string) => {
-    try {
-      const expiresAt = new Date()
-      expiresAt.setMinutes(expiresAt.getMinutes() + 10)
-
-      const { error } = await supabase
-        .from('trade_requests')
-        .insert({
-          sender_id: user?.id,
-          receiver_id: userId,
-          expires_at: expiresAt.toISOString()
-        })
-
-      if (error) throw error
-
-      toast({
-        title: "Trade request sent!",
-        description: `Your trade request has been sent to ${username}.`,
-      })
-    } catch (error: any) {
-      console.error('Error sending trade request:', error)
-      toast({
-        title: "Error",
-        description: error.message || "Failed to send trade request.",
-        variant: "destructive"
-      })
-    }
-  }
-
-  const handleTradeResponse = (accepted: boolean) => {
-    setTradeRequest(null)
-    if (accepted) {
-      console.log('Opening trade interface')
-    }
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center font-['Titan_One']">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-white text-2xl font-black">Loading community...</p>
-        </div>
-      </div>
-    )
+  const formatTime = (timestamp: string) => {
+    return new Date(timestamp).toLocaleTimeString([], { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    })
   }
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-orange-400 to-orange-600 font-['Titan_One']">
+      <div className="min-h-screen flex w-full relative overflow-hidden">
+        {/* Animated Background */}
+        <div className="fixed inset-0 bg-gradient-to-br from-amber-900 via-orange-900 to-red-900">
+          <div 
+            className="w-full h-full opacity-30"
+            style={{
+              backgroundImage: 'url("https://i.ibb.co/S4BD0J48/download.png")',
+              animation: 'animatedBackground 9s linear infinite'
+            }}
+          />
+        </div>
+
         <AppSidebar />
         
-        {/* Main Chat Container */}
-        <main className="flex-1 flex flex-col">
+        <main className="flex-1 relative z-10 flex flex-col">
           {/* Header */}
-          <div className="bg-black/20 p-4 border-b-2 border-orange-300">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <SidebarTrigger className="text-white hover:bg-orange-400/20 rounded-xl p-2" />
-                <h1 className="text-3xl text-white font-black">Community Chat</h1>
-              </div>
-              <div className="flex items-center space-x-2 text-white">
-                <Users className="w-6 h-6" />
-                <span className="text-lg font-black">
-                  {messages.length > 0 ? new Set(messages.map(m => m.user_id)).size : 0} online
-                </span>
+          <div className="flex items-center justify-between p-6 bg-orange-800/80 backdrop-blur-sm border-b-4 border-orange-400 shrink-0">
+            <div className="flex items-center space-x-4">
+              <SidebarTrigger className="hover:bg-orange-700 rounded-xl text-white" />
+              <div>
+                <h1 className="text-4xl text-white font-black drop-shadow-lg">Chat</h1>
+                <p className="text-orange-200 mt-1 font-bold">Connect with the community!</p>
               </div>
             </div>
           </div>
 
-          {/* Chat Messages */}
-          <div className="flex-1 p-4 overflow-y-auto bg-gradient-to-b from-orange-400/20 to-orange-500/20">
-            <div className="space-y-4">
+          {/* Chat Container */}
+          <div className="flex-1 flex flex-col relative">
+            {/* Messages Area */}
+            <div 
+              ref={chatContainerRef}
+              className="flex-1 overflow-y-auto p-6 space-y-4"
+              style={{ maxHeight: 'calc(100vh - 200px)' }}
+            >
               {messages.map((message) => (
-                <div key={message.id} className="flex items-start space-x-3">
+                <div key={message.id} className="flex items-start space-x-3 bg-orange-800/60 backdrop-blur-sm p-4 rounded-2xl border-2 border-orange-400">
                   <img 
                     src="/lovable-uploads/09e55504-38cb-49bf-9019-48c875713ca7.png"
-                    alt="User Icon"
-                    className="w-12 h-12 rounded-lg border-2 border-white shadow-lg"
+                    alt="User Avatar"
+                    className="w-12 h-12 rounded-lg border-2 border-orange-300 flex-shrink-0"
                   />
-                  <div className="flex-1 bg-white/90 backdrop-blur-sm rounded-2xl p-4 border-2 border-orange-200 shadow-lg">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <span 
-                        className="text-lg font-black text-orange-600 cursor-pointer hover:text-orange-800 transition-colors"
-                        onClick={() => handleUsernameClick(message.user_id, message.username)}
-                      >
-                        {message.username}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <span className="text-white font-black text-lg">
+                        {message.profiles?.username || 'User'}
                       </span>
-                      <span className="text-sm text-orange-400 font-bold">
-                        {new Date(message.timestamp).toLocaleTimeString()}
+                      <span className="text-orange-200 text-sm font-bold">
+                        {formatTime(message.created_at)}
                       </span>
                     </div>
-                    <p className="text-gray-800 text-lg font-medium">{message.text}</p>
+                    <p className="text-orange-100 font-bold break-words">
+                      {message.content}
+                    </p>
                   </div>
                 </div>
               ))}
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Message Input */}
+            <div className="p-6 bg-orange-800/80 backdrop-blur-sm border-t-4 border-orange-400 shrink-0">
+              <form onSubmit={sendMessage} className="flex space-x-4">
+                <Input
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  placeholder="Type your message..."
+                  maxLength={500}
+                  className="flex-1 bg-orange-700/50 border-2 border-orange-400 text-white placeholder:text-orange-200 font-bold text-lg py-4 rounded-2xl focus:border-orange-200"
+                  disabled={loading}
+                />
+                <Button
+                  type="submit"
+                  disabled={loading || !newMessage.trim()}
+                  className="bg-orange-500 hover:bg-orange-600 text-white font-black py-4 px-6 rounded-2xl border-2 border-orange-300 h-auto"
+                >
+                  <Send className="w-5 h-5" />
+                </Button>
+              </form>
             </div>
           </div>
-
-          {/* Message Input */}
-          <div className="bg-black/20 p-4 border-t-2 border-orange-300">
-            <form onSubmit={sendMessage} className="flex space-x-4">
-              <Input
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Type your message..."
-                className="flex-1 border-2 border-orange-200 rounded-2xl text-lg py-3 px-4 bg-white/90 font-medium focus:border-orange-400"
-                maxLength={500}
-                style={{ width: '80%' }}
-              />
-              <Button 
-                type="submit" 
-                className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-6 rounded-2xl text-lg font-black"
-              >
-                <Send className="w-5 h-5 mr-2" />
-                Send
-              </Button>
-            </form>
-          </div>
         </main>
-
-        {showUserProfile && selectedUserId && (
-          <UserProfile
-            userId={selectedUserId}
-            username={selectedUsername}
-            isOpen={showUserProfile}
-            onClose={() => setShowUserProfile(false)}
-            onTradeRequest={handleTradeRequest}
-          />
-        )}
-
-        {tradeRequest && (
-          <TradeRequest
-            tradeRequest={tradeRequest}
-            onResponse={handleTradeResponse}
-          />
-        )}
       </div>
     </SidebarProvider>
   )

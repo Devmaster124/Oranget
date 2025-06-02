@@ -15,6 +15,7 @@ import Blooks from "./pages/Blooks";
 import Marketplace from "./pages/Marketplace";
 import ExchangeCart from "./pages/ExchangeCart";
 import Music from "./pages/Music";
+import MiniGames from "./pages/MiniGames";
 import SnakeGame from "./games/SnakeGame";
 import TetrisGame from "./games/TetrisGame";
 import MemoryGame from "./games/MemoryGame";
@@ -69,6 +70,11 @@ const App = () => (
             <Route path="/music" element={
               <ProtectedRoute>
                 <Music />
+              </ProtectedRoute>
+            } />
+            <Route path="/minigames" element={
+              <ProtectedRoute>
+                <MiniGames />
               </ProtectedRoute>
             } />
             <Route path="/games/snake" element={

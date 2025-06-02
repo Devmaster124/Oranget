@@ -26,38 +26,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email)
         setUser(session?.user ?? null)
         setLoading(false)
 
         // Check if user is banned when they sign in
         if (event === 'SIGNED_IN' && session?.user) {
-          try {
-            const { data: profile, error } = await supabase
-              .from('profiles')
-              .select('username')
-              .eq('id', session.user.id)
-              .single()
+          setTimeout(async () => {
+            try {
+              const { data: profile, error } = await supabase
+                .from('profiles')
+                .select('username')
+                .eq('id', session.user.id)
+                .single()
 
-            if (error && error.code !== 'PGRST116') {
-              console.error('Error checking user profile:', error)
-              return
-            }
+              if (error && error.code !== 'PGRST116') {
+                console.error('Error checking user profile:', error)
+                return
+              }
 
-            // Check if username indicates banned status
-            if (profile?.username?.includes('BANNED_')) {
-              toast({
-                title: "Account Banned",
-                description: "Your account has been banned from the platform",
-                variant: "destructive"
-              })
-              await supabase.auth.signOut()
-              return
+              // Check if username indicates banned status
+              if (profile?.username?.includes('BANNED_')) {
+                toast({
+                  title: "Account Banned",
+                  description: "Your account has been banned from the platform",
+                  variant: "destructive"
+                })
+                await supabase.auth.signOut()
+                return
+              }
+            } catch (error) {
+              console.error('Error checking ban status:', error)
             }
-          } catch (error) {
-            console.error('Error checking ban status:', error)
-          }
+          }, 0)
         }
       }
     )
