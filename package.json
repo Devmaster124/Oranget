@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "tsc && vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
@@ -43,6 +43,7 @@
     "@radix-ui/react-toggle-group": "^1.1.0",
     "@radix-ui/react-tooltip": "^1.1.4",
     "@supabase/supabase-js": "^2.49.8",
+    "@tailwindcss/typography": "^0.5.15",
     "@tanstack/react-query": "^5.56.2",
     "@types/three": "^0.160.0",
     "class-variance-authority": "^0.7.1",

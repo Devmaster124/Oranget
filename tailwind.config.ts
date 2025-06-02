@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -68,18 +67,18 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Orange theme colors
+				// Orange theme colors - updated with brighter orange tones
 				orange: {
-					50: '#fff7ed',
+					50: '#fff8f0',
 					100: '#ffedd5',
-					200: '#fed7aa',
-					300: '#fdba74',
-					400: '#fb923c',
-					500: '#f97316',
-					600: '#ea580c',
-					700: '#c2410c',
-					800: '#9a3412',
-					900: '#7c2d12',
+					200: '#ffddb0',
+					300: '#ffc580',
+					400: '#ffa94d',
+					500: '#ff8c1a', // More vibrant orange
+					600: '#ff7000',
+					700: '#e65c00',
+					800: '#cc4400',
+					900: '#a63c00',
 				},
 				// Rarity colors
 				uncommon: '#22c55e',
@@ -124,11 +123,19 @@ export default {
 					'100%': { opacity: '1' }
 				},
 				'dev-cycle': {
-					'0%': { color: '#f59e0b' },
+					'0%': { color: '#ff8c1a' },
 					'25%': { color: '#ec4899' },
 					'50%': { color: '#3b82f6' },
 					'75%': { color: '#10b981' },
-					'100%': { color: '#f59e0b' }
+					'100%': { color: '#ff8c1a' }
+				},
+				'float': {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-10px)' }
+				},
+				'pulse-orange': {
+					'0%, 100%': { boxShadow: '0 0 0 0 rgba(255, 140, 26, 0.7)' },
+					'50%': { boxShadow: '0 0 0 10px rgba(255, 140, 26, 0)' }
 				}
 			},
 			animation: {
@@ -136,9 +143,11 @@ export default {
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'rainbow': 'rainbow 3s ease infinite',
 				'matrix': 'matrix 2s ease-in-out infinite',
-				'dev-cycle': 'dev-cycle 2s ease-in-out infinite'
+				'dev-cycle': 'dev-cycle 2s ease-in-out infinite',
+				'float': 'float 3s ease-in-out infinite',
+				'pulse-orange': 'pulse-orange 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
 			}
 		}
 	},
-	plugins: [require("tailwindcss-animate")],
+	plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
 } satisfies Config;

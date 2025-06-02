@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -118,7 +117,7 @@ export default function Auth() {
   return (
     <div className="min-h-screen relative font-titan overflow-hidden">
       {/* Background */}
-      <div className="fixed inset-0 bg-gradient-to-br from-amber-900 via-orange-900 to-red-900">
+      <div className="fixed inset-0 bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600">
         <div 
           className="w-full h-full opacity-30"
           style={{
@@ -148,14 +147,14 @@ export default function Auth() {
       <div className="relative z-10 flex items-center justify-center min-h-[80vh] p-6">
         <div className="w-full max-w-md">
           {/* Auth Form */}
-          <form onSubmit={handleAuth} className="bg-orange-800/90 backdrop-blur-sm border-4 border-orange-300 rounded-3xl p-8 shadow-2xl">
+          <form onSubmit={handleAuth} className="bg-orange-600/90 backdrop-blur-sm border-4 border-orange-300 rounded-3xl p-8 shadow-2xl">
             <h1 className="text-4xl text-white font-black text-center mb-8 drop-shadow-lg">
               {isSignUp ? 'Register' : 'Login'}
             </h1>
 
             <div className="space-y-6">
               <div className="relative">
-                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-orange-300 w-6 h-6" />
+                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-orange-200 w-6 h-6" />
                 <Input
                   name="username"
                   type="text"
@@ -163,12 +162,12 @@ export default function Auth() {
                   value={formData.username}
                   onChange={handleInputChange}
                   required
-                  className="pl-12 border-2 border-orange-400 rounded-2xl text-lg py-4 font-bold focus:border-orange-200 bg-orange-700/50 text-white placeholder:text-orange-200"
+                  className="pl-12 border-2 border-orange-300 rounded-2xl text-lg py-4 font-bold focus:border-orange-200 bg-orange-500/50 text-white placeholder:text-orange-200"
                 />
               </div>
 
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-orange-300 w-6 h-6" />
+                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-orange-200 w-6 h-6" />
                 <Input
                   name="password"
                   type="password"
@@ -176,14 +175,14 @@ export default function Auth() {
                   value={formData.password}
                   onChange={handleInputChange}
                   required
-                  className="pl-12 border-2 border-orange-400 rounded-2xl text-lg py-4 font-bold focus:border-orange-200 bg-orange-700/50 text-white placeholder:text-orange-200"
+                  className="pl-12 border-2 border-orange-300 rounded-2xl text-lg py-4 font-bold focus:border-orange-200 bg-orange-500/50 text-white placeholder:text-orange-200"
                 />
               </div>
 
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-xl font-black py-4 rounded-2xl h-auto border-2 border-orange-300"
+                className="w-full bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white text-xl font-black py-4 rounded-2xl h-auto border-2 border-orange-300 animate-pulse-orange"
               >
                 {loading ? (
                   <div className="flex items-center space-x-2">
