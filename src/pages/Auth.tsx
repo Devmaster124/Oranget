@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -43,7 +44,24 @@ export default function Auth() {
 
     try {
       if (isSignUp) {
-        // Create fake email for Supabase
+        // Check if username already exists
+        const { data: existingProfile } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('username', formData.username)
+          .single()
+
+        if (existingProfile) {
+          toast({
+            title: "Username Taken",
+            description: "This username is already taken. Please choose another.",
+            variant: "destructive"
+          })
+          setLoading(false)
+          return
+        }
+
+        // Create fake email for Supabase auth
         const fakeEmail = `${formData.username.toLowerCase()}@oranget.local`
         
         const { data, error } = await supabase.auth.signUp({
@@ -52,7 +70,8 @@ export default function Auth() {
           options: {
             data: {
               username: formData.username
-            }
+            },
+            emailRedirectTo: undefined // No email verification
           }
         })
 
@@ -69,12 +88,41 @@ export default function Auth() {
           return
         }
 
+        // Auto-confirm the user since we don't want email verification
+        if (data.user && !data.user.email_confirmed_at) {
+          // Sign them in immediately since we don't need email verification
+          const { error: signInError } = await supabase.auth.signInWithPassword({
+            email: fakeEmail,
+            password: formData.password,
+          })
+          
+          if (signInError) {
+            throw signInError
+          }
+        }
+
         toast({
           title: "Account Created!",
           description: "Welcome to Oranget!",
         })
         navigate('/profile')
       } else {
+        // Login - find user by username first
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('username', formData.username)
+          .single()
+
+        if (!profile) {
+          toast({
+            title: "Login Failed",
+            description: "Invalid username or password. Please try again.",
+            variant: "destructive"
+          })
+          return
+        }
+
         // Login with fake email
         const fakeEmail = `${formData.username.toLowerCase()}@oranget.local`
         
