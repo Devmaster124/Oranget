@@ -2,14 +2,15 @@
 import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { supabase } from '@/integrations/supabase/client'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useToast } from '@/hooks/use-toast'
+import { useAuth } from '@/hooks/useAuth'
 import { User, Lock } from 'lucide-react'
 
 export default function Auth() {
   const navigate = useNavigate()
   const { toast } = useToast()
+  const { signIn, signUp } = useAuth()
   const [searchParams] = useSearchParams()
   const [isSignUp, setIsSignUp] = useState(searchParams.get('mode') === 'register')
   const [loading, setLoading] = useState(false)
@@ -43,128 +44,23 @@ export default function Auth() {
     setLoading(true)
 
     try {
+      let result
       if (isSignUp) {
-        // Check if username already exists
-        const { data: existingProfile, error: checkError } = await supabase
-          .from('profiles')
-          .select('username')
-          .eq('username', formData.username)
-          .maybeSingle()
-
-        if (checkError && checkError.code !== 'PGRST116') {
-          throw checkError
-        }
-
-        if (existingProfile) {
-          toast({
-            title: "Username Taken",
-            description: "This username is already taken. Please choose another.",
-            variant: "destructive"
-          })
-          setLoading(false)
-          return
-        }
-
-        // Use a simple email format that bypasses validation
-        const fakeEmail = `${formData.username}@local.app`
-        
-        const { data, error } = await supabase.auth.signUp({
-          email: fakeEmail,
-          password: formData.password,
-          options: {
-            data: {
-              username: formData.username
-            }
-          }
-        })
-
-        if (error) {
-          if (error.message.includes('already registered') || error.message.includes('duplicate')) {
-            toast({
-              title: "Username Taken",
-              description: "This username is already taken. Please choose another.",
-              variant: "destructive"
-            })
-          } else {
-            console.error('Signup error:', error)
-            toast({
-              title: "Signup Failed",
-              description: "Unable to create account. Please try again.",
-              variant: "destructive"
-            })
-          }
-          setLoading(false)
-          return
-        }
-
-        if (data.user) {
-          // Create profile manually if the trigger didn't work
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .insert({
-              id: data.user.id,
-              username: formData.username,
-              tokens: 1000
-            })
-
-          if (profileError && !profileError.message.includes('duplicate')) {
-            console.error('Profile creation error:', profileError)
-          }
-
-          toast({
-            title: "Account Created!",
-            description: "Welcome to Oranget!",
-          })
-          navigate('/profile')
-        }
+        result = await signUp(formData.username, formData.password)
       } else {
-        // Login - find user by username first
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('username', formData.username)
-          .maybeSingle()
-
-        if (profileError) {
-          throw profileError
-        }
-
-        if (!profile) {
-          toast({
-            title: "Login Failed",
-            description: "Invalid username or password. Please try again.",
-            variant: "destructive"
-          })
-          setLoading(false)
-          return
-        }
-
-        // Login with the corresponding email
-        const fakeEmail = `${formData.username}@local.app`
-        
-        const { error } = await supabase.auth.signInWithPassword({
-          email: fakeEmail,
-          password: formData.password,
-        })
-
-        if (error) {
-          console.error('Login error:', error)
-          toast({
-            title: "Login Failed",
-            description: "Invalid username or password. Please try again.",
-            variant: "destructive"
-          })
-          setLoading(false)
-          return
-        }
-
-        toast({
-          title: "Welcome back!",
-          description: "You have successfully signed in.",
-        })
-        navigate('/profile')
+        result = await signIn(formData.username, formData.password)
       }
-    } catch (error: any) {
+
+      if (result.success) {
+        navigate('/profile')
+      } else {
+        toast({
+          title: isSignUp ? "Signup Failed" : "Login Failed",
+          description: result.error || "Please try again",
+          variant: "destructive"
+        })
+      }
+    } catch (error) {
       console.error('Auth error:', error)
       toast({
         title: "Authentication Error",

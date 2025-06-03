@@ -1,13 +1,19 @@
 
 import { createContext, useContext, useEffect, useState } from 'react'
-import { supabase } from '@/integrations/supabase/client'
-import { User } from '@supabase/supabase-js'
 import { useToast } from '@/hooks/use-toast'
+
+interface User {
+  id: string
+  username: string
+  tokens: number
+}
 
 interface AuthContextType {
   user: User | null
   loading: boolean
   signOut: () => Promise<void>
+  signIn: (username: string, password: string) => Promise<{ success: boolean; error?: string }>
+  signUp: (username: string, password: string) => Promise<{ success: boolean; error?: string }>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -18,89 +24,94 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast()
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email)
-        setUser(session?.user ?? null)
-        setLoading(false)
-
-        // Check if user profile exists and create if needed
-        if (event === 'SIGNED_IN' && session?.user) {
-          try {
-            const { data: profile, error } = await supabase
-              .from('profiles')
-              .select('username')
-              .eq('id', session.user.id)
-              .maybeSingle()
-
-            if (error && error.code !== 'PGRST116') {
-              console.error('Error checking user profile:', error)
-              return
-            }
-
-            // If no profile exists, create one
-            if (!profile) {
-              const username = session.user.user_metadata?.username || `Player${session.user.id.slice(0, 8)}`
-              
-              const { error: createError } = await supabase
-                .from('profiles')
-                .insert({
-                  id: session.user.id,
-                  username: username,
-                  tokens: 1000
-                })
-
-              if (createError) {
-                console.error('Error creating user profile:', createError)
-              }
-            }
-
-            // Check if username indicates banned status
-            if (profile?.username?.includes('BANNED_')) {
-              toast({
-                title: "Account Banned",
-                description: "Your account has been banned from the platform",
-                variant: "destructive"
-              })
-              await supabase.auth.signOut()
-              return
-            }
-          } catch (error) {
-            console.error('Error in auth state change:', error)
-          }
-        }
+    // Check if user is stored in localStorage
+    const storedUser = localStorage.getItem('oranget_user')
+    if (storedUser) {
+      try {
+        const userData = JSON.parse(storedUser)
+        setUser(userData)
+      } catch (error) {
+        console.error('Error parsing stored user:', error)
+        localStorage.removeItem('oranget_user')
       }
-    )
+    }
+    setLoading(false)
+  }, [])
 
-    return () => subscription.unsubscribe()
-  }, [toast])
+  const signUp = async (username: string, password: string) => {
+    try {
+      // Check if username already exists
+      const existingUsers = JSON.parse(localStorage.getItem('oranget_users') || '{}')
+      
+      if (existingUsers[username]) {
+        return { success: false, error: 'Username already exists' }
+      }
+
+      // Create new user
+      const newUser: User = {
+        id: Date.now().toString(),
+        username,
+        tokens: 1000
+      }
+
+      // Store user credentials and data
+      existingUsers[username] = { password, userData: newUser }
+      localStorage.setItem('oranget_users', JSON.stringify(existingUsers))
+      localStorage.setItem('oranget_user', JSON.stringify(newUser))
+      
+      setUser(newUser)
+      
+      toast({
+        title: "Account Created!",
+        description: "Welcome to Oranget!",
+      })
+
+      return { success: true }
+    } catch (error) {
+      console.error('Signup error:', error)
+      return { success: false, error: 'Failed to create account' }
+    }
+  }
+
+  const signIn = async (username: string, password: string) => {
+    try {
+      const existingUsers = JSON.parse(localStorage.getItem('oranget_users') || '{}')
+      
+      if (!existingUsers[username] || existingUsers[username].password !== password) {
+        return { success: false, error: 'Invalid username or password' }
+      }
+
+      const userData = existingUsers[username].userData
+      localStorage.setItem('oranget_user', JSON.stringify(userData))
+      setUser(userData)
+
+      toast({
+        title: "Welcome back!",
+        description: "You have successfully signed in.",
+      })
+
+      return { success: true }
+    } catch (error) {
+      console.error('Login error:', error)
+      return { success: false, error: 'Failed to sign in' }
+    }
+  }
 
   const signOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut()
-      if (error) throw error
+      localStorage.removeItem('oranget_user')
       setUser(null)
-    } catch (error: any) {
-      console.error('Error signing out:', error.message)
-      toast({
-        title: "Error signing out",
-        description: error.message,
-        variant: "destructive"
-      })
+    } catch (error) {
+      console.error('Error signing out:', error)
     }
   }
 
   const value = {
     user,
     loading,
-    signOut
+    signOut,
+    signIn,
+    signUp
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
