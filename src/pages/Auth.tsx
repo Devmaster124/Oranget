@@ -45,11 +45,15 @@ export default function Auth() {
     try {
       if (isSignUp) {
         // Check if username already exists
-        const { data: existingProfile } = await supabase
+        const { data: existingProfile, error: checkError } = await supabase
           .from('profiles')
           .select('username')
           .eq('username', formData.username)
-          .single()
+          .maybeSingle()
+
+        if (checkError && checkError.code !== 'PGRST116') {
+          throw checkError
+        }
 
         if (existingProfile) {
           toast({
@@ -61,8 +65,8 @@ export default function Auth() {
           return
         }
 
-        // Create fake email for Supabase auth
-        const fakeEmail = `${formData.username.toLowerCase()}@oranget.local`
+        // Use a simple email format that bypasses validation
+        const fakeEmail = `${formData.username}@local.app`
         
         const { data, error } = await supabase.auth.signUp({
           email: fakeEmail,
@@ -70,8 +74,7 @@ export default function Auth() {
           options: {
             data: {
               username: formData.username
-            },
-            emailRedirectTo: undefined // No email verification
+            }
           }
         })
 
@@ -83,36 +86,48 @@ export default function Auth() {
               variant: "destructive"
             })
           } else {
-            throw error
+            console.error('Signup error:', error)
+            toast({
+              title: "Signup Failed",
+              description: "Unable to create account. Please try again.",
+              variant: "destructive"
+            })
           }
+          setLoading(false)
           return
         }
 
-        // Auto-confirm the user since we don't want email verification
-        if (data.user && !data.user.email_confirmed_at) {
-          // Sign them in immediately since we don't need email verification
-          const { error: signInError } = await supabase.auth.signInWithPassword({
-            email: fakeEmail,
-            password: formData.password,
-          })
-          
-          if (signInError) {
-            throw signInError
-          }
-        }
+        if (data.user) {
+          // Create profile manually if the trigger didn't work
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .insert({
+              id: data.user.id,
+              username: formData.username,
+              tokens: 1000
+            })
 
-        toast({
-          title: "Account Created!",
-          description: "Welcome to Oranget!",
-        })
-        navigate('/profile')
+          if (profileError && !profileError.message.includes('duplicate')) {
+            console.error('Profile creation error:', profileError)
+          }
+
+          toast({
+            title: "Account Created!",
+            description: "Welcome to Oranget!",
+          })
+          navigate('/profile')
+        }
       } else {
         // Login - find user by username first
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('id')
           .eq('username', formData.username)
-          .single()
+          .maybeSingle()
+
+        if (profileError) {
+          throw profileError
+        }
 
         if (!profile) {
           toast({
@@ -120,11 +135,12 @@ export default function Auth() {
             description: "Invalid username or password. Please try again.",
             variant: "destructive"
           })
+          setLoading(false)
           return
         }
 
-        // Login with fake email
-        const fakeEmail = `${formData.username.toLowerCase()}@oranget.local`
+        // Login with the corresponding email
+        const fakeEmail = `${formData.username}@local.app`
         
         const { error } = await supabase.auth.signInWithPassword({
           email: fakeEmail,
@@ -132,15 +148,13 @@ export default function Auth() {
         })
 
         if (error) {
-          if (error.message.includes('Invalid login credentials')) {
-            toast({
-              title: "Login Failed",
-              description: "Invalid username or password. Please try again.",
-              variant: "destructive"
-            })
-          } else {
-            throw error
-          }
+          console.error('Login error:', error)
+          toast({
+            title: "Login Failed",
+            description: "Invalid username or password. Please try again.",
+            variant: "destructive"
+          })
+          setLoading(false)
           return
         }
 
@@ -154,7 +168,7 @@ export default function Auth() {
       console.error('Auth error:', error)
       toast({
         title: "Authentication Error",
-        description: error.message || "An error occurred during authentication.",
+        description: "An error occurred. Please try again.",
         variant: "destructive"
       })
     } finally {
