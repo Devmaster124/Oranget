@@ -4,10 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Search, ShoppingCart, Star, Filter } from 'lucide-react'
-import { supabase } from '@/integrations/supabase/client'
+import { Search, ShoppingCart, Star, Filter, ArrowLeft } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/use-toast'
+import { useNavigate } from 'react-router-dom'
 import { TokenDisplay } from '@/components/TokenDisplay'
 import { RarityBadge } from '@/components/RarityBadge'
 
@@ -25,6 +25,7 @@ interface MarketplaceItem {
 export default function Marketplace() {
   const { user } = useAuth()
   const { toast } = useToast()
+  const navigate = useNavigate()
   const [items, setItems] = useState<MarketplaceItem[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedRarity, setSelectedRarity] = useState<string>('All')
@@ -35,22 +36,10 @@ export default function Marketplace() {
 
   useEffect(() => {
     if (user) {
-      fetchUserTokens()
+      setUserTokens(user.tokens)
       fetchMarketplaceItems()
     }
   }, [user])
-
-  const fetchUserTokens = async () => {
-    if (!user) return
-    
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('tokens')
-      .eq('id', user.id)
-      .single()
-    
-    setUserTokens(profile?.tokens || 0)
-  }
 
   const fetchMarketplaceItems = async () => {
     setLoading(true)
@@ -118,16 +107,12 @@ export default function Marketplace() {
     }
 
     try {
-      // Update user tokens
       const newTokenAmount = userTokens - item.price
-      const { error } = await supabase
-        .from('profiles')
-        .update({ tokens: newTokenAmount })
-        .eq('id', user.id)
-
-      if (error) throw error
-
       setUserTokens(newTokenAmount)
+      
+      // Update user tokens in localStorage
+      const updatedUser = { ...user, tokens: newTokenAmount }
+      localStorage.setItem('oranget_user', JSON.stringify(updatedUser))
       
       toast({
         title: "Purchase successful!",
@@ -151,7 +136,7 @@ export default function Marketplace() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 p-6">
+      <div className="min-h-screen bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 p-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center text-white font-titan text-2xl">Loading marketplace...</div>
         </div>
@@ -160,15 +145,28 @@ export default function Marketplace() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-6xl text-white font-titan mb-4">🛍️ MARKETPLACE</h1>
-          <p className="text-xl text-white font-titan">Buy amazing items with your tokens!</p>
-          <div className="mt-4">
-            <TokenDisplay tokens={userTokens} />
+        {/* Header with Back Button */}
+        <div className="flex items-center justify-between mb-8">
+          <Button
+            onClick={() => navigate('/')}
+            variant="outline"
+            className="border-2 border-white text-white hover:bg-white hover:text-orange-600 text-lg font-bold rounded-2xl px-6 py-3"
+          >
+            <ArrowLeft className="w-5 h-5 mr-2" />
+            Back to Dashboard
+          </Button>
+          
+          <div className="text-center">
+            <h1 className="text-6xl text-white font-bold mb-4">🛍️ MARKETPLACE</h1>
+            <p className="text-xl text-white font-medium">Buy amazing items with your tokens!</p>
+            <div className="mt-4">
+              <TokenDisplay tokens={userTokens} />
+            </div>
           </div>
+          
+          <div></div>
         </div>
 
         {/* Search and Filters */}
@@ -179,7 +177,7 @@ export default function Marketplace() {
               placeholder="Search items..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 text-lg font-titan border-4 border-white/30 rounded-2xl"
+              className="pl-10 text-lg font-medium border-4 border-white/30 rounded-2xl"
             />
           </div>
           <div className="flex items-center space-x-2">
@@ -187,7 +185,7 @@ export default function Marketplace() {
             <select
               value={selectedRarity}
               onChange={(e) => setSelectedRarity(e.target.value)}
-              className="px-4 py-2 border-4 border-white/30 rounded-2xl font-titan text-lg bg-white/10 text-white"
+              className="px-4 py-2 border-4 border-white/30 rounded-2xl font-medium text-lg bg-white/10 text-white"
             >
               {rarities.map(rarity => (
                 <option key={rarity} value={rarity} className="text-black">
@@ -206,19 +204,19 @@ export default function Marketplace() {
                 <div className="w-full h-32 bg-gradient-to-br from-blue-400 to-purple-600 rounded-2xl mb-4 flex items-center justify-center">
                   <Star className="w-16 h-16 text-white" />
                 </div>
-                <CardTitle className="text-white font-titan text-xl">{item.name}</CardTitle>
+                <CardTitle className="text-white font-bold text-xl">{item.name}</CardTitle>
                 <RarityBadge rarity={item.rarity} />
               </CardHeader>
               <CardContent className="text-center space-y-4">
-                <p className="text-white/80 font-titan">{item.description}</p>
+                <p className="text-white/80 font-medium">{item.description}</p>
                 <div className="flex items-center justify-between">
-                  <Badge variant="secondary" className="font-titan text-lg px-4 py-2">
+                  <Badge variant="secondary" className="font-bold text-lg px-4 py-2">
                     {item.price} 🪙
                   </Badge>
                   <Button
                     onClick={() => handlePurchase(item)}
                     disabled={userTokens < item.price}
-                    className="bg-green-500 hover:bg-green-600 text-white font-titan rounded-2xl px-6"
+                    className="bg-green-500 hover:bg-green-600 text-white font-bold rounded-2xl px-6"
                   >
                     <ShoppingCart className="w-4 h-4 mr-2" />
                     Buy
@@ -230,7 +228,7 @@ export default function Marketplace() {
         </div>
 
         {filteredItems.length === 0 && (
-          <div className="text-center text-white font-titan text-2xl mt-12">
+          <div className="text-center text-white font-bold text-2xl mt-12">
             No items found matching your criteria
           </div>
         )}

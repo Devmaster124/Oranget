@@ -1,22 +1,18 @@
+
 import { useState, useEffect } from 'react'
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/AppSidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { useAuth } from '@/hooks/useAuth'
-import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
 import { Camera, Trophy, MessageCircle, Heart, Coins } from 'lucide-react'
-import AdminPanel from '@/components/AdminPanel'
 
 export default function Profile() {
   const { user } = useAuth()
   const { toast } = useToast()
   const [profile, setProfile] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const [uploading, setUploading] = useState(false)
 
   const profilePictures = [
     'https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=200',
@@ -29,38 +25,35 @@ export default function Profile() {
 
   useEffect(() => {
     if (user) {
-      fetchProfile()
+      // Load profile from localStorage or create default
+      const storedProfile = localStorage.getItem(`oranget_profile_${user.id}`)
+      if (storedProfile) {
+        setProfile(JSON.parse(storedProfile))
+      } else {
+        const defaultProfile = {
+          id: user.id,
+          username: user.username,
+          tokens: user.tokens,
+          profile_picture: profilePictures[0],
+          role: 'player',
+          orange_drips: 0,
+          blooks_unlocked: 0,
+          total_chats_participated: 0,
+          total_messages_sent: 0
+        }
+        setProfile(defaultProfile)
+        localStorage.setItem(`oranget_profile_${user.id}`, JSON.stringify(defaultProfile))
+      }
+      setLoading(false)
     }
   }, [user])
 
-  const fetchProfile = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user?.id)
-        .single()
-      
-      if (error) throw error
-      setProfile(data)
-    } catch (error) {
-      console.error('Error fetching profile:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
   const updateProfilePicture = async (imageUrl: string) => {
-    setUploading(true)
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ profile_picture: imageUrl })
-        .eq('id', user?.id)
+      const updatedProfile = { ...profile, profile_picture: imageUrl }
+      setProfile(updatedProfile)
+      localStorage.setItem(`oranget_profile_${user?.id}`, JSON.stringify(updatedProfile))
       
-      if (error) throw error
-      
-      setProfile({ ...profile, profile_picture: imageUrl })
       toast({
         title: "Profile updated!",
         description: "Your profile picture has been changed.",
@@ -72,20 +65,18 @@ export default function Profile() {
         description: "Failed to update profile picture.",
         variant: "destructive"
       })
-    } finally {
-      setUploading(false)
     }
   }
 
   if (loading) {
     return (
       <SidebarProvider>
-        <div className="min-h-screen flex w-full bg-gradient-to-br from-orange-50 via-orange-100 to-yellow-50 font-fredoka">
+        <div className="min-h-screen flex w-full bg-gradient-to-br from-orange-50 via-orange-100 to-orange-200 font-fredoka">
           <AppSidebar />
           <main className="flex-1 p-4 md:p-6 flex items-center justify-center">
             <div className="text-center">
               <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-orange-600 text-xl font-bold">Loading Titan profile...</p>
+              <p className="text-orange-600 text-xl font-medium">Loading profile...</p>
             </div>
           </main>
         </div>
@@ -95,7 +86,7 @@ export default function Profile() {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-orange-50 via-orange-100 to-yellow-50 font-fredoka">
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-orange-50 via-orange-100 to-orange-200 font-fredoka">
         <AppSidebar />
         <main className="flex-1 p-4 md:p-6">
           <div className="max-w-6xl mx-auto">
@@ -104,10 +95,10 @@ export default function Profile() {
               <div className="flex items-center space-x-4">
                 <SidebarTrigger className="hover:bg-orange-100 rounded-xl" />
                 <div>
-                  <h1 className="text-3xl md:text-4xl font-fredoka text-orange-600 font-black drop-shadow-lg">
-                    🏆 Titan Profile
+                  <h1 className="text-3xl md:text-4xl font-fredoka text-orange-600 font-bold drop-shadow-lg">
+                    🏆 Profile
                   </h1>
-                  <p className="text-orange-500 mt-1 font-bold text-sm md:text-base">Master your gaming empire!</p>
+                  <p className="text-orange-500 mt-1 font-medium text-sm md:text-base">Master your gaming empire!</p>
                 </div>
               </div>
             </div>
@@ -119,7 +110,7 @@ export default function Profile() {
                   <div className="relative mx-auto mb-4">
                     <Avatar className="w-24 h-24 md:w-32 md:h-32 border-6 border-orange-300 shadow-2xl">
                       <AvatarImage src={profile?.profile_picture} />
-                      <AvatarFallback className="bg-gradient-to-br from-orange-400 to-orange-600 text-white text-2xl md:text-4xl font-black">
+                      <AvatarFallback className="bg-gradient-to-br from-orange-400 to-orange-600 text-white text-2xl md:text-4xl font-bold">
                         {profile?.username?.[0]?.toUpperCase() || 'T'}
                       </AvatarFallback>
                     </Avatar>
@@ -127,11 +118,11 @@ export default function Profile() {
                       <Camera className="w-4 h-4 md:w-5 md:h-5 text-white" />
                     </div>
                   </div>
-                  <CardTitle className="text-2xl md:text-3xl text-orange-600 font-black">{profile?.username}</CardTitle>
-                  <p className="text-orange-500 font-bold text-sm md:text-base">{user?.email}</p>
+                  <CardTitle className="text-2xl md:text-3xl text-orange-600 font-bold">{profile?.username}</CardTitle>
+                  <p className="text-orange-500 font-medium text-sm md:text-base">Username: {user?.username}</p>
                   {profile?.role && (
                     <div className="mt-2">
-                      <span className={`px-4 py-2 rounded-full text-sm font-black ${
+                      <span className={`px-4 py-2 rounded-full text-sm font-bold ${
                         profile.role === 'owner' ? 'bg-purple-500 text-white' :
                         profile.role === 'admin' ? 'bg-red-500 text-white' :
                         profile.role === 'moderator' ? 'bg-blue-500 text-white' :
@@ -146,13 +137,13 @@ export default function Profile() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="text-center p-3 md:p-4 bg-gradient-to-br from-orange-100 to-orange-200 rounded-2xl border-2 border-orange-300">
                       <Coins className="w-6 h-6 md:w-8 md:h-8 text-orange-600 mx-auto mb-2" />
-                      <p className="text-xl md:text-2xl font-black text-orange-700">{profile?.tokens || 0}</p>
-                      <p className="text-orange-600 text-xs md:text-sm font-bold">Tokens</p>
+                      <p className="text-xl md:text-2xl font-bold text-orange-700">{profile?.tokens || 0}</p>
+                      <p className="text-orange-600 text-xs md:text-sm font-medium">Tokens</p>
                     </div>
                     <div className="text-center p-3 md:p-4 bg-gradient-to-br from-yellow-100 to-orange-200 rounded-2xl border-2 border-orange-300">
                       <div className="text-xl md:text-2xl mb-2">🧡</div>
-                      <p className="text-xl md:text-2xl font-black text-orange-700">{profile?.orange_drips || 0}</p>
-                      <p className="text-orange-600 text-xs md:text-sm font-bold">Orange Drips</p>
+                      <p className="text-xl md:text-2xl font-bold text-orange-700">{profile?.orange_drips || 0}</p>
+                      <p className="text-orange-600 text-xs md:text-sm font-medium">Orange Drips</p>
                     </div>
                   </div>
                 </CardContent>
@@ -161,7 +152,7 @@ export default function Profile() {
               {/* Stats Card */}
               <Card className="bg-white/80 backdrop-blur-sm border-4 border-orange-200 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105">
                 <CardHeader>
-                  <CardTitle className="text-2xl text-orange-600 font-black flex items-center">
+                  <CardTitle className="text-2xl text-orange-600 font-bold flex items-center">
                     <Trophy className="w-8 h-8 mr-3" />
                     Your Stats
                   </CardTitle>
@@ -171,49 +162,42 @@ export default function Profile() {
                     <div className="flex items-center">
                       <Heart className="w-8 h-8 text-purple-600 mr-3" />
                       <div>
-                        <p className="font-black text-purple-700">Blooks Unlocked</p>
+                        <p className="font-bold text-purple-700">Blooks Unlocked</p>
                         <p className="text-purple-600 text-sm">Collect them all!</p>
                       </div>
                     </div>
-                    <span className="text-3xl font-black text-purple-700">{profile?.blooks_unlocked || 0}</span>
+                    <span className="text-3xl font-bold text-purple-700">{profile?.blooks_unlocked || 0}</span>
                   </div>
                   
                   <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-100 to-cyan-100 rounded-2xl border-2 border-blue-200">
                     <div className="flex items-center">
                       <MessageCircle className="w-8 h-8 text-blue-600 mr-3" />
                       <div>
-                        <p className="font-black text-blue-700">Chats Joined</p>
+                        <p className="font-bold text-blue-700">Chats Joined</p>
                         <p className="text-blue-600 text-sm">Social butterfly!</p>
                       </div>
                     </div>
-                    <span className="text-3xl font-black text-blue-700">{profile?.total_chats_participated || 0}</span>
+                    <span className="text-3xl font-bold text-blue-700">{profile?.total_chats_participated || 0}</span>
                   </div>
                   
                   <div className="flex items-center justify-between p-4 bg-gradient-to-r from-green-100 to-emerald-100 rounded-2xl border-2 border-green-200">
                     <div className="flex items-center">
                       <MessageCircle className="w-8 h-8 text-green-600 mr-3" />
                       <div>
-                        <p className="font-black text-green-700">Messages Sent</p>
+                        <p className="font-bold text-green-700">Messages Sent</p>
                         <p className="text-green-600 text-sm">Keep chatting!</p>
                       </div>
                     </div>
-                    <span className="text-3xl font-black text-green-700">{profile?.total_messages_sent || 0}</span>
+                    <span className="text-3xl font-bold text-green-700">{profile?.total_messages_sent || 0}</span>
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Admin Panel */}
-            {(profile?.username?.includes('admin') || user?.email?.includes('admin')) && (
-              <div className="mt-6 md:mt-8">
-                <AdminPanel />
-              </div>
-            )}
-
             {/* Profile Picture Selection */}
             <Card className="mt-6 md:mt-8 bg-white/80 backdrop-blur-sm border-4 border-orange-200 rounded-3xl shadow-2xl">
               <CardHeader>
-                <CardTitle className="text-2xl text-orange-600 font-black flex items-center">
+                <CardTitle className="text-2xl text-orange-600 font-bold flex items-center">
                   <Camera className="w-8 h-8 mr-3" />
                   Choose Your Avatar
                 </CardTitle>

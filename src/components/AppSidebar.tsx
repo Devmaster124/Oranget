@@ -1,3 +1,4 @@
+
 import { Calendar, Home, Users, Heart, ShoppingCart, User, Music, Gamepad2, Settings, Newspaper, Trophy, Building, Briefcase } from "lucide-react"
 import { useLocation, useNavigate } from "react-router-dom"
 import {
@@ -26,11 +27,6 @@ const menuItems = [
     icon: User,
   },
   {
-    title: "Leaderboard",
-    url: "/leaderboard", 
-    icon: Trophy,
-  },
-  {
     title: "Chat",
     url: "/community",
     icon: Users,
@@ -39,11 +35,6 @@ const menuItems = [
     title: "Market",
     url: "/marketplace",
     icon: ShoppingCart,
-  },
-  {
-    title: "Auction",
-    url: "/auction",
-    icon: Building,
   },
   {
     title: "Blooks",
@@ -91,8 +82,8 @@ export function AppSidebar() {
               className="w-12 h-12 rounded-lg border-4 border-white shadow-lg animate-pulse-orange"
             />
             <div>
-              <h1 className="text-3xl text-white font-black drop-shadow-lg tracking-wide font-titan">Oranget</h1>
-              <p className="text-orange-100 text-sm font-bold opacity-90 font-titan">Your Gaming World!</p>
+              <h1 className="text-3xl text-white font-bold drop-shadow-lg tracking-wide">Oranget</h1>
+              <p className="text-orange-100 text-sm font-medium opacity-90">Your Gaming World!</p>
             </div>
           </div>
         </SidebarHeader>
@@ -105,11 +96,11 @@ export function AppSidebar() {
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton 
                       onClick={() => navigate(item.url)}
-                      className="hover:bg-orange-400 hover:text-white hover:scale-105 hover:shadow-lg data-[active=true]:bg-orange-400 data-[active=true]:text-white data-[active=true]:scale-105 data-[active=true]:shadow-lg rounded-2xl text-orange-100 text-lg py-4 px-4 h-auto transition-all duration-300 transform border-2 border-transparent hover:border-orange-200 group font-titan"
+                      className="hover:bg-orange-400 hover:text-white hover:scale-105 hover:shadow-lg data-[active=true]:bg-orange-400 data-[active=true]:text-white data-[active=true]:scale-105 data-[active=true]:shadow-lg rounded-2xl text-orange-100 text-lg py-4 px-4 h-auto transition-all duration-300 transform border-2 border-transparent hover:border-orange-200 group font-medium"
                       data-active={location.pathname === item.url}
                     >
                       <item.icon className="w-7 h-7 group-hover:animate-bounce" />
-                      <span className="text-lg font-black drop-shadow-sm">{item.title}</span>
+                      <span className="text-lg font-bold drop-shadow-sm">{item.title}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
@@ -124,10 +115,10 @@ export function AppSidebar() {
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton 
                   onClick={() => navigate(item.url)}
-                  className="hover:bg-orange-400 hover:text-white rounded-2xl text-orange-100 text-base py-3 px-3 h-auto transition-all duration-300 border-2 border-transparent hover:border-orange-200 font-titan"
+                  className="hover:bg-orange-400 hover:text-white rounded-2xl text-orange-100 text-base py-3 px-3 h-auto transition-all duration-300 border-2 border-transparent hover:border-orange-200 font-medium"
                 >
                   <item.icon className="w-5 h-5" />
-                  <span className="text-base font-bold">{item.title}</span>
+                  <span className="text-base font-medium">{item.title}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
@@ -135,7 +126,7 @@ export function AppSidebar() {
               <Button
                 onClick={handleSignOut}
                 variant="outline"
-                className="w-full text-orange-100 border-orange-300 hover:bg-orange-400 hover:text-white rounded-2xl text-base py-3 h-auto font-titan font-bold transition-all duration-300"
+                className="w-full text-orange-100 border-orange-300 hover:bg-orange-400 hover:text-white rounded-2xl text-base py-3 h-auto font-medium transition-all duration-300"
               >
                 Logout
               </Button>

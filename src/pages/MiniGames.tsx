@@ -87,8 +87,8 @@ export default function MiniGames() {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full relative overflow-hidden">
-        {/* Animated Background */}
-        <div className="fixed inset-0 bg-gradient-to-br from-amber-900 via-orange-900 to-red-900">
+        {/* Orange Background */}
+        <div className="fixed inset-0 bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600">
           <div 
             className="w-full h-full opacity-30"
             style={{
@@ -102,12 +102,12 @@ export default function MiniGames() {
         
         <main className="flex-1 relative z-10">
           {/* Header */}
-          <div className="flex items-center justify-between p-6 bg-orange-800/80 backdrop-blur-sm border-b-4 border-orange-400">
+          <div className="flex items-center justify-between p-6 bg-orange-600/80 backdrop-blur-sm border-b-4 border-orange-300">
             <div className="flex items-center space-x-4">
               <SidebarTrigger className="hover:bg-orange-700 rounded-xl text-white" />
               <div>
-                <h1 className="text-4xl text-white font-black drop-shadow-lg">Mini Games</h1>
-                <p className="text-orange-200 mt-1 font-bold">Play fun games and earn tokens!</p>
+                <h1 className="text-4xl text-white font-bold drop-shadow-lg">Mini Games</h1>
+                <p className="text-orange-100 mt-1 font-medium">Play fun games and earn tokens!</p>
               </div>
             </div>
           </div>
@@ -119,23 +119,23 @@ export default function MiniGames() {
                 {games.map((game) => (
                   <Card 
                     key={game.id}
-                    className="group bg-orange-800/80 backdrop-blur-sm border-4 border-orange-400 hover:scale-105 transition-all duration-300 cursor-pointer rounded-3xl overflow-hidden"
+                    className="group bg-orange-500/80 backdrop-blur-sm border-4 border-orange-300 hover:scale-105 transition-all duration-300 cursor-pointer rounded-3xl overflow-hidden"
                     onClick={() => navigate(game.route)}
                   >
-                    <div className="relative h-48 overflow-hidden bg-gradient-to-br from-orange-600 to-orange-800 flex items-center justify-center">
+                    <div className="relative h-48 overflow-hidden bg-gradient-to-br from-orange-500 to-orange-700 flex items-center justify-center">
                       <span className="text-8xl group-hover:scale-110 transition-transform duration-300">
                         {game.emoji}
                       </span>
                     </div>
                     
                     <CardHeader>
-                      <CardTitle className="text-2xl text-white font-black">{game.title}</CardTitle>
+                      <CardTitle className="text-2xl text-white font-bold">{game.title}</CardTitle>
                     </CardHeader>
                     
                     <CardContent>
-                      <p className="text-orange-200 mb-4 font-bold">{game.description}</p>
+                      <p className="text-orange-100 mb-4 font-medium">{game.description}</p>
                       <Button 
-                        className="w-full bg-orange-500 hover:bg-orange-600 text-white font-black border-2 border-orange-300"
+                        className="w-full bg-orange-400 hover:bg-orange-500 text-white font-bold border-2 border-orange-200"
                       >
                         Play Now
                       </Button>

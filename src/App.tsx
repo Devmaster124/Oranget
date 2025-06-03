@@ -17,6 +17,8 @@ import Marketplace from "./pages/Marketplace";
 import ExchangeCart from "./pages/ExchangeCart";
 import Music from "./pages/Music";
 import MiniGames from "./pages/MiniGames";
+import Settings from "./pages/Settings";
+import News from "./pages/News";
 import SnakeGame from "./games/SnakeGame";
 import TetrisGame from "./games/TetrisGame";
 import MemoryGame from "./games/MemoryGame";
@@ -76,6 +78,16 @@ const App = () => (
             <Route path="/minigames" element={
               <ProtectedRoute>
                 <MiniGames />
+              </ProtectedRoute>
+            } />
+            <Route path="/settings" element={
+              <ProtectedRoute>
+                <Settings />
+              </ProtectedRoute>
+            } />
+            <Route path="/news" element={
+              <ProtectedRoute>
+                <News />
               </ProtectedRoute>
             } />
             <Route path="/games/snake" element={
