@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/use-toast'
-import { Send } from 'lucide-react'
+import { Send, Users, Circle } from 'lucide-react'
 
 interface Message {
   id: string
@@ -20,10 +20,13 @@ export default function Community() {
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [loading, setLoading] = useState(false)
+  const [onlineUsers, setOnlineUsers] = useState<string[]>([])
+  const [connected, setConnected] = useState(false)
   const { user } = useAuth()
   const { toast } = useToast()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const chatContainerRef = useRef<HTMLDivElement>(null)
+  const wsRef = useRef<WebSocket | null>(null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -39,7 +42,83 @@ export default function Community() {
     if (storedMessages) {
       setMessages(JSON.parse(storedMessages))
     }
-  }, [])
+
+    // Initialize WebSocket connection for real-time updates
+    initializeWebSocket()
+
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close()
+      }
+    }
+  }, [user])
+
+  const initializeWebSocket = () => {
+    try {
+      // For demonstration, using a local WebSocket simulation
+      // In production, this would connect to a real WebSocket server
+      const ws = new WebSocket('wss://echo.websocket.org/') // Demo server
+      
+      ws.onopen = () => {
+        console.log('WebSocket connected')
+        setConnected(true)
+        if (user) {
+          // Notify server that user is online
+          ws.send(JSON.stringify({
+            type: 'user_online',
+            username: user.username,
+            userId: user.id
+          }))
+        }
+      }
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data)
+          
+          if (data.type === 'new_message') {
+            const message: Message = {
+              id: data.id,
+              text: data.text,
+              created_at: data.created_at,
+              user_id: data.user_id,
+              username: data.username
+            }
+            
+            setMessages(prev => {
+              const updated = [...prev, message]
+              localStorage.setItem('oranget_messages', JSON.stringify(updated))
+              return updated
+            })
+          } else if (data.type === 'users_online') {
+            setOnlineUsers(data.users)
+          }
+        } catch (error) {
+          console.error('Error parsing WebSocket message:', error)
+        }
+      }
+
+      ws.onclose = () => {
+        console.log('WebSocket disconnected')
+        setConnected(false)
+        // Attempt to reconnect after 3 seconds
+        setTimeout(() => {
+          if (user) {
+            initializeWebSocket()
+          }
+        }, 3000)
+      }
+
+      ws.onerror = (error) => {
+        console.error('WebSocket error:', error)
+        setConnected(false)
+      }
+
+      wsRef.current = ws
+    } catch (error) {
+      console.error('Error initializing WebSocket:', error)
+    }
+  }
 
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -55,6 +134,15 @@ export default function Community() {
         username: user.username
       }
 
+      // Send to WebSocket if connected
+      if (wsRef.current && connected) {
+        wsRef.current.send(JSON.stringify({
+          type: 'new_message',
+          ...message
+        }))
+      }
+
+      // Always store locally as backup
       const updatedMessages = [...messages, message]
       setMessages(updatedMessages)
       localStorage.setItem('oranget_messages', JSON.stringify(updatedMessages))
@@ -105,8 +193,18 @@ export default function Community() {
             <div className="flex items-center space-x-4">
               <SidebarTrigger className="hover:bg-orange-700 rounded-xl text-white" />
               <div>
-                <h1 className="text-4xl text-white font-bold drop-shadow-lg">Chat</h1>
+                <h1 className="text-4xl text-white font-medium drop-shadow-lg">Chat</h1>
                 <p className="text-orange-100 mt-1 font-medium">Connect with the community!</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2 text-white">
+                <Circle className={`w-3 h-3 ${connected ? 'text-green-400 fill-green-400' : 'text-red-400 fill-red-400'}`} />
+                <span className="text-sm font-medium">{connected ? 'Connected' : 'Connecting...'}</span>
+              </div>
+              <div className="flex items-center space-x-2 text-white">
+                <Users className="w-5 h-5" />
+                <span className="font-medium">{onlineUsers.length} online</span>
               </div>
             </div>
           </div>
@@ -128,9 +226,12 @@ export default function Community() {
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2 mb-1">
-                      <span className="text-white font-bold text-lg">
+                      <span className="text-white font-medium text-lg">
                         {message.username || 'User'}
                       </span>
+                      {onlineUsers.includes(message.username) && (
+                        <Circle className="w-2 h-2 text-green-400 fill-green-400" />
+                      )}
                       <span className="text-orange-100 text-sm font-medium">
                         {formatTime(message.created_at)}
                       </span>
@@ -153,16 +254,21 @@ export default function Community() {
                   placeholder="Type your message..."
                   maxLength={500}
                   className="flex-1 bg-orange-500/50 border-2 border-orange-300 text-white placeholder:text-orange-100 font-medium text-lg py-4 rounded-2xl focus:border-orange-200"
-                  disabled={loading}
+                  disabled={loading || !connected}
                 />
                 <Button
                   type="submit"
-                  disabled={loading || !newMessage.trim()}
-                  className="bg-orange-400 hover:bg-orange-500 text-white font-bold py-4 px-6 rounded-2xl border-2 border-orange-200 h-auto"
+                  disabled={loading || !newMessage.trim() || !connected}
+                  className="bg-orange-400 hover:bg-orange-500 text-white font-medium py-4 px-6 rounded-2xl border-2 border-orange-200 h-auto"
                 >
                   <Send className="w-5 h-5" />
                 </Button>
               </form>
+              {!connected && (
+                <p className="text-orange-200 text-sm mt-2 text-center font-medium">
+                  Reconnecting to chat...
+                </p>
+              )}
             </div>
           </div>
         </main>

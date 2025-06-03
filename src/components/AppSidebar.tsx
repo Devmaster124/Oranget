@@ -42,6 +42,11 @@ const menuItems = [
     icon: Briefcase,
   },
   {
+    title: "Music",
+    url: "/music",
+    icon: Music,
+  },
+  {
     title: "Minigames",
     url: "/minigames",
     icon: Gamepad2,
@@ -100,7 +105,7 @@ export function AppSidebar() {
                       data-active={location.pathname === item.url}
                     >
                       <item.icon className="w-7 h-7 group-hover:animate-bounce" />
-                      <span className="text-lg font-bold drop-shadow-sm">{item.title}</span>
+                      <span className="text-lg font-medium drop-shadow-sm">{item.title}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}

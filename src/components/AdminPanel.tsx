@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/use-toast'
 import { Shield, Ban, UserCheck, Crown } from 'lucide-react'
@@ -36,14 +35,8 @@ export default function AdminPanel() {
 
   const fetchUserRole = async () => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user?.id)
-        .single()
-
-      if (error) throw error
-      setUserRole(data?.username?.includes('admin') ? 'admin' : 'user')
+      // Check if user is admin based on username
+      setUserRole(user?.username?.includes('admin') ? 'admin' : 'user')
     } catch (error) {
       console.error('Error fetching user role:', error)
     }
@@ -51,13 +44,15 @@ export default function AdminPanel() {
 
   const fetchUsers = async () => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, username, tokens, orange_drips')
-        .order('username')
-
-      if (error) throw error
-      setUsers(data || [])
+      // Load users from localStorage
+      const storedUsers = JSON.parse(localStorage.getItem('oranget_users') || '{}')
+      const usersList = Object.entries(storedUsers).map(([username, data]: [string, any]) => ({
+        id: data.userData.id,
+        username: data.userData.username,
+        tokens: data.userData.tokens,
+        orange_drips: 0
+      }))
+      setUsers(usersList)
     } catch (error) {
       console.error('Error fetching users:', error)
     } finally {
@@ -69,14 +64,19 @@ export default function AdminPanel() {
     if (!selectedUser || !banReason) return
 
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ 
-          username: `BANNED_${banReason}`
-        })
-        .eq('id', selectedUser)
-
-      if (error) throw error
+      const storedUsers = JSON.parse(localStorage.getItem('oranget_users') || '{}')
+      const selectedUserData = users.find(u => u.id === selectedUser)
+      
+      if (selectedUserData) {
+        const originalUsername = selectedUserData.username
+        const bannedUsername = `BANNED_${banReason}`
+        
+        // Update the user data
+        if (storedUsers[originalUsername]) {
+          storedUsers[originalUsername].userData.username = bannedUsername
+          localStorage.setItem('oranget_users', JSON.stringify(storedUsers))
+        }
+      }
 
       toast({
         title: "User banned!",
@@ -99,19 +99,21 @@ export default function AdminPanel() {
     if (!selectedUser) return
 
     try {
+      const storedUsers = JSON.parse(localStorage.getItem('oranget_users') || '{}')
       const selectedUserData = users.find(u => u.id === selectedUser)
-      if (!selectedUserData) return
       
-      const originalUsername = selectedUserData.username.replace('BANNED_', '').split('_')[0]
-      
-      const { error } = await supabase
-        .from('profiles')
-        .update({ 
-          username: originalUsername || 'Player'
+      if (selectedUserData) {
+        const bannedUsername = selectedUserData.username
+        const originalUsername = bannedUsername.replace('BANNED_', '').split('_')[0]
+        
+        // Find and update the user data
+        Object.keys(storedUsers).forEach(username => {
+          if (storedUsers[username].userData.username === bannedUsername) {
+            storedUsers[username].userData.username = originalUsername || 'Player'
+            localStorage.setItem('oranget_users', JSON.stringify(storedUsers))
+          }
         })
-        .eq('id', selectedUser)
-
-      if (error) throw error
+      }
 
       toast({
         title: "User unbanned!",
@@ -129,7 +131,7 @@ export default function AdminPanel() {
     }
   }
 
-  if (userRole !== 'admin' && !user?.email?.includes('admin')) {
+  if (userRole !== 'admin' && !user?.username?.includes('admin')) {
     return null
   }
 

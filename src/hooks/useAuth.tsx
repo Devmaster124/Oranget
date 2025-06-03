@@ -24,19 +24,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast()
 
   useEffect(() => {
-    // Check if user is stored in localStorage
-    const storedUser = localStorage.getItem('oranget_user')
-    if (storedUser) {
+    // Check if user is stored in localStorage on app load
+    const checkAuth = () => {
       try {
-        const userData = JSON.parse(storedUser)
-        setUser(userData)
+        const storedUser = localStorage.getItem('oranget_user')
+        const storedSession = localStorage.getItem('oranget_session')
+        
+        if (storedUser && storedSession) {
+          const userData = JSON.parse(storedUser)
+          const sessionData = JSON.parse(storedSession)
+          
+          // Check if session is still valid (24 hours)
+          const sessionAge = Date.now() - sessionData.timestamp
+          const sessionValid = sessionAge < 24 * 60 * 60 * 1000 // 24 hours
+          
+          if (sessionValid) {
+            setUser(userData)
+          } else {
+            // Session expired, clear storage
+            localStorage.removeItem('oranget_user')
+            localStorage.removeItem('oranget_session')
+          }
+        }
       } catch (error) {
-        console.error('Error parsing stored user:', error)
+        console.error('Error checking auth:', error)
         localStorage.removeItem('oranget_user')
+        localStorage.removeItem('oranget_session')
       }
+      setLoading(false)
     }
-    setLoading(false)
+
+    checkAuth()
   }, [])
+
+  const createSession = (userData: User) => {
+    const sessionData = {
+      timestamp: Date.now(),
+      userId: userData.id
+    }
+    localStorage.setItem('oranget_user', JSON.stringify(userData))
+    localStorage.setItem('oranget_session', JSON.stringify(sessionData))
+    setUser(userData)
+  }
 
   const signUp = async (username: string, password: string) => {
     try {
@@ -57,9 +86,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Store user credentials and data
       existingUsers[username] = { password, userData: newUser }
       localStorage.setItem('oranget_users', JSON.stringify(existingUsers))
-      localStorage.setItem('oranget_user', JSON.stringify(newUser))
       
-      setUser(newUser)
+      createSession(newUser)
       
       toast({
         title: "Account Created!",
@@ -82,8 +110,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       const userData = existingUsers[username].userData
-      localStorage.setItem('oranget_user', JSON.stringify(userData))
-      setUser(userData)
+      createSession(userData)
 
       toast({
         title: "Welcome back!",
@@ -100,7 +127,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     try {
       localStorage.removeItem('oranget_user')
+      localStorage.removeItem('oranget_session')
       setUser(null)
+      
+      toast({
+        title: "Signed out",
+        description: "You have been successfully signed out.",
+      })
     } catch (error) {
       console.error('Error signing out:', error)
     }

@@ -55,19 +55,12 @@ export default function MusicPage() {
   ]
 
   const handleSpotifyConnect = async () => {
-    // Spotify OAuth flow
-    const clientId = 'your_spotify_client_id'
-    const redirectUri = window.location.origin + '/music'
-    const scopes = 'streaming user-read-email user-read-private user-library-read user-library-modify'
-    
-    const spotifyUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}`
-    
+    // Demo connection
     toast({
       title: "Connecting to Spotify...",
       description: "You'll be redirected to Spotify to authorize the connection.",
     })
     
-    // For demo purposes, just set as connected
     setTimeout(() => {
       setIsConnected(true)
       toast({
@@ -82,7 +75,6 @@ export default function MusicPage() {
     
     setLoading(true)
     
-    // Mock search results
     setTimeout(() => {
       const filteredSongs = mockSongs.filter(song => 
         song.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -108,36 +100,48 @@ export default function MusicPage() {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-purple-50 to-pink-100">
+      <div className="min-h-screen flex w-full relative overflow-hidden">
+        {/* Orange Background */}
+        <div className="fixed inset-0 bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600">
+          <div 
+            className="w-full h-full opacity-30"
+            style={{
+              backgroundImage: 'url("https://i.ibb.co/S4BD0J48/download.png")',
+              animation: 'animatedBackground 9s linear infinite'
+            }}
+          />
+        </div>
+
         <AppSidebar />
-        <main className="flex-1 p-6">
+        
+        <main className="flex-1 relative z-10 p-6">
           <div className="max-w-6xl mx-auto">
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center space-x-4">
-                <SidebarTrigger className="hover:bg-purple-100 rounded-xl" />
+                <SidebarTrigger className="hover:bg-orange-600 rounded-xl text-white bg-orange-500/50" />
                 <div>
-                  <h1 className="text-5xl text-purple-600 font-black">Music</h1>
-                  <p className="text-purple-500 mt-1 text-xl">Listen to your favorite songs!</p>
+                  <h1 className="text-5xl text-white font-medium drop-shadow-lg">Music</h1>
+                  <p className="text-orange-100 mt-1 text-xl font-medium">Listen to your favorite songs!</p>
                 </div>
               </div>
-              <Music className="w-12 h-12 text-purple-500" />
+              <Music className="w-12 h-12 text-white" />
             </div>
 
             {!isConnected ? (
               /* Spotify Connection */
-              <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white border-4 border-green-300 mb-8">
+              <Card className="bg-orange-500/80 backdrop-blur-sm border-4 border-orange-300 rounded-3xl mb-8">
                 <CardHeader className="text-center">
-                  <CardTitle className="text-4xl font-black flex items-center justify-center space-x-3">
+                  <CardTitle className="text-4xl font-medium flex items-center justify-center space-x-3 text-white">
                     <Music className="w-10 h-10" />
                     <span>Connect to Spotify</span>
                   </CardTitle>
-                  <p className="text-xl opacity-90">Connect your Spotify account to search and play music</p>
+                  <p className="text-xl opacity-90 text-orange-100 font-medium">Connect your Spotify account to search and play music</p>
                 </CardHeader>
                 <CardContent className="text-center">
                   <Button
                     onClick={handleSpotifyConnect}
-                    className="bg-white text-green-600 hover:bg-green-50 text-xl font-black py-4 px-8 rounded-full"
+                    className="bg-white text-orange-600 hover:bg-orange-50 text-xl font-medium py-4 px-8 rounded-full border-2 border-orange-300"
                   >
                     Connect Spotify Account
                   </Button>
@@ -146,20 +150,20 @@ export default function MusicPage() {
             ) : (
               <>
                 {/* Search Bar */}
-                <Card className="mb-8 border-4 border-purple-200">
+                <Card className="mb-8 border-4 border-orange-300 bg-orange-500/80 backdrop-blur-sm rounded-3xl">
                   <CardContent className="p-6">
                     <div className="flex space-x-4">
                       <Input
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Search for songs, artists, albums..."
-                        className="flex-1 text-xl border-2 border-purple-200 rounded-2xl py-4"
+                        className="flex-1 text-xl border-2 border-orange-200 rounded-2xl py-4 bg-orange-400/50 text-white placeholder:text-orange-100 font-medium"
                         onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                       />
                       <Button 
                         onClick={handleSearch}
                         disabled={loading}
-                        className="bg-purple-500 hover:bg-purple-600 text-white text-xl font-black px-8 rounded-2xl"
+                        className="bg-orange-400 hover:bg-orange-500 text-white text-xl font-medium px-8 rounded-2xl border-2 border-orange-200"
                       >
                         {loading ? (
                           <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -176,31 +180,31 @@ export default function MusicPage() {
                   {songs.map((song) => (
                     <Card 
                       key={song.id}
-                      className="group hover:shadow-lg transition-all duration-300 hover:scale-102 border-2 border-purple-200 bg-white/70 backdrop-blur-sm"
+                      className="group hover:shadow-lg transition-all duration-300 hover:scale-102 border-4 border-orange-300 bg-orange-500/70 backdrop-blur-sm rounded-3xl"
                     >
                       <CardContent className="p-6">
                         <div className="flex items-center space-x-4">
                           <img 
                             src={song.image} 
                             alt={song.album}
-                            className="w-16 h-16 rounded-lg object-cover"
+                            className="w-16 h-16 rounded-lg object-cover border-2 border-orange-200"
                           />
                           <div className="flex-1">
-                            <h3 className="text-xl font-black text-purple-700">{song.name}</h3>
-                            <p className="text-purple-500 text-lg">{song.artist}</p>
-                            <p className="text-purple-400">{song.album} • {song.duration}</p>
+                            <h3 className="text-xl font-medium text-white">{song.name}</h3>
+                            <p className="text-orange-100 text-lg font-medium">{song.artist}</p>
+                            <p className="text-orange-200 font-medium">{song.album} • {song.duration}</p>
                           </div>
                           <div className="flex items-center space-x-2">
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="text-purple-500 hover:text-purple-700 hover:bg-purple-100 rounded-full"
+                              className="text-orange-100 hover:text-white hover:bg-orange-400 rounded-full"
                             >
                               <Heart className="w-5 h-5" />
                             </Button>
                             <Button
                               onClick={() => handlePlaySong(song)}
-                              className="bg-purple-500 hover:bg-purple-600 text-white rounded-full px-6 py-3"
+                              className="bg-orange-400 hover:bg-orange-500 text-white rounded-full px-6 py-3 font-medium border-2 border-orange-200"
                             >
                               <Play className="w-5 h-5 mr-2" />
                               Play
@@ -214,41 +218,41 @@ export default function MusicPage() {
 
                 {/* Music Player */}
                 {currentSong && (
-                  <Card className="fixed bottom-6 left-6 right-6 bg-gradient-to-r from-purple-600 to-pink-600 text-white border-4 border-purple-300 z-50">
+                  <Card className="fixed bottom-6 left-6 right-6 bg-orange-500/90 backdrop-blur-sm text-white border-4 border-orange-300 z-50 rounded-3xl">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
                           <img 
                             src={currentSong.image} 
                             alt={currentSong.album}
-                            className="w-14 h-14 rounded-lg object-cover"
+                            className="w-14 h-14 rounded-lg object-cover border-2 border-orange-200"
                           />
                           <div>
-                            <h4 className="text-lg font-black">{currentSong.name}</h4>
-                            <p className="text-purple-200">{currentSong.artist}</p>
+                            <h4 className="text-lg font-medium">{currentSong.name}</h4>
+                            <p className="text-orange-200 font-medium">{currentSong.artist}</p>
                           </div>
                         </div>
                         
                         <div className="flex items-center space-x-4">
-                          <Button variant="ghost" size="icon" className="text-white hover:bg-purple-500">
+                          <Button variant="ghost" size="icon" className="text-white hover:bg-orange-400">
                             <SkipBack className="w-5 h-5" />
                           </Button>
                           <Button 
                             onClick={togglePlayPause}
                             variant="ghost" 
                             size="icon" 
-                            className="text-white hover:bg-purple-500 w-12 h-12"
+                            className="text-white hover:bg-orange-400 w-12 h-12"
                           >
                             {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
                           </Button>
-                          <Button variant="ghost" size="icon" className="text-white hover:bg-purple-500">
+                          <Button variant="ghost" size="icon" className="text-white hover:bg-orange-400">
                             <SkipForward className="w-5 h-5" />
                           </Button>
                         </div>
                         
                         <div className="flex items-center space-x-2">
                           <Volume2 className="w-5 h-5" />
-                          <div className="w-24 h-2 bg-purple-400 rounded-full">
+                          <div className="w-24 h-2 bg-orange-300 rounded-full">
                             <div className="w-3/4 h-2 bg-white rounded-full"></div>
                           </div>
                         </div>
