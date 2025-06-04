@@ -1,80 +1,115 @@
+
 import { useNavigate } from 'react-router-dom'
 import { Button } from "@/components/ui/button"
 
 export default function Landing() {
   const navigate = useNavigate()
 
+  const blooks = [
+    { name: 'B Blook', color: 'bg-gray-800', position: 'top-20 left-20' },
+    { name: 'Pig', color: 'bg-pink-400', position: 'top-32 left-40' },
+    { name: 'Pumpkin', color: 'bg-orange-500', position: 'top-16 right-80' },
+    { name: 'Cat', color: 'bg-purple-600', position: 'top-40 right-60' },
+    { name: 'Camo', color: 'bg-green-600', position: 'top-60 right-40' },
+    { name: 'Toast', color: 'bg-yellow-600', position: 'bottom-60 left-32' },
+    { name: 'Game', color: 'bg-blue-500', position: 'bottom-40 left-60' },
+    { name: 'Among Us', color: 'bg-red-500', position: 'bottom-20 right-80' },
+    { name: 'Present', color: 'bg-yellow-400', position: 'bottom-32 right-40' },
+    { name: 'Monkey', color: 'bg-yellow-700', position: 'bottom-60 right-20' },
+    { name: 'Dragon', color: 'bg-purple-800', position: 'top-80 left-80' },
+    { name: 'Shark', color: 'bg-blue-600', position: 'bottom-80 left-20' }
+  ]
+
   return (
-    <div className="min-h-screen relative font-titan overflow-hidden">
-      {/* Background */}
-      <div className="fixed inset-0 bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600">
+    <div className="min-h-screen relative font-fredoka overflow-hidden bg-gray-800">
+      {/* Dark background with blook pattern */}
+      <div className="fixed inset-0 bg-gray-800">
         <div 
-          className="w-full h-full opacity-30"
+          className="w-full h-full opacity-20"
           style={{
-            backgroundImage: 'url("https://i.ibb.co/S4BD0J48/download.png")',
-            animation: 'animatedBackground 9s linear infinite'
+            backgroundImage: 'url("data:image/svg+xml,%3Csvg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="%23666" fill-opacity="0.4"%3E%3Cpath d="m0 40l40-40h-40v40zm40 0v-40h-40l40 40z"/%3E%3C/g%3E%3C/svg%3E")'
           }}
         />
       </div>
 
+      {/* Floating Blooks */}
+      {blooks.map((blook, index) => (
+        <div
+          key={index}
+          className={`absolute w-16 h-16 ${blook.color} rounded-lg border-2 border-gray-600 shadow-lg ${blook.position} animate-float`}
+          style={{ animationDelay: `${index * 0.2}s` }}
+        />
+      ))}
+
       {/* Navigation */}
-      <div className="relative z-10 flex justify-between items-center p-6">
-        <h1 className="text-6xl text-white font-black drop-shadow-lg">
-          Oranget
-        </h1>
+      <div className="relative z-10 flex justify-end items-center p-6">
         <div className="flex space-x-4">
-          <button 
+          <Button 
             onClick={() => navigate('/auth?mode=login')}
-            className="text-white text-xl font-bold hover:text-orange-100 transition-colors px-6 py-3 border-2 border-white rounded-xl hover:bg-white/10"
+            variant="outline"
+            className="text-white border-white hover:bg-white hover:text-gray-800 font-medium px-6 py-2"
           >
             Login
-          </button>
-          <button 
+          </Button>
+          <Button 
             onClick={() => navigate('/auth?mode=register')}
-            className="text-white text-xl font-bold hover:text-orange-100 transition-colors px-6 py-3 border-2 border-white rounded-xl hover:bg-white/10"
+            variant="outline"
+            className="text-white border-white hover:bg-white hover:text-gray-800 font-medium px-6 py-2"
           >
             Register
-          </button>
+          </Button>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 flex items-center justify-center min-h-[80vh] p-6">
-        <div className="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          {/* Left Side - Text */}
-          <div className="text-center lg:text-left">
-            <h1 className="text-8xl text-white font-black drop-shadow-lg mb-6 animate-pulse-orange">
-              Oranget
-            </h1>
-            <h2 className="text-4xl text-white font-black drop-shadow-lg mb-8">
-              Private Server
-            </h2>
-            <p className="text-2xl text-orange-100 font-bold drop-shadow-md mb-12">
-              Oranget is a new Blooket private server with cool features!
-            </p>
+      <div className="relative z-10 flex flex-col items-start justify-center min-h-[80vh] p-12">
+        <div className="max-w-2xl">
+          {/* Logo */}
+          <h1 className="text-8xl text-white font-black drop-shadow-2xl mb-8">
+            Oranget
+          </h1>
+          
+          {/* Subtitle */}
+          <h2 className="text-4xl text-white font-bold drop-shadow-lg mb-6">
+            First Private Server
+          </h2>
+          
+          {/* Description */}
+          <p className="text-xl text-gray-300 font-medium mb-12 max-w-lg leading-relaxed">
+            The first ever open-source Blooket private server created by the Oranget team written entirely in React.
+          </p>
+          
+          {/* Action Buttons */}
+          <div className="space-y-4">
+            <Button
+              onClick={() => navigate('/auth?mode=register')}
+              className="w-48 bg-transparent border-2 border-white text-white text-lg font-bold py-4 hover:bg-white hover:text-gray-800 transition-all duration-300"
+            >
+              Register
+            </Button>
             
-            <div className="space-y-4">
-              <Button
-                onClick={() => navigate('/auth?mode=register')}
-                className="w-full lg:w-auto bg-transparent border-4 border-white text-white text-2xl font-black py-6 px-12 rounded-2xl h-auto hover:bg-white hover:text-orange-500 transition-all duration-300 animate-pulse"
-              >
-                Get Started
-              </Button>
-            </div>
+            <Button
+              onClick={() => navigate('/marketplace')}
+              variant="outline"
+              className="w-48 border-2 border-gray-400 text-gray-300 text-lg font-bold py-4 hover:bg-gray-400 hover:text-gray-800 transition-all duration-300 block"
+            >
+              Store
+            </Button>
+            
+            <Button
+              onClick={() => window.open('https://discord.gg/oranget', '_blank')}
+              variant="outline"
+              className="w-48 border-2 border-gray-400 text-gray-300 text-lg font-bold py-4 hover:bg-gray-400 hover:text-gray-800 transition-all duration-300 block"
+            >
+              Discord
+            </Button>
           </div>
-
-          {/* Right Side - Floating Blooks */}
-          <div className="relative h-96 lg:h-full">
-            <div className="absolute inset-0 flex flex-wrap items-center justify-center gap-4">
-              {/* Orange Blooks scattered around */}
-              <div className="w-16 h-16 bg-orange-400 rounded-lg border-2 border-orange-300 shadow-lg animate-float" style={{animationDelay: '0s'}}></div>
-              <div className="w-12 h-12 bg-orange-500 rounded-lg border-2 border-orange-400 shadow-lg animate-float" style={{animationDelay: '0.2s'}}></div>
-              <div className="w-20 h-20 bg-orange-300 rounded-lg border-2 border-orange-200 shadow-lg animate-float" style={{animationDelay: '0.4s'}}></div>
-              <div className="w-14 h-14 bg-orange-600 rounded-lg border-2 border-orange-500 shadow-lg animate-float" style={{animationDelay: '0.6s'}}></div>
-              <div className="w-18 h-18 bg-orange-200 rounded-lg border-2 border-orange-100 shadow-lg animate-float" style={{animationDelay: '0.8s'}}></div>
-              <div className="w-16 h-16 bg-orange-700 rounded-lg border-2 border-orange-600 shadow-lg animate-float" style={{animationDelay: '1s'}}></div>
-              <div className="w-10 h-10 bg-orange-400 rounded-lg border-2 border-orange-300 shadow-lg animate-float" style={{animationDelay: '1.2s'}}></div>
-              <div className="w-22 h-22 bg-orange-300 rounded-lg border-2 border-orange-200 shadow-lg animate-float" style={{animationDelay: '1.4s'}}></div>
+          
+          {/* Bottom Text */}
+          <div className="mt-16">
+            <div className="flex items-center space-x-2 text-gray-400 text-sm">
+              <span>🔊</span>
+              <span>Pronunciation ("Orange-it")</span>
             </div>
           </div>
         </div>

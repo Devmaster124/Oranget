@@ -7,7 +7,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Landing from "./pages/Landing";
-import WelcomeLanding from "./pages/WelcomeLanding";
 import Index from "./pages/Index";
 import Community from "./pages/Community";
 import Auth from "./pages/Auth";
@@ -43,10 +42,9 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/welcome" element={<WelcomeLanding />} />
-            <Route path="/landing" element={<Landing />} />
+            <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/" element={
+            <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Index />
               </ProtectedRoute>

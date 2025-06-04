@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button"
 const menuItems = [
   {
     title: "Dashboard",
-    url: "/",
+    url: "/dashboard",
     icon: Home,
   },
   {
@@ -73,7 +73,7 @@ export function AppSidebar() {
 
   const handleSignOut = async () => {
     await signOut()
-    navigate('/welcome')
+    navigate('/')
   }
 
   return (

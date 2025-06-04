@@ -52,7 +52,7 @@ export default function Auth() {
       }
 
       if (result.success) {
-        navigate('/profile')
+        navigate('/dashboard')
       } else {
         toast({
           title: isSignUp ? "Signup Failed" : "Login Failed",
@@ -73,7 +73,7 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen relative font-titan overflow-hidden">
+    <div className="min-h-screen relative font-fredoka overflow-hidden">
       {/* Background */}
       <div className="fixed inset-0 bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600">
         <div 
