@@ -24,12 +24,14 @@ export default function Landing() {
           <Button 
             onClick={() => navigate('/auth?mode=login')}
             className="bg-orange-600/90 hover:bg-orange-700 text-white font-titan text-xl px-8 py-3 h-auto rounded-xl border-2 border-orange-300"
+            style={{ fontWeight: '400' }}
           >
             Login
           </Button>
           <Button 
             onClick={() => navigate('/auth?mode=register')}
             className="bg-orange-600/90 hover:bg-orange-700 text-white font-titan text-xl px-8 py-3 h-auto rounded-xl border-2 border-orange-300"
+            style={{ fontWeight: '400' }}
           >
             Register
           </Button>
@@ -39,8 +41,8 @@ export default function Landing() {
       {/* Main Content */}
       <div className="relative z-10 flex flex-col items-start justify-center min-h-[80vh] p-12">
         <div className="max-w-2xl">
-          {/* Logo */}
-          <h1 className="text-8xl text-white font-titan mb-8 drop-shadow-lg" style={{ fontWeight: '400' }}>
+          {/* Logo - moved higher */}
+          <h1 className="text-8xl text-white font-titan mb-4 drop-shadow-lg" style={{ fontWeight: '400' }}>
             Oranget
           </h1>
           

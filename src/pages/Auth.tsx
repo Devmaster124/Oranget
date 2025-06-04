@@ -73,7 +73,7 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen relative font-fredoka overflow-hidden">
+    <div className="min-h-screen relative font-titan overflow-hidden">
       {/* Background */}
       <div className="fixed inset-0 bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600">
         <div 
@@ -89,13 +89,15 @@ export default function Auth() {
       <div className="relative z-10 flex justify-between items-center p-6">
         <button 
           onClick={() => navigate('/')}
-          className="text-6xl text-white font-black drop-shadow-lg hover:text-orange-100 transition-colors"
+          className="text-6xl text-white font-titan drop-shadow-lg hover:text-orange-100 transition-colors"
+          style={{ fontWeight: '400' }}
         >
           Oranget
         </button>
         <button 
           onClick={() => setIsSignUp(!isSignUp)}
-          className="text-white text-xl font-bold hover:text-orange-100 transition-colors px-6 py-3 border-2 border-white rounded-xl hover:bg-white/10"
+          className="text-white text-xl font-titan hover:text-orange-100 transition-colors px-6 py-3 border-2 border-white rounded-xl hover:bg-white/10"
+          style={{ fontWeight: '400' }}
         >
           {isSignUp ? 'Login' : 'Register'}
         </button>
@@ -106,7 +108,7 @@ export default function Auth() {
         <div className="w-full max-w-md">
           {/* Auth Form */}
           <form onSubmit={handleAuth} className="bg-orange-600/90 backdrop-blur-sm border-4 border-orange-300 rounded-3xl p-8 shadow-2xl">
-            <h1 className="text-4xl text-white font-black text-center mb-8 drop-shadow-lg">
+            <h1 className="text-4xl text-white font-titan text-center mb-8 drop-shadow-lg" style={{ fontWeight: '400' }}>
               {isSignUp ? 'Register' : 'Login'}
             </h1>
 
@@ -120,7 +122,8 @@ export default function Auth() {
                   value={formData.username}
                   onChange={handleInputChange}
                   required
-                  className="pl-12 border-2 border-orange-300 rounded-2xl text-lg py-4 font-bold focus:border-orange-200 bg-orange-500/50 text-white placeholder:text-orange-200"
+                  className="pl-12 border-2 border-orange-300 rounded-2xl text-lg py-4 font-titan focus:border-orange-200 bg-orange-500/50 text-white placeholder:text-orange-200"
+                  style={{ fontWeight: '400' }}
                 />
               </div>
 
@@ -133,14 +136,16 @@ export default function Auth() {
                   value={formData.password}
                   onChange={handleInputChange}
                   required
-                  className="pl-12 border-2 border-orange-300 rounded-2xl text-lg py-4 font-bold focus:border-orange-200 bg-orange-500/50 text-white placeholder:text-orange-200"
+                  className="pl-12 border-2 border-orange-300 rounded-2xl text-lg py-4 font-titan focus:border-orange-200 bg-orange-500/50 text-white placeholder:text-orange-200"
+                  style={{ fontWeight: '400' }}
                 />
               </div>
 
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white text-xl font-black py-4 rounded-2xl h-auto border-2 border-orange-300 animate-pulse-orange"
+                className="w-full bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white text-xl font-titan py-4 rounded-2xl h-auto border-2 border-orange-300 animate-pulse-orange"
+                style={{ fontWeight: '400' }}
               >
                 {loading ? (
                   <div className="flex items-center space-x-2">
@@ -155,7 +160,7 @@ export default function Auth() {
           </form>
 
           <div className="text-center mt-8">
-            <p className="text-orange-100 text-lg font-bold drop-shadow-lg">
+            <p className="text-orange-100 text-lg font-titan drop-shadow-lg" style={{ fontWeight: '400' }}>
               Join thousands of players in epic adventures!
             </p>
           </div>
