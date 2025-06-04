@@ -1,4 +1,3 @@
-
 import { useNavigate } from 'react-router-dom'
 import { Button } from "@/components/ui/button"
 
@@ -21,7 +20,7 @@ export default function Landing() {
   ]
 
   return (
-    <div className="min-h-screen relative font-fredoka overflow-hidden bg-gray-800">
+    <div className="min-h-screen relative font-titan overflow-hidden bg-gray-800">
       {/* Dark background with blook pattern */}
       <div className="fixed inset-0 bg-gray-800">
         <div 
@@ -46,15 +45,13 @@ export default function Landing() {
         <div className="flex space-x-4">
           <Button 
             onClick={() => navigate('/auth?mode=login')}
-            variant="outline"
-            className="text-white border-white hover:bg-white hover:text-gray-800 font-medium px-6 py-2"
+            className="bg-gray-700 hover:bg-gray-600 text-white font-titan text-xl px-8 py-3 h-auto rounded-xl"
           >
             Login
           </Button>
           <Button 
             onClick={() => navigate('/auth?mode=register')}
-            variant="outline"
-            className="text-white border-white hover:bg-white hover:text-gray-800 font-medium px-6 py-2"
+            className="bg-gray-700 hover:bg-gray-600 text-white font-titan text-xl px-8 py-3 h-auto rounded-xl"
           >
             Register
           </Button>
@@ -65,49 +62,31 @@ export default function Landing() {
       <div className="relative z-10 flex flex-col items-start justify-center min-h-[80vh] p-12">
         <div className="max-w-2xl">
           {/* Logo */}
-          <h1 className="text-8xl text-white font-black drop-shadow-2xl mb-8">
+          <h1 className="text-8xl text-white font-titan mb-8">
             Oranget
           </h1>
           
           {/* Subtitle */}
-          <h2 className="text-4xl text-white font-bold drop-shadow-lg mb-6">
+          <h2 className="text-4xl text-white font-titan mb-6">
             First Private Server
           </h2>
           
           {/* Description */}
-          <p className="text-xl text-gray-300 font-medium mb-12 max-w-lg leading-relaxed">
+          <p className="text-xl text-gray-300 font-titan mb-12 max-w-lg leading-relaxed">
             The first ever open-source Blooket private server created by the Oranget team written entirely in React.
           </p>
           
-          {/* Action Buttons */}
-          <div className="space-y-4">
-            <Button
-              onClick={() => navigate('/auth?mode=register')}
-              className="w-48 bg-transparent border-2 border-white text-white text-lg font-bold py-4 hover:bg-white hover:text-gray-800 transition-all duration-300"
-            >
-              Register
-            </Button>
-            
-            <Button
-              onClick={() => navigate('/marketplace')}
-              variant="outline"
-              className="w-48 border-2 border-gray-400 text-gray-300 text-lg font-bold py-4 hover:bg-gray-400 hover:text-gray-800 transition-all duration-300 block"
-            >
-              Store
-            </Button>
-            
-            <Button
-              onClick={() => window.open('https://discord.gg/oranget', '_blank')}
-              variant="outline"
-              className="w-48 border-2 border-gray-400 text-gray-300 text-lg font-bold py-4 hover:bg-gray-400 hover:text-gray-800 transition-all duration-300 block"
-            >
-              Discord
-            </Button>
-          </div>
+          {/* Action Button */}
+          <Button
+            onClick={() => navigate('/auth?mode=register')}
+            className="w-48 bg-gray-700 hover:bg-gray-600 text-white text-xl font-titan py-4 h-auto rounded-xl"
+          >
+            Get Started
+          </Button>
           
           {/* Bottom Text */}
           <div className="mt-16">
-            <div className="flex items-center space-x-2 text-gray-400 text-sm">
+            <div className="flex items-center space-x-2 text-gray-400 text-sm font-titan">
               <span>🔊</span>
               <span>Pronunciation ("Orange-it")</span>
             </div>
