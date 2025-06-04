@@ -71,48 +71,63 @@ export default function SpaceInvadersGame() {
 
         <AppSidebar />
         
-        <main className="flex-1 relative z-10 p-6">
-          <div className="max-w-4xl mx-auto">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center space-x-4">
-                <SidebarTrigger className="hover:bg-orange-600 rounded-xl text-white bg-orange-500/50" />
-                <Button
-                  onClick={() => navigate('/minigames')}
-                  variant="outline"
-                  className="text-white border-white hover:bg-white hover:text-orange-600 font-fredoka"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Games
-                </Button>
-              </div>
-              <h1 className="text-4xl text-white font-bold drop-shadow-lg font-fredoka">Space Invaders 👽</h1>
+        <main className="flex-1 relative z-10">
+          {/* Header with Oranget branding */}
+          <div className="flex items-center justify-between p-6 border-b-4 border-orange-300">
+            <div className="flex items-center space-x-4">
+              <SidebarTrigger className="hover:bg-orange-600 rounded-xl text-white bg-orange-500/50" />
+              <h1 className="text-6xl text-white font-titan drop-shadow-lg" style={{ fontWeight: '400' }}>
+                Oranget
+              </h1>
             </div>
+            <Button
+              onClick={() => navigate('/minigames')}
+              variant="outline"
+              className="text-white border-white hover:bg-white hover:text-orange-600 font-titan"
+              style={{ fontWeight: '400' }}
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Games
+            </Button>
+          </div>
 
-            <Card className="bg-orange-500/80 backdrop-blur-sm border-4 border-orange-300 rounded-3xl">
-              <CardContent className="p-8">
-                <div className="text-center mb-6">
-                  <div className="text-2xl text-white font-bold mb-4 font-fredoka">Score: {score}</div>
-                  {!gameStarted ? (
-                    <Button
-                      onClick={() => setGameStarted(true)}
-                      className="bg-orange-400 hover:bg-orange-500 text-white font-bold px-8 py-4 text-xl rounded-2xl font-fredoka"
-                    >
-                      Start Game
-                    </Button>
-                  ) : (
-                    <canvas
-                      ref={canvasRef}
-                      width={800}
-                      height={600}
-                      className="border-4 border-orange-200 rounded-lg bg-black"
-                    />
-                  )}
-                </div>
-                <div className="text-center text-orange-100 font-fredoka">
-                  <p>Use arrow keys to move and spacebar to shoot!</p>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="p-6">
+            <div className="max-w-4xl mx-auto">
+              <div className="text-center mb-6">
+                <h2 className="text-5xl text-white font-titan mb-4 drop-shadow-lg" style={{ fontWeight: '400' }}>
+                  Space Invaders 👽
+                </h2>
+              </div>
+
+              <Card className="bg-orange-500/80 backdrop-blur-sm border-4 border-orange-300 rounded-3xl shadow-2xl">
+                <CardContent className="p-8">
+                  <div className="text-center mb-6">
+                    <div className="text-3xl text-white font-titan mb-6 drop-shadow-lg" style={{ fontWeight: '400' }}>
+                      Score: {score}
+                    </div>
+                    {!gameStarted ? (
+                      <Button
+                        onClick={() => setGameStarted(true)}
+                        className="bg-orange-400 hover:bg-orange-500 text-white font-titan px-12 py-6 text-2xl rounded-2xl border-2 border-orange-200 shadow-lg"
+                        style={{ fontWeight: '400' }}
+                      >
+                        Start Game
+                      </Button>
+                    ) : (
+                      <canvas
+                        ref={canvasRef}
+                        width={800}
+                        height={600}
+                        className="border-4 border-orange-200 rounded-lg bg-black shadow-xl"
+                      />
+                    )}
+                  </div>
+                  <div className="text-center text-orange-100 font-titan text-lg" style={{ fontWeight: '400' }}>
+                    <p>Use arrow keys to move and spacebar to shoot!</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </main>
       </div>
