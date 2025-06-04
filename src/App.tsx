@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Landing from "./pages/Landing";
+import WelcomeLanding from "./pages/WelcomeLanding";
 import Index from "./pages/Index";
 import Community from "./pages/Community";
 import Auth from "./pages/Auth";
@@ -15,7 +16,7 @@ import Profile from "./pages/Profile";
 import Blooks from "./pages/Blooks";
 import Marketplace from "./pages/Marketplace";
 import ExchangeCart from "./pages/ExchangeCart";
-import Music from "./pages/Music";
+import Trading from "./pages/Trading";
 import MiniGames from "./pages/MiniGames";
 import Settings from "./pages/Settings";
 import News from "./pages/News";
@@ -28,6 +29,9 @@ import MinecraftGame from "./games/MinecraftGame";
 import HaloGame from "./games/HaloGame";
 import SplitgateGame from "./games/SplitgateGame";
 import FortniteGame from "./games/FortniteGame";
+import PacmanGame from "./games/PacmanGame";
+import SpaceInvadersGame from "./games/SpaceInvadersGame";
+import FroggerGame from "./games/FroggerGame";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +43,8 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            <Route path="/welcome" element={<WelcomeLanding />} />
+            <Route path="/landing" element={<Landing />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/" element={
               <ProtectedRoute>
@@ -65,14 +71,14 @@ const App = () => (
                 <ExchangeCart />
               </ProtectedRoute>
             } />
+            <Route path="/trading" element={
+              <ProtectedRoute>
+                <Trading />
+              </ProtectedRoute>
+            } />
             <Route path="/community" element={
               <ProtectedRoute>
                 <Community />
-              </ProtectedRoute>
-            } />
-            <Route path="/music" element={
-              <ProtectedRoute>
-                <Music />
               </ProtectedRoute>
             } />
             <Route path="/minigames" element={
@@ -133,6 +139,21 @@ const App = () => (
             <Route path="/games/fortnite" element={
               <ProtectedRoute>
                 <FortniteGame />
+              </ProtectedRoute>
+            } />
+            <Route path="/games/pacman" element={
+              <ProtectedRoute>
+                <PacmanGame />
+              </ProtectedRoute>
+            } />
+            <Route path="/games/spaceinvaders" element={
+              <ProtectedRoute>
+                <SpaceInvadersGame />
+              </ProtectedRoute>
+            } />
+            <Route path="/games/frogger" element={
+              <ProtectedRoute>
+                <FroggerGame />
               </ProtectedRoute>
             } />
             <Route path="*" element={<NotFound />} />

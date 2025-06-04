@@ -2,34 +2,31 @@
 import { useState, useEffect, useRef } from 'react'
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/AppSidebar"
-import { Input } from "@/components/ui/input"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/use-toast'
-import { Send, Users, Circle } from 'lucide-react'
+import { Send, Users, MessageCircle } from 'lucide-react'
 
 interface Message {
   id: string
-  text: string
-  created_at: string
-  user_id: string
   username: string
+  content: string
+  timestamp: number
 }
 
 export default function Community() {
-  const [messages, setMessages] = useState<Message[]>([])
-  const [newMessage, setNewMessage] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [onlineUsers, setOnlineUsers] = useState<string[]>([])
-  const [connected, setConnected] = useState(false)
   const { user } = useAuth()
   const { toast } = useToast()
+  const [messages, setMessages] = useState<Message[]>([])
+  const [newMessage, setNewMessage] = useState('')
+  const [isTyping, setIsTyping] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const chatContainerRef = useRef<HTMLDivElement>(null)
   const wsRef = useRef<WebSocket | null>(null)
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
 
   useEffect(() => {
@@ -37,138 +34,79 @@ export default function Community() {
   }, [messages])
 
   useEffect(() => {
-    // Load existing messages from localStorage
-    const storedMessages = localStorage.getItem('oranget_messages')
-    if (storedMessages) {
-      setMessages(JSON.parse(storedMessages))
+    // Load existing messages
+    const savedMessages = JSON.parse(localStorage.getItem('oranget_messages') || '[]')
+    setMessages(savedMessages)
+
+    // Set up WebSocket connection for real-time chat
+    const ws = new WebSocket('wss://echo.websocket.org/')
+    wsRef.current = ws
+
+    ws.onopen = () => {
+      console.log('Connected to chat server')
     }
 
-    // Initialize WebSocket connection for real-time updates
-    initializeWebSocket()
-
-    return () => {
-      if (wsRef.current) {
-        wsRef.current.close()
-      }
-    }
-  }, [user])
-
-  const initializeWebSocket = () => {
-    try {
-      // For demonstration, using a local WebSocket simulation
-      // In production, this would connect to a real WebSocket server
-      const ws = new WebSocket('wss://echo.websocket.org/') // Demo server
-      
-      ws.onopen = () => {
-        console.log('WebSocket connected')
-        setConnected(true)
-        if (user) {
-          // Notify server that user is online
-          ws.send(JSON.stringify({
-            type: 'user_online',
-            username: user.username,
-            userId: user.id
-          }))
-        }
-      }
-
-      ws.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data)
-          
-          if (data.type === 'new_message') {
-            const message: Message = {
-              id: data.id,
-              text: data.text,
-              created_at: data.created_at,
-              user_id: data.user_id,
-              username: data.username
-            }
-            
-            setMessages(prev => {
+    ws.onmessage = (event) => {
+      try {
+        const message: Message = JSON.parse(event.data)
+        if (message.username !== user?.username) {
+          setMessages(prev => {
+            const exists = prev.some(m => m.id === message.id)
+            if (!exists) {
               const updated = [...prev, message]
               localStorage.setItem('oranget_messages', JSON.stringify(updated))
               return updated
-            })
-          } else if (data.type === 'users_online') {
-            setOnlineUsers(data.users)
-          }
-        } catch (error) {
-          console.error('Error parsing WebSocket message:', error)
+            }
+            return prev
+          })
         }
+      } catch (error) {
+        console.error('Error parsing message:', error)
       }
-
-      ws.onclose = () => {
-        console.log('WebSocket disconnected')
-        setConnected(false)
-        // Attempt to reconnect after 3 seconds
-        setTimeout(() => {
-          if (user) {
-            initializeWebSocket()
-          }
-        }, 3000)
-      }
-
-      ws.onerror = (error) => {
-        console.error('WebSocket error:', error)
-        setConnected(false)
-      }
-
-      wsRef.current = ws
-    } catch (error) {
-      console.error('Error initializing WebSocket:', error)
     }
-  }
 
-  const sendMessage = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newMessage.trim() || !user || loading) return
-
-    setLoading(true)
-    try {
-      const message: Message = {
-        id: Date.now().toString(),
-        text: newMessage.trim(),
-        created_at: new Date().toISOString(),
-        user_id: user.id,
-        username: user.username
-      }
-
-      // Send to WebSocket if connected
-      if (wsRef.current && connected) {
-        wsRef.current.send(JSON.stringify({
-          type: 'new_message',
-          ...message
-        }))
-      }
-
-      // Always store locally as backup
-      const updatedMessages = [...messages, message]
-      setMessages(updatedMessages)
-      localStorage.setItem('oranget_messages', JSON.stringify(updatedMessages))
-      setNewMessage('')
-
-      toast({
-        title: "Message sent!",
-        description: "Your message has been posted to the chat.",
-      })
-    } catch (error: any) {
-      console.error('Error sending message:', error)
-      toast({
-        title: "Error sending message",
-        description: "Failed to send message",
-        variant: "destructive"
-      })
-    } finally {
-      setLoading(false)
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error)
     }
-  }
 
-  const formatTime = (timestamp: string) => {
-    return new Date(timestamp).toLocaleTimeString([], { 
-      hour: '2-digit', 
-      minute: '2-digit' 
+    return () => {
+      ws.close()
+    }
+  }, [user])
+
+  const sendMessage = () => {
+    if (!newMessage.trim() || !user || isTyping) return
+
+    setIsTyping(true)
+    
+    const message: Message = {
+      id: `${Date.now()}-${Math.random()}`,
+      username: user.username,
+      content: newMessage.trim(),
+      timestamp: Date.now()
+    }
+
+    // Add to local messages immediately
+    setMessages(prev => {
+      const updated = [...prev, message]
+      localStorage.setItem('oranget_messages', JSON.stringify(updated))
+      return updated
     })
+
+    // Send via WebSocket
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify(message))
+    }
+
+    setNewMessage('')
+    setTimeout(() => setIsTyping(false), 500)
+  }
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      sendMessage()
+    }
   }
 
   return (
@@ -187,89 +125,77 @@ export default function Community() {
 
         <AppSidebar />
         
-        <main className="flex-1 relative z-10 flex flex-col">
-          {/* Header */}
-          <div className="flex items-center justify-between p-6 bg-orange-600/80 backdrop-blur-sm border-b-4 border-orange-300 shrink-0">
-            <div className="flex items-center space-x-4">
-              <SidebarTrigger className="hover:bg-orange-700 rounded-xl text-white" />
-              <div>
-                <h1 className="text-4xl text-white font-medium drop-shadow-lg">Chat</h1>
-                <p className="text-orange-100 mt-1 font-medium">Connect with the community!</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 text-white">
-                <Circle className={`w-3 h-3 ${connected ? 'text-green-400 fill-green-400' : 'text-red-400 fill-red-400'}`} />
-                <span className="text-sm font-medium">{connected ? 'Connected' : 'Connecting...'}</span>
-              </div>
-              <div className="flex items-center space-x-2 text-white">
-                <Users className="w-5 h-5" />
-                <span className="font-medium">{onlineUsers.length} online</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Chat Container */}
-          <div className="flex-1 flex flex-col relative">
-            {/* Messages Area */}
-            <div 
-              ref={chatContainerRef}
-              className="flex-1 overflow-y-auto p-6 space-y-4"
-              style={{ maxHeight: 'calc(100vh - 200px)' }}
-            >
-              {messages.map((message) => (
-                <div key={message.id} className="flex items-start space-x-3 bg-orange-500/60 backdrop-blur-sm p-4 rounded-2xl border-2 border-orange-300">
-                  <img 
-                    src="/lovable-uploads/09e55504-38cb-49bf-9019-48c875713ca7.png"
-                    alt="User Avatar"
-                    className="w-12 h-12 rounded-lg border-2 border-orange-200 flex-shrink-0"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <span className="text-white font-medium text-lg">
-                        {message.username || 'User'}
-                      </span>
-                      {onlineUsers.includes(message.username) && (
-                        <Circle className="w-2 h-2 text-green-400 fill-green-400" />
-                      )}
-                      <span className="text-orange-100 text-sm font-medium">
-                        {formatTime(message.created_at)}
-                      </span>
-                    </div>
-                    <p className="text-orange-50 font-medium break-words">
-                      {message.text}
-                    </p>
-                  </div>
+        <main className="flex-1 relative z-10 p-6">
+          <div className="max-w-4xl mx-auto h-full flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-4">
+                <SidebarTrigger className="hover:bg-orange-600 rounded-xl text-white bg-orange-500/50" />
+                <div>
+                  <h1 className="text-4xl text-white font-bold drop-shadow-lg font-fredoka">Community Chat</h1>
+                  <p className="text-orange-100 mt-1 font-medium font-fredoka">Connect with other players!</p>
                 </div>
-              ))}
-              <div ref={messagesEndRef} />
+              </div>
+              <MessageCircle className="w-12 h-12 text-white" />
             </div>
 
-            {/* Message Input */}
-            <div className="p-6 bg-orange-600/80 backdrop-blur-sm border-t-4 border-orange-300 shrink-0">
-              <form onSubmit={sendMessage} className="flex space-x-4">
-                <Input
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder="Type your message..."
-                  maxLength={500}
-                  className="flex-1 bg-orange-500/50 border-2 border-orange-300 text-white placeholder:text-orange-100 font-medium text-lg py-4 rounded-2xl focus:border-orange-200"
-                  disabled={loading || !connected}
-                />
-                <Button
-                  type="submit"
-                  disabled={loading || !newMessage.trim() || !connected}
-                  className="bg-orange-400 hover:bg-orange-500 text-white font-medium py-4 px-6 rounded-2xl border-2 border-orange-200 h-auto"
-                >
-                  <Send className="w-5 h-5" />
-                </Button>
-              </form>
-              {!connected && (
-                <p className="text-orange-200 text-sm mt-2 text-center font-medium">
-                  Reconnecting to chat...
-                </p>
-              )}
-            </div>
+            {/* Chat Container */}
+            <Card className="bg-orange-500/80 backdrop-blur-sm border-4 border-orange-300 rounded-3xl flex-1 flex flex-col">
+              <CardHeader>
+                <CardTitle className="text-2xl text-white font-bold font-fredoka flex items-center">
+                  <Users className="w-6 h-6 mr-2" />
+                  Live Chat
+                </CardTitle>
+              </CardHeader>
+              
+              <CardContent className="flex-1 flex flex-col">
+                {/* Messages Area */}
+                <div className="flex-1 bg-orange-400/30 rounded-2xl p-4 mb-4 overflow-y-auto max-h-96">
+                  {messages.length === 0 ? (
+                    <div className="text-center text-orange-100 font-medium font-fredoka">
+                      No messages yet. Start the conversation!
+                    </div>
+                  ) : (
+                    messages.map((message) => (
+                      <div
+                        key={message.id}
+                        className={`mb-3 p-3 rounded-2xl max-w-xs ${
+                          message.username === user?.username
+                            ? 'bg-orange-500 text-white ml-auto'
+                            : 'bg-orange-300 text-orange-900'
+                        }`}
+                      >
+                        <div className="font-bold text-sm font-fredoka">{message.username}</div>
+                        <div className="font-medium font-fredoka">{message.content}</div>
+                        <div className="text-xs opacity-70 mt-1 font-fredoka">
+                          {new Date(message.timestamp).toLocaleTimeString()}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
+
+                {/* Message Input */}
+                <div className="flex space-x-3">
+                  <Input
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Type your message..."
+                    className="flex-1 bg-orange-400/50 border-2 border-orange-200 text-white placeholder:text-orange-100 rounded-2xl font-medium font-fredoka"
+                    disabled={isTyping}
+                  />
+                  <Button
+                    onClick={sendMessage}
+                    disabled={!newMessage.trim() || isTyping}
+                    className="bg-orange-400 hover:bg-orange-500 text-white font-bold rounded-2xl px-6 border-2 border-orange-200 font-fredoka"
+                  >
+                    <Send className="w-5 h-5" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </main>
       </div>

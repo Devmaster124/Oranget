@@ -11,7 +11,6 @@ const games = [
     id: 'snake',
     title: 'Snake Game',
     description: 'Classic snake game with an orange twist!',
-    image: 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
     route: '/games/snake',
     emoji: '🐍'
   },
@@ -19,7 +18,6 @@ const games = [
     id: 'tetris',
     title: 'Tetris',
     description: 'Stack and clear lines in this classic puzzle game!',
-    image: 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
     route: '/games/tetris',
     emoji: '🧩'
   },
@@ -27,7 +25,6 @@ const games = [
     id: 'memory',
     title: 'Memory Match',
     description: 'Match pairs of cards in this memory challenge!',
-    image: 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
     route: '/games/memory',
     emoji: '🧠'
   },
@@ -35,7 +32,6 @@ const games = [
     id: 'flappy',
     title: 'Flappy Bird',
     description: 'Navigate through pipes in this challenging game!',
-    image: 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
     route: '/games/flappy',
     emoji: '🐦'
   },
@@ -43,7 +39,6 @@ const games = [
     id: '2048',
     title: '2048',
     description: 'Combine tiles to reach 2048!',
-    image: 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
     route: '/games/2048',
     emoji: '🔢'
   },
@@ -51,7 +46,6 @@ const games = [
     id: 'minecraft',
     title: '3D Minecraft',
     description: 'Build and explore in a 3D minecraft-style world!',
-    image: 'https://images.pexels.com/photos/21067/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
     route: '/games/minecraft',
     emoji: '⛏️'
   },
@@ -59,7 +53,6 @@ const games = [
     id: 'halo',
     title: '3D Halo Arena',
     description: 'Epic 3D combat arena with futuristic weapons!',
-    image: 'https://images.pexels.com/photos/5428100/pexels-photo-5428100.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
     route: '/games/halo',
     emoji: '🚀'
   },
@@ -67,7 +60,6 @@ const games = [
     id: 'splitgate',
     title: '3D Splitgate Portal',
     description: 'Portal-based 3D shooter with teleportation mechanics!',
-    image: 'https://images.pexels.com/photos/2047905/pexels-photo-2047905.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
     route: '/games/splitgate',
     emoji: '🌀'
   },
@@ -75,9 +67,29 @@ const games = [
     id: 'fortnite',
     title: '3D Battle Royale',
     description: 'Fortnite-style battle royale with building mechanics!',
-    image: 'https://images.pexels.com/photos/3945683/pexels-photo-3945683.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
     route: '/games/fortnite',
     emoji: '🏗️'
+  },
+  {
+    id: 'pacman',
+    title: 'Pac-Man',
+    description: 'Classic arcade game - eat dots and avoid ghosts!',
+    route: '/games/pacman',
+    emoji: '👾'
+  },
+  {
+    id: 'spaceinvaders',
+    title: 'Space Invaders',
+    description: 'Defend Earth from alien invasion!',
+    route: '/games/spaceinvaders',
+    emoji: '👽'
+  },
+  {
+    id: 'frogger',
+    title: 'Frogger',
+    description: 'Help the frog cross the busy road safely!',
+    route: '/games/frogger',
+    emoji: '🐸'
   }
 ]
 
@@ -106,8 +118,8 @@ export default function MiniGames() {
             <div className="flex items-center space-x-4">
               <SidebarTrigger className="hover:bg-orange-700 rounded-xl text-white" />
               <div>
-                <h1 className="text-4xl text-white font-bold drop-shadow-lg">Mini Games</h1>
-                <p className="text-orange-100 mt-1 font-medium">Play fun games and earn tokens!</p>
+                <h1 className="text-4xl text-white font-bold drop-shadow-lg font-fredoka">Mini Games</h1>
+                <p className="text-orange-100 mt-1 font-medium font-fredoka">Play fun games and earn tokens!</p>
               </div>
             </div>
           </div>
@@ -129,13 +141,13 @@ export default function MiniGames() {
                     </div>
                     
                     <CardHeader>
-                      <CardTitle className="text-2xl text-white font-bold">{game.title}</CardTitle>
+                      <CardTitle className="text-2xl text-white font-bold font-fredoka">{game.title}</CardTitle>
                     </CardHeader>
                     
                     <CardContent>
-                      <p className="text-orange-100 mb-4 font-medium">{game.description}</p>
+                      <p className="text-orange-100 mb-4 font-medium font-fredoka">{game.description}</p>
                       <Button 
-                        className="w-full bg-orange-400 hover:bg-orange-500 text-white font-bold border-2 border-orange-200"
+                        className="w-full bg-orange-400 hover:bg-orange-500 text-white font-bold border-2 border-orange-200 font-fredoka"
                       >
                         Play Now
                       </Button>

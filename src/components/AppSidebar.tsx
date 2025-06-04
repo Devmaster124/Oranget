@@ -1,5 +1,5 @@
 
-import { Calendar, Home, Users, Heart, ShoppingCart, User, Music, Gamepad2, Settings, Newspaper, Trophy, Building, Briefcase } from "lucide-react"
+import { Calendar, Home, Users, Heart, ShoppingCart, User, Gamepad2, Settings, Newspaper, Trophy, Building, Briefcase, ArrowLeftRight } from "lucide-react"
 import { useLocation, useNavigate } from "react-router-dom"
 import {
   Sidebar,
@@ -37,14 +37,14 @@ const menuItems = [
     icon: ShoppingCart,
   },
   {
+    title: "Trading",
+    url: "/trading",
+    icon: ArrowLeftRight,
+  },
+  {
     title: "Blooks",
     url: "/blooks",
     icon: Briefcase,
-  },
-  {
-    title: "Music",
-    url: "/music",
-    icon: Music,
   },
   {
     title: "Minigames",
@@ -73,7 +73,7 @@ export function AppSidebar() {
 
   const handleSignOut = async () => {
     await signOut()
-    navigate('/auth')
+    navigate('/welcome')
   }
 
   return (
@@ -87,8 +87,8 @@ export function AppSidebar() {
               className="w-12 h-12 rounded-lg border-4 border-white shadow-lg animate-pulse-orange"
             />
             <div>
-              <h1 className="text-3xl text-white font-bold drop-shadow-lg tracking-wide">Oranget</h1>
-              <p className="text-orange-100 text-sm font-medium opacity-90">Your Gaming World!</p>
+              <h1 className="text-3xl text-white font-bold drop-shadow-lg tracking-wide font-fredoka">Oranget</h1>
+              <p className="text-orange-100 text-sm font-medium opacity-90 font-fredoka">Your Gaming World!</p>
             </div>
           </div>
         </SidebarHeader>
@@ -101,11 +101,11 @@ export function AppSidebar() {
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton 
                       onClick={() => navigate(item.url)}
-                      className="hover:bg-orange-400 hover:text-white hover:scale-105 hover:shadow-lg data-[active=true]:bg-orange-400 data-[active=true]:text-white data-[active=true]:scale-105 data-[active=true]:shadow-lg rounded-2xl text-orange-100 text-lg py-4 px-4 h-auto transition-all duration-300 transform border-2 border-transparent hover:border-orange-200 group font-medium"
+                      className="hover:bg-orange-400 hover:text-white hover:scale-105 hover:shadow-lg data-[active=true]:bg-orange-400 data-[active=true]:text-white data-[active=true]:scale-105 data-[active=true]:shadow-lg rounded-2xl text-orange-100 text-lg py-4 px-4 h-auto transition-all duration-300 transform border-2 border-transparent hover:border-orange-200 group font-medium font-fredoka"
                       data-active={location.pathname === item.url}
                     >
                       <item.icon className="w-7 h-7 group-hover:animate-bounce" />
-                      <span className="text-lg font-medium drop-shadow-sm">{item.title}</span>
+                      <span className="text-lg font-medium drop-shadow-sm font-fredoka">{item.title}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
@@ -120,10 +120,10 @@ export function AppSidebar() {
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton 
                   onClick={() => navigate(item.url)}
-                  className="hover:bg-orange-400 hover:text-white rounded-2xl text-orange-100 text-base py-3 px-3 h-auto transition-all duration-300 border-2 border-transparent hover:border-orange-200 font-medium"
+                  className="hover:bg-orange-400 hover:text-white rounded-2xl text-orange-100 text-base py-3 px-3 h-auto transition-all duration-300 border-2 border-transparent hover:border-orange-200 font-medium font-fredoka"
                 >
                   <item.icon className="w-5 h-5" />
-                  <span className="text-base font-medium">{item.title}</span>
+                  <span className="text-base font-medium font-fredoka">{item.title}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
@@ -131,7 +131,7 @@ export function AppSidebar() {
               <Button
                 onClick={handleSignOut}
                 variant="outline"
-                className="w-full text-orange-100 border-orange-300 hover:bg-orange-400 hover:text-white rounded-2xl text-base py-3 h-auto font-medium transition-all duration-300"
+                className="w-full text-orange-100 border-orange-300 hover:bg-orange-400 hover:text-white rounded-2xl text-base py-3 h-auto font-medium transition-all duration-300 font-fredoka"
               >
                 Logout
               </Button>
