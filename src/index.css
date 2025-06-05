@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -92,7 +93,7 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Titan One', cursive;
-    font-weight: 400;
+    font-weight: 300;
   }
 }
 
@@ -127,7 +128,7 @@
 
   .titan-one-light {
     font-family: 'Titan One', cursive;
-    font-weight: 400;
+    font-weight: 300;
   }
 
   .blacket-card {
@@ -143,7 +144,7 @@
     border-radius: 15px;
     color: white;
     font-family: 'Titan One', cursive;
-    font-weight: 400;
+    font-weight: 300;
     box-shadow: 0 4px 15px rgba(255, 140, 26, 0.3);
     transition: all 0.3s ease;
   }
@@ -215,6 +216,74 @@
     to {
       transform: translateY(100vh);
     }
+  }
+
+  /* New pack opening animations */
+  @keyframes keyUnlock {
+    0% { 
+      transform: translateY(0) rotate(0deg);
+      opacity: 1;
+    }
+    50% { 
+      transform: translateY(-20px) rotate(180deg);
+      opacity: 0.8;
+    }
+    100% { 
+      transform: translateY(0) rotate(360deg);
+      opacity: 0;
+    }
+  }
+
+  @keyframes lockBreak {
+    0% { 
+      transform: scale(1) rotate(0deg);
+      opacity: 1;
+    }
+    50% { 
+      transform: scale(1.2) rotate(10deg);
+      opacity: 0.7;
+    }
+    100% { 
+      transform: scale(0) rotate(45deg);
+      opacity: 0;
+    }
+  }
+
+  @keyframes packExplode {
+    0% { 
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+    }
+    50% {
+      transform: scale(1.1);
+      box-shadow: 0 0 0 20px rgba(255, 255, 255, 0);
+    }
+    100% { 
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+    }
+  }
+
+  .key-unlock {
+    animation: keyUnlock 2s ease-in-out;
+  }
+
+  .lock-break {
+    animation: lockBreak 1s ease-in-out;
+  }
+
+  .pack-explode {
+    animation: packExplode 0.8s ease-in-out;
+  }
+
+  /* Real-time chat indicator */
+  @keyframes liveIndicator {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .live-indicator {
+    animation: liveIndicator 2s ease-in-out infinite;
   }
 }
 
