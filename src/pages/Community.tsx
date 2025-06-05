@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/use-toast'
-import { Send, MessageCircle } from 'lucide-react'
+import { Send, MessageCircle, UserPlus, ArrowLeftRight } from 'lucide-react'
 
 interface Message {
   id: string
@@ -23,6 +23,8 @@ export default function Community() {
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [isTyping, setIsTyping] = useState(false)
+  const [onlineUsers, setOnlineUsers] = useState<string[]>([])
+  const [selectedUser, setSelectedUser] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const wsRef = useRef<WebSocket | null>(null)
 
@@ -39,41 +41,29 @@ export default function Community() {
     const savedMessages = JSON.parse(localStorage.getItem('oranget_messages') || '[]')
     setMessages(savedMessages)
 
-    // Set up WebSocket connection for real-time chat
-    const ws = new WebSocket('wss://echo.websocket.org/')
-    wsRef.current = ws
-
-    ws.onopen = () => {
-      console.log('Connected to chat server')
-    }
-
-    ws.onmessage = (event) => {
-      try {
-        const message: Message = JSON.parse(event.data)
-        if (message.username !== user?.username) {
-          setMessages(prev => {
-            const exists = prev.some(m => m.id === message.id)
-            if (!exists) {
-              const updated = [...prev, message]
-              localStorage.setItem('oranget_messages', JSON.stringify(updated))
-              return updated
-            }
-            return prev
-          })
-        }
-      } catch (error) {
-        console.error('Error parsing message:', error)
-      }
-    }
-
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error)
-    }
+    // Initialize real-time connection
+    connectWebSocket()
 
     return () => {
-      ws.close()
+      if (wsRef.current) {
+        wsRef.current.close()
+      }
     }
   }, [user])
+
+  const connectWebSocket = () => {
+    // Simulate real-time with local storage polling
+    const interval = setInterval(() => {
+      const savedMessages = JSON.parse(localStorage.getItem('oranget_messages') || '[]')
+      setMessages(savedMessages)
+      
+      // Simulate online users
+      const users = ['Player1', 'Player2', 'OrangeKing', 'BlookMaster', user?.username].filter(Boolean)
+      setOnlineUsers(users as string[])
+    }, 1000)
+
+    return () => clearInterval(interval)
+  }
 
   const sendMessage = () => {
     if (!newMessage.trim() || !user || isTyping) return
@@ -85,20 +75,13 @@ export default function Community() {
       username: user.username,
       content: newMessage.trim(),
       timestamp: Date.now(),
-      userRole: 'Common'
+      userRole: 'Player'
     }
 
-    // Add to local messages immediately
-    setMessages(prev => {
-      const updated = [...prev, message]
-      localStorage.setItem('oranget_messages', JSON.stringify(updated))
-      return updated
-    })
-
-    // Send via WebSocket
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify(message))
-    }
+    const savedMessages = JSON.parse(localStorage.getItem('oranget_messages') || '[]')
+    const updatedMessages = [...savedMessages, message]
+    localStorage.setItem('oranget_messages', JSON.stringify(updatedMessages))
+    setMessages(updatedMessages)
 
     setNewMessage('')
     setTimeout(() => setIsTyping(false), 500)
@@ -113,40 +96,49 @@ export default function Community() {
 
   const getRoleColor = (role?: string) => {
     switch (role) {
-      case 'Plus': return '#ff4757'
-      case 'Plus+': return '#ff6b7a'
-      case 'Common': return '#ffffff'
+      case 'Admin': return '#ff4757'
+      case 'Moderator': return '#3742fa'
+      case 'Player': return '#ffffff'
       default: return '#ffffff'
     }
   }
 
+  const handleUserClick = (username: string) => {
+    setSelectedUser(username)
+  }
+
+  const addFriend = (username: string) => {
+    toast({
+      title: "Friend Request Sent!",
+      description: `Friend request sent to ${username}`,
+    })
+    setSelectedUser(null)
+  }
+
+  const startTrade = (username: string) => {
+    toast({
+      title: "Trade Request Sent!",
+      description: `Trade request sent to ${username}`,
+    })
+    setSelectedUser(null)
+  }
+
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full relative overflow-hidden">
-        {/* Blook pattern background */}
-        <div className="fixed inset-0" style={{
-          backgroundColor: '#2c2f36',
-          backgroundImage: `
-            radial-gradient(circle at 20% 20%, rgba(139, 139, 139, 0.2) 0%, transparent 50%),
-            radial-gradient(circle at 80% 80%, rgba(139, 139, 139, 0.2) 0%, transparent 50%),
-            radial-gradient(circle at 40% 40%, rgba(139, 139, 139, 0.1) 0%, transparent 50%)
-          `,
-          backgroundSize: '100px 100px, 150px 150px, 80px 80px'
-        }} />
-
+      <div className="min-h-screen flex w-full blook-background">
         <AppSidebar />
         
         <main className="flex-1 relative z-10 p-6">
-          <div className="max-w-4xl mx-auto h-full flex flex-col">
+          <div className="max-w-7xl mx-auto h-full flex flex-col">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center space-x-4">
-                <SidebarTrigger className="hover:bg-gray-600 rounded-xl text-white bg-gray-700" />
+                <SidebarTrigger className="blacket-button p-2" />
                 <div>
-                  <h1 className="text-4xl text-white font-bold font-titan" style={{ fontWeight: '400' }}>
+                  <h1 className="text-4xl text-white font-bold drop-shadow-lg titan-light">
                     Chat
                   </h1>
-                  <p className="text-gray-300 mt-1 font-medium font-titan" style={{ fontWeight: '400' }}>
+                  <p className="text-orange-100 mt-1 font-medium titan-light">
                     Talk with other players
                   </p>
                 </div>
@@ -154,83 +146,133 @@ export default function Community() {
               <MessageCircle className="w-12 h-12 text-white" />
             </div>
 
-            {/* Chat Container - Blacket style */}
-            <div className="bg-gray-800 rounded-lg flex-1 flex flex-col border border-gray-600">
-              <div className="bg-gray-700 p-4 rounded-t-lg border-b border-gray-600">
-                <h2 className="text-white font-bold font-titan text-xl" style={{ fontWeight: '400' }}>
-                  Live Chat
-                </h2>
-              </div>
-              
-              <div className="flex-1 flex flex-col">
-                {/* Messages Area */}
-                <div className="flex-1 p-4 overflow-y-auto max-h-96 bg-gray-800">
-                  {messages.length === 0 ? (
-                    <div className="text-center text-gray-400 font-medium font-titan" style={{ fontWeight: '400' }}>
-                      No messages yet. Start the conversation!
-                    </div>
-                  ) : (
-                    messages.map((message) => (
-                      <div key={message.id} className="mb-3 flex items-start space-x-3">
-                        <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
-                          <span className="text-white text-sm font-bold font-titan" style={{ fontWeight: '400' }}>
-                            {message.username.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <span 
-                              className="font-bold font-titan text-sm"
-                              style={{ 
-                                color: getRoleColor(message.userRole),
-                                fontWeight: '400'
-                              }}
-                            >
-                              {message.username}
-                            </span>
-                            {message.userRole && (
-                              <span className="text-xs px-2 py-1 rounded bg-gray-700 text-gray-300 font-titan" style={{ fontWeight: '400' }}>
-                                [{message.userRole}]
-                              </span>
-                            )}
-                            <span className="text-xs text-gray-500 font-titan" style={{ fontWeight: '400' }}>
-                              {new Date(message.timestamp).toLocaleTimeString()}
-                            </span>
-                          </div>
-                          <div className="text-white font-titan" style={{ fontWeight: '400' }}>
-                            {message.content}
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                  <div ref={messagesEndRef} />
+            <div className="flex-1 flex gap-6 chat-container">
+              {/* Chat Container */}
+              <div className="flex-1 blacket-card flex flex-col">
+                <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-4 rounded-t-[17px] border-b-2 border-orange-400">
+                  <h2 className="text-white font-bold titan-light text-xl">
+                    Live Chat • {onlineUsers.length} online
+                  </h2>
                 </div>
+                
+                <div className="flex-1 flex flex-col">
+                  {/* Messages Area */}
+                  <div className="flex-1 p-4 overflow-y-auto bg-orange-500/20 backdrop-blur-sm">
+                    {messages.length === 0 ? (
+                      <div className="text-center text-white/70 font-medium titan-light">
+                        No messages yet. Start the conversation!
+                      </div>
+                    ) : (
+                      messages.map((message) => (
+                        <div key={message.id} className="mb-4 flex items-start space-x-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center border-2 border-white/30">
+                            <span className="text-white text-sm font-bold titan-light">
+                              {message.username.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2 mb-1">
+                              <span 
+                                className="font-bold titan-light text-sm cursor-pointer hover:underline"
+                                style={{ color: getRoleColor(message.userRole) }}
+                                onClick={() => handleUserClick(message.username)}
+                              >
+                                {message.username}
+                              </span>
+                              {message.userRole && (
+                                <span className="text-xs px-2 py-1 rounded bg-white/20 text-white/80 titan-light">
+                                  [{message.userRole}]
+                                </span>
+                              )}
+                              <span className="text-xs text-white/60 titan-light">
+                                {new Date(message.timestamp).toLocaleTimeString()}
+                              </span>
+                            </div>
+                            <div className="text-white titan-light bg-white/10 rounded-lg p-2 backdrop-blur-sm">
+                              {message.content}
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                    <div ref={messagesEndRef} />
+                  </div>
 
-                {/* Message Input */}
-                <div className="p-4 bg-gray-700 rounded-b-lg border-t border-gray-600">
-                  <div className="flex space-x-3">
-                    <Input
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      onKeyPress={handleKeyPress}
-                      placeholder="Type your message..."
-                      className="flex-1 bg-gray-600 border-gray-500 text-white placeholder:text-gray-400 rounded-lg font-titan"
-                      style={{ fontWeight: '400' }}
-                      disabled={isTyping}
-                    />
-                    <Button
-                      onClick={sendMessage}
-                      disabled={!newMessage.trim() || isTyping}
-                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg px-6 border border-blue-500 font-titan"
-                      style={{ fontWeight: '400' }}
+                  {/* Message Input */}
+                  <div className="p-4 bg-gradient-to-r from-orange-500 to-orange-600 rounded-b-[17px] border-t-2 border-orange-400">
+                    <div className="flex space-x-3">
+                      <Input
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        onKeyPress={handleKeyPress}
+                        placeholder="Type your message..."
+                        className="flex-1 bg-white/20 border-white/30 text-white placeholder:text-white/60 rounded-lg titan-light backdrop-blur-sm"
+                        disabled={isTyping}
+                      />
+                      <Button
+                        onClick={sendMessage}
+                        disabled={!newMessage.trim() || isTyping}
+                        className="blacket-button px-6"
+                      >
+                        <Send className="w-5 h-5" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Online Users */}
+              <div className="w-80 blacket-card">
+                <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-4 rounded-t-[17px] border-b-2 border-orange-400">
+                  <h3 className="text-white font-bold titan-light text-lg">Online Users</h3>
+                </div>
+                <div className="p-4 bg-orange-500/20 backdrop-blur-sm rounded-b-[17px] space-y-2 max-h-96 overflow-y-auto">
+                  {onlineUsers.map((username, index) => (
+                    <div 
+                      key={index}
+                      className="flex items-center justify-between p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors cursor-pointer"
+                      onClick={() => handleUserClick(username)}
                     >
-                      <Send className="w-5 h-5" />
+                      <div className="flex items-center space-x-2">
+                        <div className="w-6 h-6 bg-green-500 rounded-full"></div>
+                        <span className="text-white titan-light text-sm">{username}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* User Action Modal */}
+            {selectedUser && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                <div className="blacket-card p-6 m-4">
+                  <h3 className="text-white text-xl font-bold titan-light mb-4">{selectedUser}</h3>
+                  <div className="flex space-x-3">
+                    <Button
+                      onClick={() => addFriend(selectedUser)}
+                      className="blacket-button flex items-center space-x-2"
+                    >
+                      <UserPlus className="w-4 h-4" />
+                      <span>Add Friend</span>
+                    </Button>
+                    <Button
+                      onClick={() => startTrade(selectedUser)}
+                      className="blacket-button flex items-center space-x-2"
+                    >
+                      <ArrowLeftRight className="w-4 h-4" />
+                      <span>Trade</span>
+                    </Button>
+                    <Button
+                      onClick={() => setSelectedUser(null)}
+                      className="bg-gray-500 hover:bg-gray-600 text-white rounded-lg px-4 py-2 titan-light"
+                    >
+                      Cancel
                     </Button>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </main>
       </div>

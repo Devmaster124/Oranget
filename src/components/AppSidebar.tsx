@@ -17,11 +17,6 @@ import { Button } from "@/components/ui/button"
 
 const menuItems = [
   {
-    title: "Dashboard",
-    url: "/dashboard",
-    icon: Home,
-  },
-  {
     title: "Profile",
     url: "/profile",
     icon: User,
@@ -78,34 +73,35 @@ export function AppSidebar() {
 
   return (
     <Sidebar className="border-none bg-transparent">
-      <div className="bg-orange-500/95 backdrop-blur-sm h-full border-r-4 border-orange-300 shadow-2xl">
-        <SidebarHeader className="border-b-4 border-orange-300 p-6 bg-orange-600/80">
+      <div className="blook-background h-full border-r-4 border-orange-400 shadow-2xl">
+        <SidebarHeader className="border-b-4 border-orange-400 p-6 bg-gradient-to-r from-orange-500 to-orange-600">
           <div className="flex items-center space-x-3">
-            <img 
-              src="/lovable-uploads/09e55504-38cb-49bf-9019-48c875713ca7.png"
-              alt="Oranget Logo"
-              className="w-12 h-12 rounded-lg border-4 border-white shadow-lg animate-pulse-orange"
-            />
+            <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm border-2 border-white/30 flex items-center justify-center">
+              <span className="text-2xl">🧡</span>
+            </div>
             <div>
-              <h1 className="text-3xl text-white font-bold drop-shadow-lg tracking-wide font-fredoka">Oranget</h1>
-              <p className="text-orange-100 text-sm font-medium opacity-90 font-fredoka">Your Gaming World!</p>
+              <h1 className="text-3xl text-white font-bold drop-shadow-lg tracking-wide titan-light">Oranget</h1>
+              <p className="text-orange-100 text-sm font-medium opacity-90 titan-light">Your Gaming World!</p>
             </div>
           </div>
         </SidebarHeader>
         
-        <SidebarContent className="bg-orange-500/95 p-2 flex-1">
+        <SidebarContent className="bg-gradient-to-b from-orange-500/95 to-orange-600/95 p-3 flex-1">
           <SidebarGroup className="flex-1">
             <SidebarGroupContent>
-              <SidebarMenu className="space-y-2">
+              <SidebarMenu className="space-y-3">
                 {menuItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton 
                       onClick={() => navigate(item.url)}
-                      className="hover:bg-orange-400 hover:text-white hover:scale-105 hover:shadow-lg data-[active=true]:bg-orange-400 data-[active=true]:text-white data-[active=true]:scale-105 data-[active=true]:shadow-lg rounded-2xl text-orange-100 text-lg py-4 px-4 h-auto transition-all duration-300 transform border-2 border-transparent hover:border-orange-200 group font-medium font-fredoka"
-                      data-active={location.pathname === item.url}
+                      className={`blacket-button h-14 px-4 text-lg titan-light ${
+                        location.pathname === item.url 
+                          ? 'bg-orange-400 border-orange-300 shadow-lg scale-105' 
+                          : 'hover:bg-orange-400 hover:scale-105'
+                      } transition-all duration-300`}
                     >
-                      <item.icon className="w-7 h-7 group-hover:animate-bounce" />
-                      <span className="text-lg font-medium drop-shadow-sm font-fredoka">{item.title}</span>
+                      <item.icon className="w-6 h-6" />
+                      <span className="text-lg titan-light">{item.title}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
@@ -114,24 +110,23 @@ export function AppSidebar() {
           </SidebarGroup>
         </SidebarContent>
 
-        <SidebarFooter className="p-4 bg-orange-600/80 border-t-4 border-orange-300">
+        <SidebarFooter className="p-4 bg-gradient-to-r from-orange-600 to-orange-700 border-t-4 border-orange-400">
           <SidebarMenu className="space-y-2">
             {bottomItems.map((item) => (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton 
                   onClick={() => navigate(item.url)}
-                  className="hover:bg-orange-400 hover:text-white rounded-2xl text-orange-100 text-base py-3 px-3 h-auto transition-all duration-300 border-2 border-transparent hover:border-orange-200 font-medium font-fredoka"
+                  className="blacket-button h-12 px-3 text-base titan-light hover:bg-orange-400"
                 >
                   <item.icon className="w-5 h-5" />
-                  <span className="text-base font-medium font-fredoka">{item.title}</span>
+                  <span className="text-base titan-light">{item.title}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
             <SidebarMenuItem>
               <Button
                 onClick={handleSignOut}
-                variant="outline"
-                className="w-full text-orange-100 border-orange-300 hover:bg-orange-400 hover:text-white rounded-2xl text-base py-3 h-auto font-medium transition-all duration-300 font-fredoka"
+                className="blacket-button w-full h-12 text-base titan-light bg-red-500 border-red-400 hover:bg-red-600"
               >
                 Logout
               </Button>

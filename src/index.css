@@ -91,45 +91,109 @@
   }
 
   body {
-    @apply bg-background text-foreground font-titan;
+    @apply bg-background text-foreground;
+    font-family: 'Titan One', cursive;
+    font-weight: 300;
   }
 }
 
 @layer utilities {
-  .rainbow-text {
-    background: linear-gradient(-45deg, #ff7752, #ff3c7e, #23a6d5, #23d5ab);
-    background-size: 400% 400%;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    animation: rainbow 3s ease infinite;
-  }
-
-  .matrix-text {
-    color: #00ff41;
-    text-shadow: 0 0 5px #00ff41;
-    animation: matrix 2s ease-in-out infinite;
-  }
-
-  .animate-float {
-    animation: float 3s ease-in-out infinite;
-  }
-
-  .animate-pulse-orange {
-    animation: pulse-orange 2s ease-in-out infinite;
-  }
-
   .blook-background {
-    background-color: #2c2f36;
+    background-color: #ff8c1a;
     background-image: 
-      radial-gradient(circle at 20% 20%, rgba(139, 139, 139, 0.2) 0%, transparent 50%),
-      radial-gradient(circle at 80% 80%, rgba(139, 139, 139, 0.2) 0%, transparent 50%),
-      radial-gradient(circle at 40% 40%, rgba(139, 139, 139, 0.1) 0%, transparent 50%);
+      radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
     background-size: 100px 100px, 150px 150px, 80px 80px;
+    position: relative;
+  }
+
+  .blook-background::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+      repeating-linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0.03) 0px,
+        rgba(255, 255, 255, 0.03) 10px,
+        transparent 10px,
+        transparent 20px
+      );
+    pointer-events: none;
+  }
+
+  .titan-light {
+    font-family: 'Titan One', cursive;
+    font-weight: 300;
+  }
+
+  .blacket-card {
+    background: rgba(255, 140, 26, 0.95);
+    border: 3px solid rgba(255, 165, 0, 0.8);
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+  }
+
+  .blacket-button {
+    background: linear-gradient(135deg, #ff8c1a, #ff7000);
+    border: 2px solid #ff9500;
+    border-radius: 15px;
+    color: white;
+    font-family: 'Titan One', cursive;
+    font-weight: 300;
+    box-shadow: 0 4px 15px rgba(255, 140, 26, 0.3);
+    transition: all 0.3s ease;
+  }
+
+  .blacket-button:hover {
+    background: linear-gradient(135deg, #ff7000, #e65c00);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 140, 26, 0.4);
+  }
+
+  .chat-container {
+    height: calc(100vh - 120px);
+    max-height: calc(100vh - 120px);
+  }
+
+  .pack-animation {
+    animation: packOpen 0.8s ease-in-out;
+  }
+
+  @keyframes packOpen {
+    0% { transform: scale(1) rotateY(0deg); }
+    50% { transform: scale(1.1) rotateY(180deg); }
+    100% { transform: scale(1) rotateY(360deg); }
+  }
+
+  .falling-blooks {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .blook-fall {
+    position: absolute;
+    font-size: 20px;
+    animation: fall linear infinite;
+  }
+
+  @keyframes fall {
+    to {
+      transform: translateY(100vh);
+    }
   }
 }
 
-/* Animated background like the Glitch project */
+/* Animated background */
 @keyframes animatedBackground {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }

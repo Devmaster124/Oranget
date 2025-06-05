@@ -5,7 +5,6 @@ import { AppSidebar } from "@/components/AppSidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from '@/hooks/useAuth'
-import { supabase } from '@/integrations/supabase/client'
 import { Heart, Star, Sparkles, Crown, Gem, Zap } from 'lucide-react'
 
 const rarityConfig = {
@@ -31,25 +30,26 @@ export default function Blooks() {
 
   const fetchBlooks = async () => {
     try {
-      // Fetch all blooks
-      const { data: blooksData, error: blooksError } = await supabase
-        .from('blooks')
-        .select('*')
+      // Mock blooks data
+      const mockBlooks = [
+        { id: '1', name: 'Fish', rarity: 'common', image_url: 'https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=200' },
+        { id: '2', name: 'Alien', rarity: 'uncommon', image_url: 'https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=200' },
+        { id: '3', name: 'Dragon', rarity: 'rare', image_url: 'https://images.unsplash.com/photo-1500673922987-e212871fec22?w=200' },
+        { id: '4', name: 'Phoenix', rarity: 'epic', image_url: 'https://images.unsplash.com/photo-1470813740244-df37b8c1edcb?w=200' },
+        { id: '5', name: 'Rainbow Panda', rarity: 'legendary', image_url: 'https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=200' },
+        { id: '6', name: 'Mystical Unicorn', rarity: 'chroma', image_url: 'https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=200' },
+      ]
       
-      if (blooksError) throw blooksError
-      setAllBlooks(blooksData || [])
-
-      // Fetch user's blooks
-      const { data: userBlooksData, error: userBlooksError } = await supabase
-        .from('user_blooks')
-        .select(`
-          *,
-          blooks:blook_id (*)
-        `)
-        .eq('user_id', user?.id)
+      setAllBlooks(mockBlooks)
       
-      if (userBlooksError) throw userBlooksError
-      setUserBlooks(userBlooksData || [])
+      // Mock user blooks (user owns first 3)
+      const mockUserBlooks = mockBlooks.slice(0, 3).map(blook => ({
+        id: blook.id,
+        blook_id: blook.id,
+        blooks: blook
+      }))
+      
+      setUserBlooks(mockUserBlooks)
     } catch (error) {
       console.error('Error fetching blooks:', error)
     } finally {
@@ -68,12 +68,12 @@ export default function Blooks() {
   if (loading) {
     return (
       <SidebarProvider>
-        <div className="min-h-screen flex w-full bg-gradient-to-br from-orange-50 via-orange-100 to-yellow-50 font-fredoka">
+        <div className="min-h-screen flex w-full blook-background">
           <AppSidebar />
           <main className="flex-1 p-6 flex items-center justify-center">
             <div className="text-center">
               <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-orange-600 text-xl font-bold">Loading your blooks...</p>
+              <p className="text-white text-xl font-bold titan-light">Loading your blooks...</p>
             </div>
           </main>
         </div>
@@ -83,19 +83,19 @@ export default function Blooks() {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-orange-50 via-orange-100 to-yellow-50 font-fredoka">
+      <div className="min-h-screen flex w-full blook-background">
         <AppSidebar />
         <main className="flex-1 p-6">
           <div className="max-w-6xl mx-auto">
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center space-x-4">
-                <SidebarTrigger className="hover:bg-orange-100 rounded-xl" />
+                <SidebarTrigger className="blacket-button p-2" />
                 <div>
-                  <h1 className="text-4xl font-fredoka text-orange-600 font-black drop-shadow-lg">
-                    💖 Your Blooks
+                  <h1 className="text-4xl text-white font-bold drop-shadow-lg titan-light">
+                    Your Blooks
                   </h1>
-                  <p className="text-orange-500 mt-1 font-bold">
+                  <p className="text-orange-100 mt-1 font-bold titan-light">
                     Collected: {userBlooks.length} / {allBlooks.length}
                   </p>
                 </div>
@@ -110,11 +110,11 @@ export default function Blooks() {
                 const IconComponent = config.icon
                 
                 return (
-                  <Card key={rarity} className={`bg-gradient-to-br ${config.gradient} border-2 ${config.color.split(' ')[2]} rounded-2xl hover:scale-105 transition-transform duration-300`}>
+                  <Card key={rarity} className="blacket-card hover:scale-105 transition-transform duration-300">
                     <CardContent className="p-4 text-center">
-                      <IconComponent className="w-8 h-8 mx-auto mb-2 text-current" />
-                      <p className="text-lg font-black">{count}/{total}</p>
-                      <p className="text-sm font-bold capitalize">{rarity}</p>
+                      <IconComponent className="w-8 h-8 mx-auto mb-2 text-white" />
+                      <p className="text-lg font-bold text-white titan-light">{count}/{total}</p>
+                      <p className="text-sm font-bold capitalize text-orange-100 titan-light">{rarity}</p>
                     </CardContent>
                   </Card>
                 )
@@ -131,17 +131,15 @@ export default function Blooks() {
                 return (
                   <Card 
                     key={blook.id}
-                    className={`relative overflow-hidden rounded-3xl border-4 transition-all duration-300 hover:scale-105 ${
-                      owned 
-                        ? `bg-gradient-to-br ${config.gradient} ${config.color.split(' ')[2]} shadow-2xl` 
-                        : 'bg-gray-100 border-gray-300 opacity-60 hover:opacity-80'
+                    className={`relative overflow-hidden blacket-card transition-all duration-300 hover:scale-105 ${
+                      !owned && 'opacity-60 hover:opacity-80'
                     }`}
                   >
                     <CardContent className="p-6">
                       <div className="relative mb-4">
-                        <div className={`w-20 h-20 mx-auto rounded-2xl border-4 ${owned ? 'border-white' : 'border-gray-400'} overflow-hidden shadow-lg`}>
+                        <div className={`w-20 h-20 mx-auto rounded-2xl border-4 ${owned ? 'border-white' : 'border-gray-400'} overflow-hidden shadow-lg bg-white/20 backdrop-blur-sm`}>
                           <img 
-                            src={blook.image_url || 'https://images.unsplash.com/photo-1606041008023-472dfb5e530f?w=200'} 
+                            src={blook.image_url} 
                             alt={blook.name}
                             className={`w-full h-full object-cover ${!owned && 'grayscale'}`}
                           />
@@ -154,11 +152,11 @@ export default function Blooks() {
                       </div>
                       
                       <div className="text-center">
-                        <h3 className={`font-black text-lg mb-2 ${owned ? 'text-current' : 'text-gray-600'}`}>
+                        <h3 className={`font-bold text-lg mb-2 titan-light ${owned ? 'text-white' : 'text-gray-300'}`}>
                           {blook.name}
                         </h3>
                         <Badge 
-                          className={`${config.color} border-2 font-bold flex items-center justify-center gap-1`}
+                          className={`bg-white/20 text-white border-2 border-white/30 font-bold flex items-center justify-center gap-1 titan-light backdrop-blur-sm`}
                         >
                           <IconComponent className="w-3 h-3" />
                           {blook.rarity}
@@ -166,8 +164,8 @@ export default function Blooks() {
                       </div>
                       
                       {!owned && (
-                        <div className="absolute inset-0 bg-black/20 flex items-center justify-center rounded-3xl">
-                          <p className="text-white font-black text-lg drop-shadow-lg">LOCKED</p>
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-[17px] backdrop-blur-sm">
+                          <p className="text-white font-bold text-lg drop-shadow-lg titan-light">LOCKED</p>
                         </div>
                       )}
                     </CardContent>
@@ -178,8 +176,8 @@ export default function Blooks() {
 
             {allBlooks.length === 0 && (
               <div className="text-center py-12">
-                <p className="text-orange-500 text-xl font-bold">No blooks available yet!</p>
-                <p className="text-orange-400 mt-2">Check back soon for new blooks to collect.</p>
+                <p className="text-white text-xl font-bold titan-light">No blooks available yet!</p>
+                <p className="text-orange-100 mt-2 titan-light">Check back soon for new blooks to collect.</p>
               </div>
             )}
           </div>

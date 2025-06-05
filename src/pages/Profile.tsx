@@ -25,7 +25,6 @@ export default function Profile() {
 
   useEffect(() => {
     if (user) {
-      // Load profile from localStorage or create default
       const storedProfile = localStorage.getItem(`oranget_profile_${user.id}`)
       if (storedProfile) {
         setProfile(JSON.parse(storedProfile))
@@ -71,12 +70,12 @@ export default function Profile() {
   if (loading) {
     return (
       <SidebarProvider>
-        <div className="min-h-screen flex w-full bg-gradient-to-br from-orange-50 via-orange-100 to-orange-200 font-fredoka">
+        <div className="min-h-screen flex w-full blook-background">
           <AppSidebar />
           <main className="flex-1 p-4 md:p-6 flex items-center justify-center">
             <div className="text-center">
               <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-orange-600 text-xl font-medium">Loading profile...</p>
+              <p className="text-white text-xl font-medium titan-light">Loading profile...</p>
             </div>
           </main>
         </div>
@@ -86,31 +85,31 @@ export default function Profile() {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-orange-50 via-orange-100 to-orange-200 font-fredoka">
+      <div className="min-h-screen flex w-full blook-background">
         <AppSidebar />
         <main className="flex-1 p-4 md:p-6">
           <div className="max-w-6xl mx-auto">
             {/* Header */}
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 md:mb-8 space-y-4 md:space-y-0">
               <div className="flex items-center space-x-4">
-                <SidebarTrigger className="hover:bg-orange-100 rounded-xl" />
+                <SidebarTrigger className="blacket-button p-2" />
                 <div>
-                  <h1 className="text-3xl md:text-4xl font-fredoka text-orange-600 font-bold drop-shadow-lg">
-                    🏆 Profile
+                  <h1 className="text-3xl md:text-4xl text-white font-bold drop-shadow-lg titan-light">
+                    Profile
                   </h1>
-                  <p className="text-orange-500 mt-1 font-medium text-sm md:text-base">Master your gaming empire!</p>
+                  <p className="text-orange-100 mt-1 font-medium text-sm md:text-base titan-light">Master your gaming empire!</p>
                 </div>
               </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
               {/* Profile Info Card */}
-              <Card className="bg-white/80 backdrop-blur-sm border-4 border-orange-200 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105">
+              <Card className="blacket-card hover:scale-105 transition-all duration-300">
                 <CardHeader className="text-center pb-4">
                   <div className="relative mx-auto mb-4">
-                    <Avatar className="w-24 h-24 md:w-32 md:h-32 border-6 border-orange-300 shadow-2xl">
+                    <Avatar className="w-24 h-24 md:w-32 md:h-32 border-6 border-white/30 shadow-2xl">
                       <AvatarImage src={profile?.profile_picture} />
-                      <AvatarFallback className="bg-gradient-to-br from-orange-400 to-orange-600 text-white text-2xl md:text-4xl font-bold">
+                      <AvatarFallback className="bg-gradient-to-br from-orange-400 to-orange-600 text-white text-2xl md:text-4xl font-bold titan-light">
                         {profile?.username?.[0]?.toUpperCase() || 'T'}
                       </AvatarFallback>
                     </Avatar>
@@ -118,11 +117,11 @@ export default function Profile() {
                       <Camera className="w-4 h-4 md:w-5 md:h-5 text-white" />
                     </div>
                   </div>
-                  <CardTitle className="text-2xl md:text-3xl text-orange-600 font-bold">{profile?.username}</CardTitle>
-                  <p className="text-orange-500 font-medium text-sm md:text-base">Username: {user?.username}</p>
+                  <CardTitle className="text-2xl md:text-3xl text-white font-bold titan-light">{profile?.username}</CardTitle>
+                  <p className="text-orange-200 font-medium text-sm md:text-base titan-light">Username: {user?.username}</p>
                   {profile?.role && (
                     <div className="mt-2">
-                      <span className={`px-4 py-2 rounded-full text-sm font-bold ${
+                      <span className={`px-4 py-2 rounded-full text-sm font-bold titan-light ${
                         profile.role === 'owner' ? 'bg-purple-500 text-white' :
                         profile.role === 'admin' ? 'bg-red-500 text-white' :
                         profile.role === 'moderator' ? 'bg-blue-500 text-white' :
@@ -135,69 +134,69 @@ export default function Profile() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center p-3 md:p-4 bg-gradient-to-br from-orange-100 to-orange-200 rounded-2xl border-2 border-orange-300">
-                      <Coins className="w-6 h-6 md:w-8 md:h-8 text-orange-600 mx-auto mb-2" />
-                      <p className="text-xl md:text-2xl font-bold text-orange-700">{profile?.tokens || 0}</p>
-                      <p className="text-orange-600 text-xs md:text-sm font-medium">Tokens</p>
+                    <div className="text-center p-3 md:p-4 bg-white/10 rounded-2xl border-2 border-white/20 backdrop-blur-sm">
+                      <Coins className="w-6 h-6 md:w-8 md:h-8 text-orange-300 mx-auto mb-2" />
+                      <p className="text-xl md:text-2xl font-bold text-white titan-light">{profile?.tokens || 0}</p>
+                      <p className="text-orange-200 text-xs md:text-sm font-medium titan-light">Tokens</p>
                     </div>
-                    <div className="text-center p-3 md:p-4 bg-gradient-to-br from-yellow-100 to-orange-200 rounded-2xl border-2 border-orange-300">
+                    <div className="text-center p-3 md:p-4 bg-white/10 rounded-2xl border-2 border-white/20 backdrop-blur-sm">
                       <div className="text-xl md:text-2xl mb-2">🧡</div>
-                      <p className="text-xl md:text-2xl font-bold text-orange-700">{profile?.orange_drips || 0}</p>
-                      <p className="text-orange-600 text-xs md:text-sm font-medium">Orange Drips</p>
+                      <p className="text-xl md:text-2xl font-bold text-white titan-light">{profile?.orange_drips || 0}</p>
+                      <p className="text-orange-200 text-xs md:text-sm font-medium titan-light">Orange Drips</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
               {/* Stats Card */}
-              <Card className="bg-white/80 backdrop-blur-sm border-4 border-orange-200 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105">
+              <Card className="blacket-card hover:scale-105 transition-all duration-300">
                 <CardHeader>
-                  <CardTitle className="text-2xl text-orange-600 font-bold flex items-center">
+                  <CardTitle className="text-2xl text-white font-bold titan-light flex items-center">
                     <Trophy className="w-8 h-8 mr-3" />
                     Your Stats
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-100 to-pink-100 rounded-2xl border-2 border-purple-200">
+                  <div className="flex items-center justify-between p-4 bg-white/10 rounded-2xl border-2 border-white/20 backdrop-blur-sm">
                     <div className="flex items-center">
-                      <Heart className="w-8 h-8 text-purple-600 mr-3" />
+                      <Heart className="w-8 h-8 text-purple-300 mr-3" />
                       <div>
-                        <p className="font-bold text-purple-700">Blooks Unlocked</p>
-                        <p className="text-purple-600 text-sm">Collect them all!</p>
+                        <p className="font-bold text-white titan-light">Blooks Unlocked</p>
+                        <p className="text-orange-200 text-sm titan-light">Collect them all!</p>
                       </div>
                     </div>
-                    <span className="text-3xl font-bold text-purple-700">{profile?.blooks_unlocked || 0}</span>
+                    <span className="text-3xl font-bold text-white titan-light">{profile?.blooks_unlocked || 0}</span>
                   </div>
                   
-                  <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-100 to-cyan-100 rounded-2xl border-2 border-blue-200">
+                  <div className="flex items-center justify-between p-4 bg-white/10 rounded-2xl border-2 border-white/20 backdrop-blur-sm">
                     <div className="flex items-center">
-                      <MessageCircle className="w-8 h-8 text-blue-600 mr-3" />
+                      <MessageCircle className="w-8 h-8 text-blue-300 mr-3" />
                       <div>
-                        <p className="font-bold text-blue-700">Chats Joined</p>
-                        <p className="text-blue-600 text-sm">Social butterfly!</p>
+                        <p className="font-bold text-white titan-light">Chats Joined</p>
+                        <p className="text-orange-200 text-sm titan-light">Social butterfly!</p>
                       </div>
                     </div>
-                    <span className="text-3xl font-bold text-blue-700">{profile?.total_chats_participated || 0}</span>
+                    <span className="text-3xl font-bold text-white titan-light">{profile?.total_chats_participated || 0}</span>
                   </div>
                   
-                  <div className="flex items-center justify-between p-4 bg-gradient-to-r from-green-100 to-emerald-100 rounded-2xl border-2 border-green-200">
+                  <div className="flex items-center justify-between p-4 bg-white/10 rounded-2xl border-2 border-white/20 backdrop-blur-sm">
                     <div className="flex items-center">
-                      <MessageCircle className="w-8 h-8 text-green-600 mr-3" />
+                      <MessageCircle className="w-8 h-8 text-green-300 mr-3" />
                       <div>
-                        <p className="font-bold text-green-700">Messages Sent</p>
-                        <p className="text-green-600 text-sm">Keep chatting!</p>
+                        <p className="font-bold text-white titan-light">Messages Sent</p>
+                        <p className="text-orange-200 text-sm titan-light">Keep chatting!</p>
                       </div>
                     </div>
-                    <span className="text-3xl font-bold text-green-700">{profile?.total_messages_sent || 0}</span>
+                    <span className="text-3xl font-bold text-white titan-light">{profile?.total_messages_sent || 0}</span>
                   </div>
                 </CardContent>
               </Card>
             </div>
 
             {/* Profile Picture Selection */}
-            <Card className="mt-6 md:mt-8 bg-white/80 backdrop-blur-sm border-4 border-orange-200 rounded-3xl shadow-2xl">
+            <Card className="mt-6 md:mt-8 blacket-card">
               <CardHeader>
-                <CardTitle className="text-2xl text-orange-600 font-bold flex items-center">
+                <CardTitle className="text-2xl text-white font-bold titan-light flex items-center">
                   <Camera className="w-8 h-8 mr-3" />
                   Choose Your Avatar
                 </CardTitle>
@@ -213,10 +212,10 @@ export default function Profile() {
                       <img 
                         src={pic} 
                         alt={`Avatar ${index + 1}`}
-                        className="w-20 h-20 rounded-2xl border-4 border-orange-200 hover:border-orange-400 transition-all duration-300 group-hover:scale-110 shadow-lg"
+                        className="w-20 h-20 rounded-2xl border-4 border-white/30 hover:border-white/60 transition-all duration-300 group-hover:scale-110 shadow-lg"
                       />
                       {profile?.profile_picture === pic && (
-                        <div className="absolute inset-0 bg-orange-500/30 rounded-2xl border-4 border-orange-500"></div>
+                        <div className="absolute inset-0 bg-orange-500/30 rounded-2xl border-4 border-orange-300"></div>
                       )}
                     </div>
                   ))}
