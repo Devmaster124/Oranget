@@ -24,32 +24,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast()
 
   useEffect(() => {
-    // Check if user is stored in localStorage on app load
+    // Auto-login check
     const checkAuth = () => {
       try {
         const storedUser = localStorage.getItem('oranget_user')
         const storedSession = localStorage.getItem('oranget_session')
+        const autoLogin = localStorage.getItem('oranget_auto_login')
         
-        if (storedUser && storedSession) {
+        if (storedUser && storedSession && autoLogin === 'true') {
           const userData = JSON.parse(storedUser)
           const sessionData = JSON.parse(storedSession)
           
-          // Check if session is still valid (24 hours)
+          // Check if session is still valid (7 days for auto-login)
           const sessionAge = Date.now() - sessionData.timestamp
-          const sessionValid = sessionAge < 24 * 60 * 60 * 1000 // 24 hours
+          const sessionValid = sessionAge < 7 * 24 * 60 * 60 * 1000 // 7 days
           
           if (sessionValid) {
             setUser(userData)
+            console.log('Auto-login successful for user:', userData.username)
           } else {
             // Session expired, clear storage
             localStorage.removeItem('oranget_user')
             localStorage.removeItem('oranget_session')
+            localStorage.removeItem('oranget_auto_login')
           }
         }
       } catch (error) {
         console.error('Error checking auth:', error)
         localStorage.removeItem('oranget_user')
         localStorage.removeItem('oranget_session')
+        localStorage.removeItem('oranget_auto_login')
       }
       setLoading(false)
     }
@@ -57,13 +61,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkAuth()
   }, [])
 
-  const createSession = (userData: User) => {
+  const createSession = (userData: User, rememberMe: boolean = true) => {
     const sessionData = {
       timestamp: Date.now(),
       userId: userData.id
     }
     localStorage.setItem('oranget_user', JSON.stringify(userData))
     localStorage.setItem('oranget_session', JSON.stringify(sessionData))
+    if (rememberMe) {
+      localStorage.setItem('oranget_auto_login', 'true')
+    }
     setUser(userData)
   }
 
@@ -87,7 +94,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       existingUsers[username] = { password, userData: newUser }
       localStorage.setItem('oranget_users', JSON.stringify(existingUsers))
       
-      createSession(newUser)
+      createSession(newUser, true)
       
       toast({
         title: "Account Created!",
@@ -110,7 +117,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       const userData = existingUsers[username].userData
-      createSession(userData)
+      createSession(userData, true)
 
       toast({
         title: "Welcome back!",
@@ -128,6 +135,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       localStorage.removeItem('oranget_user')
       localStorage.removeItem('oranget_session')
+      localStorage.removeItem('oranget_auto_login')
       setUser(null)
       
       toast({

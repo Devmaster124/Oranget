@@ -1,166 +1,150 @@
 
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Search, ShoppingCart, Star, Filter, ArrowLeft } from 'lucide-react'
+import { Search, ArrowLeft } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/use-toast'
 import { useNavigate } from 'react-router-dom'
 import { TokenDisplay } from '@/components/TokenDisplay'
-import { RarityBadge } from '@/components/RarityBadge'
 
-interface MarketplaceItem {
+interface MarketplacePack {
   id: string
   name: string
-  rarity: 'Common' | 'Uncommon' | 'Rare' | 'Epic' | 'Legendary'
   price: number
-  description: string
-  image_url?: string
-  seller_id?: string
-  seller_username?: string
+  color: string
+  image: string
 }
 
 export default function Marketplace() {
   const { user } = useAuth()
   const { toast } = useToast()
   const navigate = useNavigate()
-  const [items, setItems] = useState<MarketplaceItem[]>([])
+  const [packs, setPacks] = useState<MarketplacePack[]>([])
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedRarity, setSelectedRarity] = useState<string>('All')
   const [userTokens, setUserTokens] = useState(0)
   const [loading, setLoading] = useState(true)
-
-  const rarities = ['All', 'Common', 'Uncommon', 'Rare', 'Epic', 'Legendary']
+  const [selectedPack, setSelectedPack] = useState<MarketplacePack | null>(null)
+  const [isOpening, setIsOpening] = useState(false)
 
   useEffect(() => {
     if (user) {
       setUserTokens(user.tokens)
-      fetchMarketplaceItems()
+      fetchMarketplacePacks()
     }
   }, [user])
 
-  const fetchMarketplaceItems = async () => {
+  const fetchMarketplacePacks = async () => {
     setLoading(true)
     
-    // Mock marketplace items for now
-    const mockItems: MarketplaceItem[] = [
-      {
-        id: '1',
-        name: 'Golden Dragon',
-        rarity: 'Legendary',
-        price: 5000,
-        description: 'A majestic golden dragon with incredible power'
-      },
-      {
-        id: '2',
-        name: 'Ice Phoenix',
-        rarity: 'Epic',
-        price: 2500,
-        description: 'A rare ice phoenix that brings good fortune'
-      },
-      {
-        id: '3',
-        name: 'Forest Guardian',
-        rarity: 'Rare',
-        price: 1000,
-        description: 'A protective spirit of the forest'
-      },
-      {
-        id: '4',
-        name: 'Lightning Bolt',
-        rarity: 'Uncommon',
-        price: 500,
-        description: 'Harness the power of lightning'
-      },
-      {
-        id: '5',
-        name: 'Magic Wand',
-        rarity: 'Common',
-        price: 100,
-        description: 'A simple but effective magic wand'
-      }
+    const mockPacks: MarketplacePack[] = [
+      { id: '1', name: 'Ice Monster Pack', price: 25, color: 'from-blue-400 to-blue-600', image: '❄️' },
+      { id: '2', name: 'Wonderland Pack', price: 25, color: 'from-purple-400 to-purple-600', image: '🎩' },
+      { id: '3', name: 'Video Game Pack', price: 25, color: 'from-green-400 to-green-600', image: '🎮' },
+      { id: '4', name: 'Elemental Pack', price: 25, color: 'from-red-400 to-red-600', image: '🔥' },
+      { id: '5', name: 'Breakfast Pack', price: 25, color: 'from-yellow-400 to-yellow-600', image: '🥞' },
+      { id: '6', name: 'Medieval Pack', price: 25, color: 'from-gray-600 to-gray-800', image: '⚔️' },
+      { id: '7', name: 'Magic Pack', price: 25, color: 'from-pink-400 to-pink-600', image: '✨' },
+      { id: '8', name: 'Safari Pack', price: 25, color: 'from-orange-400 to-orange-600', image: '🦁' }
     ]
     
-    setItems(mockItems)
+    setPacks(mockPacks)
     setLoading(false)
   }
 
-  const handlePurchase = async (item: MarketplaceItem) => {
+  const handlePackClick = async (pack: MarketplacePack) => {
     if (!user) {
       toast({
         title: "Please sign in",
-        description: "You need to be signed in to make purchases",
+        description: "You need to be signed in to open packs",
         variant: "destructive"
       })
       return
     }
 
-    if (userTokens < item.price) {
+    if (userTokens < pack.price) {
       toast({
         title: "Insufficient tokens",
-        description: `You need ${item.price - userTokens} more tokens to purchase this item`,
+        description: `You need ${pack.price - userTokens} more tokens to open this pack`,
         variant: "destructive"
       })
       return
     }
 
-    try {
-      const newTokenAmount = userTokens - item.price
+    setSelectedPack(pack)
+    setIsOpening(true)
+
+    // Simulate pack opening animation
+    setTimeout(() => {
+      const newTokenAmount = userTokens - pack.price
       setUserTokens(newTokenAmount)
       
-      // Update user tokens in localStorage
       const updatedUser = { ...user, tokens: newTokenAmount }
       localStorage.setItem('oranget_user', JSON.stringify(updatedUser))
       
       toast({
-        title: "Purchase successful!",
-        description: `You bought ${item.name} for ${item.price} tokens`,
+        title: "Pack opened successfully!",
+        description: `You opened ${pack.name} and got awesome items!`,
       })
-    } catch (error: any) {
-      console.error('Purchase error:', error)
-      toast({
-        title: "Purchase failed",
-        description: error.message || "Failed to complete purchase",
-        variant: "destructive"
-      })
-    }
+      
+      setIsOpening(false)
+      setSelectedPack(null)
+    }, 3000)
   }
 
-  const filteredItems = items.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesRarity = selectedRarity === 'All' || item.rarity === selectedRarity
-    return matchesSearch && matchesRarity
-  })
+  const filteredPacks = packs.filter(pack => 
+    pack.name.toLowerCase().includes(searchTerm.toLowerCase())
+  )
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 p-6">
+      <div className="min-h-screen p-6" style={{
+        backgroundColor: '#2c2f36',
+        backgroundImage: `
+          radial-gradient(circle at 20% 20%, rgba(139, 139, 139, 0.2) 0%, transparent 50%),
+          radial-gradient(circle at 80% 80%, rgba(139, 139, 139, 0.2) 0%, transparent 50%)
+        `
+      }}>
         <div className="max-w-7xl mx-auto">
-          <div className="text-center text-white font-titan text-2xl">Loading marketplace...</div>
+          <div className="text-center text-white font-titan text-2xl" style={{ fontWeight: '400' }}>
+            Loading marketplace...
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 p-6">
+    <div className="min-h-screen p-6" style={{
+      backgroundColor: '#2c2f36',
+      backgroundImage: `
+        radial-gradient(circle at 20% 20%, rgba(139, 139, 139, 0.2) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(139, 139, 139, 0.2) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(139, 139, 139, 0.1) 0%, transparent 50%)
+      `,
+      backgroundSize: '100px 100px, 150px 150px, 80px 80px'
+    }}>
       <div className="max-w-7xl mx-auto">
-        {/* Header with Back Button */}
+        {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <Button
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/dashboard')}
             variant="outline"
-            className="border-2 border-white text-white hover:bg-white hover:text-orange-600 text-lg font-bold rounded-2xl px-6 py-3"
+            className="border-2 border-gray-600 bg-gray-700 text-white hover:bg-gray-600 text-lg font-bold rounded-lg px-6 py-3 font-titan"
+            style={{ fontWeight: '400' }}
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
             Back to Dashboard
           </Button>
           
           <div className="text-center">
-            <h1 className="text-6xl text-white font-bold mb-4">🛍️ MARKETPLACE</h1>
-            <p className="text-xl text-white font-medium">Buy amazing items with your tokens!</p>
+            <h1 className="text-6xl text-white font-bold mb-4 font-titan" style={{ fontWeight: '400' }}>
+              Market
+            </h1>
+            <p className="text-xl text-white font-medium font-titan" style={{ fontWeight: '400' }}>
+              Open packs and collect blooks!
+            </p>
             <div className="mt-4">
               <TokenDisplay tokens={userTokens} />
             </div>
@@ -169,67 +153,64 @@ export default function Marketplace() {
           <div></div>
         </div>
 
-        {/* Search and Filters */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8">
-          <div className="relative flex-1">
+        {/* Search */}
+        <div className="flex justify-center mb-8">
+          <div className="relative w-full max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <Input
-              placeholder="Search items..."
+              placeholder="Search packs..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 text-lg font-medium border-4 border-white/30 rounded-2xl"
+              className="pl-10 text-lg font-medium border-2 border-gray-600 bg-gray-700 text-white placeholder:text-gray-400 rounded-lg font-titan"
+              style={{ fontWeight: '400' }}
             />
-          </div>
-          <div className="flex items-center space-x-2">
-            <Filter className="text-white w-5 h-5" />
-            <select
-              value={selectedRarity}
-              onChange={(e) => setSelectedRarity(e.target.value)}
-              className="px-4 py-2 border-4 border-white/30 rounded-2xl font-medium text-lg bg-white/10 text-white"
-            >
-              {rarities.map(rarity => (
-                <option key={rarity} value={rarity} className="text-black">
-                  {rarity}
-                </option>
-              ))}
-            </select>
           </div>
         </div>
 
-        {/* Items Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredItems.map(item => (
-            <Card key={item.id} className="bg-white/20 backdrop-blur-sm border-4 border-white/30 rounded-3xl overflow-hidden hover:scale-105 transition-transform">
-              <CardHeader className="text-center">
-                <div className="w-full h-32 bg-gradient-to-br from-blue-400 to-purple-600 rounded-2xl mb-4 flex items-center justify-center">
-                  <Star className="w-16 h-16 text-white" />
+        {/* Packs Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+          {filteredPacks.map(pack => (
+            <Card 
+              key={pack.id} 
+              className="bg-gray-800 border-2 border-gray-600 rounded-lg overflow-hidden hover:scale-105 transition-all duration-300 cursor-pointer hover:border-gray-500"
+              onClick={() => handlePackClick(pack)}
+            >
+              <CardContent className="p-0">
+                <div className={`w-full h-48 bg-gradient-to-br ${pack.color} flex items-center justify-center relative overflow-hidden`}>
+                  <div className="absolute inset-0 bg-black/10"></div>
+                  <div className="text-6xl relative z-10">{pack.image}</div>
+                  <div className="absolute top-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-sm font-titan" style={{ fontWeight: '400' }}>
+                    {pack.price}
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                 </div>
-                <CardTitle className="text-white font-bold text-xl">{item.name}</CardTitle>
-                <RarityBadge rarity={item.rarity} />
-              </CardHeader>
-              <CardContent className="text-center space-y-4">
-                <p className="text-white/80 font-medium">{item.description}</p>
-                <div className="flex items-center justify-between">
-                  <Badge variant="secondary" className="font-bold text-lg px-4 py-2">
-                    {item.price} 🪙
-                  </Badge>
-                  <Button
-                    onClick={() => handlePurchase(item)}
-                    disabled={userTokens < item.price}
-                    className="bg-green-500 hover:bg-green-600 text-white font-bold rounded-2xl px-6"
-                  >
-                    <ShoppingCart className="w-4 h-4 mr-2" />
-                    Buy
-                  </Button>
+                <div className="p-4 text-center">
+                  <h3 className="text-white font-bold text-lg font-titan" style={{ fontWeight: '400' }}>
+                    {pack.name}
+                  </h3>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
 
-        {filteredItems.length === 0 && (
-          <div className="text-center text-white font-bold text-2xl mt-12">
-            No items found matching your criteria
+        {/* Pack Opening Animation */}
+        {isOpening && selectedPack && (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+            <div className="text-center">
+              <div className={`w-64 h-64 bg-gradient-to-br ${selectedPack.color} rounded-lg flex items-center justify-center mb-4 animate-pulse`}>
+                <div className="text-8xl">{selectedPack.image}</div>
+              </div>
+              <h2 className="text-white text-3xl font-bold font-titan" style={{ fontWeight: '400' }}>
+                Opening {selectedPack.name}...
+              </h2>
+            </div>
+          </div>
+        )}
+
+        {filteredPacks.length === 0 && (
+          <div className="text-center text-white font-bold text-2xl mt-12 font-titan" style={{ fontWeight: '400' }}>
+            No packs found matching your search
           </div>
         )}
       </div>

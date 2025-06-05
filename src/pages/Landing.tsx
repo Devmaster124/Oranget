@@ -41,8 +41,8 @@ export default function Landing() {
       {/* Main Content */}
       <div className="relative z-10 flex flex-col items-start justify-center min-h-[80vh] p-12">
         <div className="max-w-2xl">
-          {/* Logo - moved higher */}
-          <h1 className="text-8xl text-white font-titan mb-4 drop-shadow-lg" style={{ fontWeight: '400' }}>
+          {/* Logo - moved higher up */}
+          <h1 className="text-9xl text-white font-titan mb-8 drop-shadow-lg" style={{ fontWeight: '400' }}>
             Oranget
           </h1>
           
@@ -65,11 +65,11 @@ export default function Landing() {
             Get Started
           </Button>
           
-          {/* Bottom Text */}
+          {/* Bottom Text - Fixed pronunciation */}
           <div className="mt-16">
             <div className="flex items-center space-x-2 text-orange-200 text-sm font-titan" style={{ fontWeight: '400' }}>
               <span>🔊</span>
-              <span>Pronunciation ("Orange-it")</span>
+              <span>Pronunciation: "Orange-it"</span>
             </div>
           </div>
         </div>
