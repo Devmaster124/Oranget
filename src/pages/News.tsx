@@ -8,7 +8,7 @@ import { Newspaper, Calendar, Zap, Users, Gamepad2, ArrowLeftRight } from 'lucid
 const newsItems = [
   {
     id: 1,
-    title: "🎮 MEGA UPDATE: Trading & Friends System!",
+    title: "MEGA UPDATE: Trading & Friends System!",
     content: "We've just launched our biggest update yet! Now you can trade blooks with friends, send friend requests, and build your network in Oranget. The new Trading Hub lets you negotiate trades and manage your friendships all in one place.",
     date: "2025-06-04",
     type: "Major Update",
@@ -16,7 +16,7 @@ const newsItems = [
   },
   {
     id: 2,
-    title: "🕹️ Three New Mini Games Added!",
+    title: "Three New Mini Games Added!",
     content: "Get ready for more fun! We've added Pac-Man, Space Invaders, and Frogger to our mini games collection. Each game features classic gameplay with an orange twist. Challenge your friends and climb the leaderboards!",
     date: "2025-06-04",
     type: "Games",
@@ -24,7 +24,7 @@ const newsItems = [
   },
   {
     id: 3,
-    title: "💬 Real-Time Chat Improvements",
+    title: "Real-Time Chat Improvements",
     content: "Chat is now truly real-time! We've fixed the double message issue and improved connection stability. Messages now appear instantly across all connected players. Stay connected with the Oranget community!",
     date: "2025-06-04",
     type: "Bug Fix",
@@ -32,15 +32,15 @@ const newsItems = [
   },
   {
     id: 4,
-    title: "🎨 UI Font Consistency Update",
-    content: "We've standardized fonts across all pages for a more cohesive experience. The Fredoka font is now used consistently throughout the application, making everything look cleaner and more professional.",
+    title: "UI Font Consistency Update",
+    content: "We've standardized fonts across all pages for a more cohesive experience. The Titan One font is now used consistently throughout the application, making everything look cleaner and more professional.",
     date: "2025-06-04",
     type: "UI Improvement",
     badge: "IMPROVED"
   },
   {
     id: 5,
-    title: "🏠 New Welcome Landing Page",
+    title: "New Welcome Landing Page",
     content: "First impressions matter! We've created a stunning new welcome page that showcases Oranget's features before you even log in. Check it out and see what makes Oranget special!",
     date: "2025-06-04",
     type: "Feature",
@@ -48,7 +48,7 @@ const newsItems = [
   },
   {
     id: 6,
-    title: "🔐 Enhanced Login Persistence",
+    title: "Enhanced Login Persistence",
     content: "No more accidental logouts! We've improved session management so you stay logged in even after refreshing the page. Your session will only end when you explicitly log out or after 24 hours.",
     date: "2025-06-04",
     type: "Security",
@@ -60,17 +60,8 @@ export default function News() {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full relative overflow-hidden">
-        {/* Orange Background */}
-        <div className="fixed inset-0 bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600">
-          <div 
-            className="w-full h-full opacity-30"
-            style={{
-              backgroundImage: 'url("https://i.ibb.co/S4BD0J48/download.png")',
-              animation: 'animatedBackground 9s linear infinite'
-            }}
-          />
-        </div>
-
+        <div className="falling-blooks"></div>
+        
         <AppSidebar />
         
         <main className="flex-1 relative z-10">
@@ -79,8 +70,8 @@ export default function News() {
             <div className="flex items-center space-x-4">
               <SidebarTrigger className="hover:bg-orange-700 rounded-xl text-white" />
               <div>
-                <h1 className="text-4xl text-white font-bold drop-shadow-lg font-fredoka">Oranget News</h1>
-                <p className="text-orange-100 mt-1 font-medium font-fredoka">Stay updated with the latest changes!</p>
+                <h1 className="text-4xl text-white font-bold drop-shadow-lg titan-one-light">Oranget News</h1>
+                <p className="text-orange-100 mt-1 font-medium titan-one-light">Stay updated with the latest changes!</p>
               </div>
             </div>
             <Newspaper className="w-12 h-12 text-white" />
@@ -94,13 +85,13 @@ export default function News() {
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <CardTitle className="text-2xl text-white font-bold mb-2 font-fredoka">
+                        <CardTitle className="text-2xl text-white font-bold mb-2 titan-one-light">
                           {item.title}
                         </CardTitle>
                         <div className="flex items-center space-x-3">
                           <Badge 
                             variant="secondary" 
-                            className={`font-bold font-fredoka ${
+                            className={`font-bold titan-one-light ${
                               item.badge === 'NEW' ? 'bg-green-500 text-white' :
                               item.badge === 'FIXED' ? 'bg-blue-500 text-white' :
                               'bg-purple-500 text-white'
@@ -108,8 +99,8 @@ export default function News() {
                           >
                             {item.badge}
                           </Badge>
-                          <span className="text-orange-200 font-medium font-fredoka">{item.type}</span>
-                          <div className="flex items-center text-orange-200 text-sm font-fredoka">
+                          <span className="text-orange-200 font-medium titan-one-light">{item.type}</span>
+                          <div className="flex items-center text-orange-200 text-sm titan-one-light">
                             <Calendar className="w-4 h-4 mr-1" />
                             {new Date(item.date).toLocaleDateString()}
                           </div>
@@ -124,7 +115,7 @@ export default function News() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-orange-100 text-lg leading-relaxed font-medium font-fredoka">
+                    <p className="text-orange-100 text-lg leading-relaxed font-medium titan-one-light">
                       {item.content}
                     </p>
                   </CardContent>

@@ -1,5 +1,5 @@
 
-import { Calendar, Home, Users, Heart, ShoppingCart, User, Gamepad2, Settings, Newspaper, Trophy, Building, Briefcase, ArrowLeftRight } from "lucide-react"
+import { Calendar, Home, Users, ShoppingCart, User, Gamepad2, Settings, Newspaper, Trophy, Building, Briefcase, UsersRound } from "lucide-react"
 import { useLocation, useNavigate } from "react-router-dom"
 import {
   Sidebar,
@@ -32,9 +32,9 @@ const menuItems = [
     icon: ShoppingCart,
   },
   {
-    title: "Trading",
-    url: "/trading",
-    icon: ArrowLeftRight,
+    title: "Teams",
+    url: "/teams",
+    icon: UsersRound,
   },
   {
     title: "Blooks",
@@ -80,8 +80,7 @@ export function AppSidebar() {
               <span className="text-2xl">🧡</span>
             </div>
             <div>
-              <h1 className="text-3xl text-white font-bold drop-shadow-lg tracking-wide titan-light">Oranget</h1>
-              <p className="text-orange-100 text-sm font-medium opacity-90 titan-light">Your Gaming World!</p>
+              <h1 className="text-3xl text-white font-bold drop-shadow-lg titan-one-light">Oranget</h1>
             </div>
           </div>
         </SidebarHeader>
@@ -94,14 +93,14 @@ export function AppSidebar() {
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton 
                       onClick={() => navigate(item.url)}
-                      className={`blacket-button h-14 px-4 text-lg titan-light ${
+                      className={`blacket-button h-14 px-4 text-lg titan-one-light ${
                         location.pathname === item.url 
                           ? 'bg-orange-400 border-orange-300 shadow-lg scale-105' 
                           : 'hover:bg-orange-400 hover:scale-105'
                       } transition-all duration-300`}
                     >
                       <item.icon className="w-6 h-6" />
-                      <span className="text-lg titan-light">{item.title}</span>
+                      <span className="text-lg titan-one-light">{item.title}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
@@ -116,17 +115,17 @@ export function AppSidebar() {
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton 
                   onClick={() => navigate(item.url)}
-                  className="blacket-button h-12 px-3 text-base titan-light hover:bg-orange-400"
+                  className="blacket-button h-12 px-3 text-base titan-one-light hover:bg-orange-400"
                 >
                   <item.icon className="w-5 h-5" />
-                  <span className="text-base titan-light">{item.title}</span>
+                  <span className="text-base titan-one-light">{item.title}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
             <SidebarMenuItem>
               <Button
                 onClick={handleSignOut}
-                className="blacket-button w-full h-12 text-base titan-light bg-red-500 border-red-400 hover:bg-red-600"
+                className="blacket-button w-full h-12 text-base titan-one-light bg-red-500 border-red-400 hover:bg-red-600 text-white"
               >
                 Logout
               </Button>

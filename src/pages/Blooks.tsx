@@ -68,12 +68,13 @@ export default function Blooks() {
   if (loading) {
     return (
       <SidebarProvider>
-        <div className="min-h-screen flex w-full blook-background">
+        <div className="min-h-screen flex w-full relative overflow-hidden">
+          <div className="falling-blooks"></div>
           <AppSidebar />
-          <main className="flex-1 p-6 flex items-center justify-center">
+          <main className="flex-1 p-6 flex items-center justify-center relative z-10">
             <div className="text-center">
               <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-white text-xl font-bold titan-light">Loading your blooks...</p>
+              <p className="text-white text-xl font-bold titan-one-light">Loading your blooks...</p>
             </div>
           </main>
         </div>
@@ -83,19 +84,20 @@ export default function Blooks() {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full blook-background">
+      <div className="min-h-screen flex w-full relative overflow-hidden">
+        <div className="falling-blooks"></div>
         <AppSidebar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-6 relative z-10">
           <div className="max-w-6xl mx-auto">
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center space-x-4">
                 <SidebarTrigger className="blacket-button p-2" />
                 <div>
-                  <h1 className="text-4xl text-white font-bold drop-shadow-lg titan-light">
+                  <h1 className="text-4xl text-white font-bold drop-shadow-lg titan-one-light">
                     Your Blooks
                   </h1>
-                  <p className="text-orange-100 mt-1 font-bold titan-light">
+                  <p className="text-orange-100 mt-1 font-bold titan-one-light">
                     Collected: {userBlooks.length} / {allBlooks.length}
                   </p>
                 </div>
@@ -110,11 +112,11 @@ export default function Blooks() {
                 const IconComponent = config.icon
                 
                 return (
-                  <Card key={rarity} className="blacket-card hover:scale-105 transition-transform duration-300">
+                  <Card key={rarity} className="bg-orange-500/90 border-4 border-orange-300 rounded-2xl hover:scale-105 transition-transform duration-300 backdrop-blur-sm shadow-lg">
                     <CardContent className="p-4 text-center">
                       <IconComponent className="w-8 h-8 mx-auto mb-2 text-white" />
-                      <p className="text-lg font-bold text-white titan-light">{count}/{total}</p>
-                      <p className="text-sm font-bold capitalize text-orange-100 titan-light">{rarity}</p>
+                      <p className="text-lg font-bold text-white titan-one-light">{count}/{total}</p>
+                      <p className="text-sm font-bold capitalize text-orange-100 titan-one-light">{rarity}</p>
                     </CardContent>
                   </Card>
                 )
@@ -131,7 +133,7 @@ export default function Blooks() {
                 return (
                   <Card 
                     key={blook.id}
-                    className={`relative overflow-hidden blacket-card transition-all duration-300 hover:scale-105 ${
+                    className={`relative overflow-hidden bg-orange-500/90 border-4 border-orange-300 rounded-2xl transition-all duration-300 hover:scale-105 backdrop-blur-sm shadow-lg ${
                       !owned && 'opacity-60 hover:opacity-80'
                     }`}
                   >
@@ -152,11 +154,11 @@ export default function Blooks() {
                       </div>
                       
                       <div className="text-center">
-                        <h3 className={`font-bold text-lg mb-2 titan-light ${owned ? 'text-white' : 'text-gray-300'}`}>
+                        <h3 className={`font-bold text-lg mb-2 titan-one-light ${owned ? 'text-white' : 'text-gray-300'}`}>
                           {blook.name}
                         </h3>
                         <Badge 
-                          className={`bg-white/20 text-white border-2 border-white/30 font-bold flex items-center justify-center gap-1 titan-light backdrop-blur-sm`}
+                          className={`bg-white/20 text-white border-2 border-white/30 font-bold flex items-center justify-center gap-1 titan-one-light backdrop-blur-sm`}
                         >
                           <IconComponent className="w-3 h-3" />
                           {blook.rarity}
@@ -165,7 +167,7 @@ export default function Blooks() {
                       
                       {!owned && (
                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-[17px] backdrop-blur-sm">
-                          <p className="text-white font-bold text-lg drop-shadow-lg titan-light">LOCKED</p>
+                          <p className="text-white font-bold text-lg drop-shadow-lg titan-one-light">LOCKED</p>
                         </div>
                       )}
                     </CardContent>
@@ -176,8 +178,8 @@ export default function Blooks() {
 
             {allBlooks.length === 0 && (
               <div className="text-center py-12">
-                <p className="text-white text-xl font-bold titan-light">No blooks available yet!</p>
-                <p className="text-orange-100 mt-2 titan-light">Check back soon for new blooks to collect.</p>
+                <p className="text-white text-xl font-bold titan-one-light">No blooks available yet!</p>
+                <p className="text-orange-100 mt-2 titan-one-light">Check back soon for new blooks to collect.</p>
               </div>
             )}
           </div>
