@@ -7,125 +7,243 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/use-toast'
-import { UsersRound, Search, Users, Plus, Crown, Shield, User } from 'lucide-react'
+import { Users, Search, Plus, Crown, Shield, User } from 'lucide-react'
+import { supabase } from "@/integrations/supabase/client"
 
-interface Team {
+interface Guild {
   id: string
   name: string
   description: string
-  members: string[]
-  leader: string
-  isPublic: boolean
-  createdAt: number
+  owner_id: string
+  member_count: number
+  is_public: boolean
+  created_at: string
+}
+
+interface GuildMember {
+  id: string
+  guild_id: string
+  user_id: string
+  role: string
+  joined_at: string
 }
 
 export default function Teams() {
   const { user } = useAuth()
   const { toast } = useToast()
-  const [teams, setTeams] = useState<Team[]>([])
-  const [userTeam, setUserTeam] = useState<Team | null>(null)
-  const [searchTeam, setSearchTeam] = useState('')
-  const [createTeamName, setCreateTeamName] = useState('')
-  const [createTeamDesc, setCreateTeamDesc] = useState('')
+  const [guilds, setGuilds] = useState<Guild[]>([])
+  const [userGuild, setUserGuild] = useState<Guild | null>(null)
+  const [searchGuild, setSearchGuild] = useState('')
+  const [createGuildName, setCreateGuildName] = useState('')
+  const [createGuildDesc, setCreateGuildDesc] = useState('')
   const [showCreateForm, setShowCreateForm] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    loadTeams()
+    if (user) {
+      loadGuilds()
+      loadUserGuild()
+    }
   }, [user])
 
-  const loadTeams = () => {
-    const savedTeams = JSON.parse(localStorage.getItem('oranget_teams') || '[]')
-    setTeams(savedTeams)
-    
-    // Find user's team
-    const myTeam = savedTeams.find((team: Team) => team.members.includes(user?.username))
-    setUserTeam(myTeam || null)
+  const loadGuilds = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('guilds')
+        .select('*')
+        .eq('is_public', true)
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        console.error('Error loading guilds:', error)
+        return
+      }
+
+      setGuilds(data || [])
+    } catch (error) {
+      console.error('Error loading guilds:', error)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const createTeam = () => {
-    if (!createTeamName.trim() || !user) {
+  const loadUserGuild = async () => {
+    if (!user) return
+
+    try {
+      const { data: memberData, error: memberError } = await supabase
+        .from('guild_members')
+        .select('guild_id')
+        .eq('user_id', user.id)
+        .single()
+
+      if (memberError || !memberData) {
+        setUserGuild(null)
+        return
+      }
+
+      const { data: guildData, error: guildError } = await supabase
+        .from('guilds')
+        .select('*')
+        .eq('id', memberData.guild_id)
+        .single()
+
+      if (guildError) {
+        console.error('Error loading user guild:', guildError)
+        return
+      }
+
+      setUserGuild(guildData)
+    } catch (error) {
+      console.error('Error loading user guild:', error)
+    }
+  }
+
+  const createGuild = async () => {
+    if (!createGuildName.trim() || !user) {
       toast({
         title: "Invalid Input",
-        description: "Please enter a team name",
+        description: "Please enter a guild name",
         variant: "destructive"
       })
       return
     }
 
-    const newTeam: Team = {
-      id: Date.now().toString(),
-      name: createTeamName,
-      description: createTeamDesc,
-      members: [user.username],
-      leader: user.username,
-      isPublic: true,
-      createdAt: Date.now()
-    }
+    try {
+      const { data: guildData, error: guildError } = await supabase
+        .from('guilds')
+        .insert({
+          name: createGuildName,
+          description: createGuildDesc,
+          owner_id: user.id,
+        })
+        .select()
+        .single()
 
-    const savedTeams = JSON.parse(localStorage.getItem('oranget_teams') || '[]')
-    savedTeams.push(newTeam)
-    localStorage.setItem('oranget_teams', JSON.stringify(savedTeams))
-    
-    setTeams(savedTeams)
-    setUserTeam(newTeam)
-    setCreateTeamName('')
-    setCreateTeamDesc('')
-    setShowCreateForm(false)
-    
-    toast({
-      title: "Team Created!",
-      description: `Successfully created team "${createTeamName}"`,
-    })
+      if (guildError) {
+        console.error('Error creating guild:', guildError)
+        toast({
+          title: "Error",
+          description: "Failed to create guild",
+          variant: "destructive"
+        })
+        return
+      }
+
+      // Add user as member
+      const { error: memberError } = await supabase
+        .from('guild_members')
+        .insert({
+          guild_id: guildData.id,
+          user_id: user.id,
+          role: 'owner'
+        })
+
+      if (memberError) {
+        console.error('Error adding guild member:', memberError)
+      }
+
+      setUserGuild(guildData)
+      setCreateGuildName('')
+      setCreateGuildDesc('')
+      setShowCreateForm(false)
+      loadGuilds()
+      
+      toast({
+        title: "Guild Created!",
+        description: `Successfully created guild "${createGuildName}"`,
+      })
+    } catch (error) {
+      console.error('Error creating guild:', error)
+    }
   }
 
-  const joinTeam = (teamId: string) => {
+  const joinGuild = async (guildId: string) => {
     if (!user) return
 
-    const savedTeams = JSON.parse(localStorage.getItem('oranget_teams') || '[]')
-    const updatedTeams = savedTeams.map((team: Team) => {
-      if (team.id === teamId && !team.members.includes(user.username)) {
-        return { ...team, members: [...team.members, user.username] }
+    try {
+      const { error } = await supabase
+        .from('guild_members')
+        .insert({
+          guild_id: guildId,
+          user_id: user.id,
+          role: 'member'
+        })
+
+      if (error) {
+        console.error('Error joining guild:', error)
+        toast({
+          title: "Error",
+          description: "Failed to join guild",
+          variant: "destructive"
+        })
+        return
       }
-      return team
-    })
-    
-    localStorage.setItem('oranget_teams', JSON.stringify(updatedTeams))
-    loadTeams()
-    
-    toast({
-      title: "Joined Team!",
-      description: "You have successfully joined the team",
-    })
+
+      loadUserGuild()
+      loadGuilds()
+      
+      toast({
+        title: "Joined Guild!",
+        description: "You have successfully joined the guild",
+      })
+    } catch (error) {
+      console.error('Error joining guild:', error)
+    }
   }
 
-  const leaveTeam = () => {
-    if (!user || !userTeam) return
+  const leaveGuild = async () => {
+    if (!user || !userGuild) return
 
-    const savedTeams = JSON.parse(localStorage.getItem('oranget_teams') || '[]')
-    const updatedTeams = savedTeams.map((team: Team) => {
-      if (team.id === userTeam.id) {
-        const newMembers = team.members.filter(member => member !== user.username)
-        if (newMembers.length === 0) {
-          return null // Delete team if no members left
-        }
-        return { ...team, members: newMembers, leader: team.leader === user.username ? newMembers[0] : team.leader }
+    try {
+      const { error } = await supabase
+        .from('guild_members')
+        .delete()
+        .eq('guild_id', userGuild.id)
+        .eq('user_id', user.id)
+
+      if (error) {
+        console.error('Error leaving guild:', error)
+        toast({
+          title: "Error",
+          description: "Failed to leave guild",
+          variant: "destructive"
+        })
+        return
       }
-      return team
-    }).filter(Boolean)
-    
-    localStorage.setItem('oranget_teams', JSON.stringify(updatedTeams))
-    loadTeams()
-    
-    toast({
-      title: "Left Team",
-      description: "You have left the team",
-    })
+
+      setUserGuild(null)
+      loadGuilds()
+      
+      toast({
+        title: "Left Guild",
+        description: "You have left the guild",
+      })
+    } catch (error) {
+      console.error('Error leaving guild:', error)
+    }
   }
 
-  const filteredTeams = teams.filter(team => 
-    team.name.toLowerCase().includes(searchTeam.toLowerCase()) && 
-    !team.members.includes(user?.username || '')
+  const filteredGuilds = guilds.filter(guild => 
+    guild.name.toLowerCase().includes(searchGuild.toLowerCase()) &&
+    guild.id !== userGuild?.id
   )
+
+  if (loading) {
+    return (
+      <SidebarProvider>
+        <div className="min-h-screen flex w-full">
+          <div className="falling-blooks"></div>
+          <AppSidebar />
+          <main className="flex-1 p-6 flex items-center justify-center relative z-10">
+            <div className="text-center text-white titan-one-light text-2xl">
+              Loading guilds...
+            </div>
+          </main>
+        </div>
+      </SidebarProvider>
+    )
+  }
 
   return (
     <SidebarProvider>
@@ -136,94 +254,82 @@ export default function Teams() {
         
         <main className="flex-1 relative z-10">
           {/* Header */}
-          <div className="flex items-center justify-between p-6 bg-orange-600/80 backdrop-blur-sm border-b-4 border-orange-300">
+          <div className="flex items-center justify-between p-4 bg-orange-600/80 backdrop-blur-sm border-b-4 border-orange-300">
             <div className="flex items-center space-x-4">
-              <SidebarTrigger className="hover:bg-orange-700 rounded-xl text-white" />
+              <SidebarTrigger className="blacket-button p-2" />
               <div>
-                <h1 className="text-4xl text-white font-bold drop-shadow-lg titan-one-light">Teams</h1>
-                <p className="text-orange-100 mt-1 font-medium titan-one-light">Join or create teams with other players!</p>
+                <h1 className="text-4xl text-white font-bold drop-shadow-lg titan-one-light">Guilds</h1>
+                <p className="text-orange-100 mt-1 font-medium titan-one-light">Join or create guilds with other players!</p>
               </div>
             </div>
-            <UsersRound className="w-12 h-12 text-white" />
+            <Users className="w-12 h-12 text-white" />
           </div>
 
-          <div className="p-6">
-            <div className="max-w-6xl mx-auto space-y-6">
-              {/* My Team Section */}
-              {userTeam ? (
+          <div className="p-4">
+            <div className="max-w-6xl mx-auto space-y-4">
+              {/* My Guild Section */}
+              {userGuild ? (
                 <Card className="bg-orange-500/80 backdrop-blur-sm border-4 border-orange-300 rounded-3xl">
                   <CardHeader>
                     <CardTitle className="text-2xl text-white font-bold titan-one-light flex items-center">
                       <Crown className="w-6 h-6 mr-2 text-yellow-300" />
-                      My Team: {userTeam.name}
+                      My Guild: {userGuild.name}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-orange-100 mb-4 titan-one-light">{userTeam.description}</p>
+                    <p className="text-orange-100 mb-4 titan-one-light">{userGuild.description}</p>
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-white font-bold titan-one-light">Members: {userTeam.members.length}</p>
-                        <div className="flex items-center space-x-2 mt-2">
-                          {userTeam.members.map((member, index) => (
-                            <div key={index} className="flex items-center space-x-1 bg-white/20 rounded-lg px-3 py-1">
-                              {member === userTeam.leader ? (
-                                <Crown className="w-4 h-4 text-yellow-300" />
-                              ) : (
-                                <User className="w-4 h-4 text-white" />
-                              )}
-                              <span className="text-white text-sm titan-one-light">{member}</span>
-                            </div>
-                          ))}
-                        </div>
+                        <p className="text-white font-bold titan-one-light">Members: {userGuild.member_count}</p>
                       </div>
                       <Button
-                        onClick={leaveTeam}
+                        onClick={leaveGuild}
                         className="bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl titan-one-light"
                       >
-                        Leave Team
+                        Leave Guild
                       </Button>
                     </div>
                   </CardContent>
                 </Card>
               ) : (
                 <Card className="bg-orange-500/80 backdrop-blur-sm border-4 border-orange-300 rounded-3xl">
-                  <CardContent className="p-8 text-center">
-                    <UsersRound className="w-16 h-16 mx-auto mb-4 text-white" />
-                    <h3 className="text-2xl text-white font-bold mb-2 titan-one-light">You're not in a team</h3>
-                    <p className="text-orange-100 mb-4 titan-one-light">Join an existing team or create your own!</p>
+                  <CardContent className="p-6 text-center">
+                    <Users className="w-16 h-16 mx-auto mb-4 text-white" />
+                    <h3 className="text-2xl text-white font-bold mb-2 titan-one-light">You're not in a guild</h3>
+                    <p className="text-orange-100 mb-4 titan-one-light">Join an existing guild or create your own!</p>
                     <Button
                       onClick={() => setShowCreateForm(true)}
                       className="bg-orange-400 hover:bg-orange-500 text-white font-bold rounded-xl titan-one-light"
                     >
                       <Plus className="w-4 h-4 mr-2" />
-                      Create Team
+                      Create Guild
                     </Button>
                   </CardContent>
                 </Card>
               )}
 
-              {/* Create Team Form */}
+              {/* Create Guild Form */}
               {showCreateForm && (
                 <Card className="bg-orange-500/80 backdrop-blur-sm border-4 border-orange-300 rounded-3xl">
                   <CardHeader>
-                    <CardTitle className="text-2xl text-white font-bold titan-one-light">Create New Team</CardTitle>
+                    <CardTitle className="text-2xl text-white font-bold titan-one-light">Create New Guild</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <Input
-                      value={createTeamName}
-                      onChange={(e) => setCreateTeamName(e.target.value)}
-                      placeholder="Team name..."
+                      value={createGuildName}
+                      onChange={(e) => setCreateGuildName(e.target.value)}
+                      placeholder="Guild name..."
                       className="bg-orange-400/50 border-orange-200 text-white placeholder:text-orange-100 rounded-2xl titan-one-light"
                     />
                     <Input
-                      value={createTeamDesc}
-                      onChange={(e) => setCreateTeamDesc(e.target.value)}
-                      placeholder="Team description..."
+                      value={createGuildDesc}
+                      onChange={(e) => setCreateGuildDesc(e.target.value)}
+                      placeholder="Guild description..."
                       className="bg-orange-400/50 border-orange-200 text-white placeholder:text-orange-100 rounded-2xl titan-one-light"
                     />
                     <div className="flex space-x-3">
                       <Button
-                        onClick={createTeam}
+                        onClick={createGuild}
                         className="bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl titan-one-light"
                       >
                         Create
@@ -239,44 +345,44 @@ export default function Teams() {
                 </Card>
               )}
 
-              {/* Search Teams */}
+              {/* Search Guilds */}
               <Card className="bg-orange-500/80 backdrop-blur-sm border-4 border-orange-300 rounded-3xl">
                 <CardHeader>
                   <CardTitle className="text-2xl text-white font-bold titan-one-light flex items-center">
                     <Search className="w-6 h-6 mr-2" />
-                    Find Teams
+                    Find Guilds
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <Input
-                    value={searchTeam}
-                    onChange={(e) => setSearchTeam(e.target.value)}
-                    placeholder="Search teams..."
+                    value={searchGuild}
+                    onChange={(e) => setSearchGuild(e.target.value)}
+                    placeholder="Search guilds..."
                     className="bg-orange-400/50 border-orange-200 text-white placeholder:text-orange-100 rounded-2xl titan-one-light"
                   />
                 </CardContent>
               </Card>
 
-              {/* Available Teams */}
+              {/* Available Guilds */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredTeams.map((team) => (
-                  <Card key={team.id} className="bg-orange-500/70 backdrop-blur-sm border-4 border-orange-300 rounded-3xl">
-                    <CardContent className="p-6">
+                {filteredGuilds.map((guild) => (
+                  <Card key={guild.id} className="bg-orange-500/70 backdrop-blur-sm border-4 border-orange-300 rounded-3xl">
+                    <CardContent className="p-4">
                       <div className="flex items-center justify-between mb-4">
-                        <h4 className="text-xl font-bold text-white titan-one-light">{team.name}</h4>
+                        <h4 className="text-xl font-bold text-white titan-one-light">{guild.name}</h4>
                         <div className="flex items-center text-orange-100">
                           <Users className="w-4 h-4 mr-1" />
-                          <span className="text-sm titan-one-light">{team.members.length}</span>
+                          <span className="text-sm titan-one-light">{guild.member_count}</span>
                         </div>
                       </div>
-                      <p className="text-orange-100 mb-4 titan-one-light">{team.description}</p>
+                      <p className="text-orange-100 mb-4 titan-one-light">{guild.description}</p>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-1">
                           <Crown className="w-4 h-4 text-yellow-300" />
-                          <span className="text-white text-sm titan-one-light">{team.leader}</span>
+                          <span className="text-white text-sm titan-one-light">Guild Owner</span>
                         </div>
                         <Button
-                          onClick={() => joinTeam(team.id)}
+                          onClick={() => joinGuild(guild.id)}
                           className="bg-orange-400 hover:bg-orange-500 text-white font-bold rounded-xl titan-one-light"
                         >
                           Join
@@ -287,10 +393,10 @@ export default function Teams() {
                 ))}
               </div>
 
-              {filteredTeams.length === 0 && (
+              {filteredGuilds.length === 0 && (
                 <Card className="bg-orange-500/70 backdrop-blur-sm border-4 border-orange-300 rounded-3xl">
-                  <CardContent className="p-8 text-center">
-                    <p className="text-xl text-orange-100 font-medium titan-one-light">No teams found!</p>
+                  <CardContent className="p-6 text-center">
+                    <p className="text-xl text-orange-100 font-medium titan-one-light">No guilds found!</p>
                   </CardContent>
                 </Card>
               )}

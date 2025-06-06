@@ -142,6 +142,68 @@ export type Database = {
           },
         ]
       }
+      guild_members: {
+        Row: {
+          guild_id: string
+          id: string
+          joined_at: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          guild_id: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          guild_id?: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_members_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guilds: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_public: boolean
+          member_count: number
+          name: string
+          owner_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          member_count?: number
+          name: string
+          owner_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          member_count?: number
+          name?: string
+          owner_id?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           created_at: string
@@ -242,6 +304,7 @@ export type Database = {
           id: string
           orange_drips: number | null
           profile_picture: string | null
+          selected_blook_pfp: string | null
           tokens: number | null
           total_chats_participated: number | null
           total_messages_sent: number | null
@@ -254,6 +317,7 @@ export type Database = {
           id: string
           orange_drips?: number | null
           profile_picture?: string | null
+          selected_blook_pfp?: string | null
           tokens?: number | null
           total_chats_participated?: number | null
           total_messages_sent?: number | null
@@ -266,6 +330,7 @@ export type Database = {
           id?: string
           orange_drips?: number | null
           profile_picture?: string | null
+          selected_blook_pfp?: string | null
           tokens?: number | null
           total_chats_participated?: number | null
           total_messages_sent?: number | null

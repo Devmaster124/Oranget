@@ -8,14 +8,15 @@ import { Input } from "@/components/ui/input"
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/use-toast'
 import { Send, MessageCircle, UserPlus, ArrowLeftRight } from 'lucide-react'
+import { supabase } from "@/integrations/supabase/client"
 
 interface Message {
   id: string
   username: string
-  content: string
-  timestamp: number
-  userRole?: string
-  blookPfp?: string
+  text: string
+  timestamp: string
+  user_id: string
+  blook_pfp?: string
 }
 
 export default function Community() {
@@ -27,7 +28,6 @@ export default function Community() {
   const [selectedUser, setSelectedUser] = useState<string | null>(null)
   const [onlineUsers, setOnlineUsers] = useState<string[]>([])
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const chatPollingRef = useRef<NodeJS.Timeout | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
   const scrollToBottom = () => {
@@ -41,85 +41,109 @@ export default function Community() {
   useEffect(() => {
     if (user) {
       // Initialize ping sound
-      audioRef.current = new Audio('/ping.mp3') // You'll need to add this sound file
+      audioRef.current = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+Dw0X0jCCZv1OzJgzIGGH/I9tp7MgUYVq7j6qZUFAhBmN7sXg==')
       
-      // Load existing messages
-      const savedMessages = JSON.parse(localStorage.getItem('oranget_messages') || '[]')
-      setMessages(savedMessages)
-
-      // Start real-time polling
-      startRealTimeChat()
-      updateOnlineStatus()
+      // Load messages from Supabase
+      loadMessages()
+      
+      // Set up real-time subscription
+      const channel = supabase
+        .channel('schema-db-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'messages'
+          },
+          (payload) => {
+            const newMessage = payload.new as Message
+            if (newMessage.text.includes(`@${user?.username}`) && newMessage.user_id !== user?.id) {
+              // Play ping sound
+              if (audioRef.current) {
+                audioRef.current.play().catch(e => console.log('Could not play sound:', e))
+              }
+              
+              // Show notification
+              toast({
+                title: "You've been pinged!",
+                description: `${newMessage.username} mentioned you in chat`,
+              })
+            }
+            setMessages(prev => [...prev, newMessage])
+          }
+        )
+        .subscribe()
 
       return () => {
-        if (chatPollingRef.current) {
-          clearInterval(chatPollingRef.current)
-        }
+        supabase.removeChannel(channel)
       }
     }
   }, [user])
 
-  const startRealTimeChat = () => {
-    // Poll for new messages every 500ms for real-time feel
-    chatPollingRef.current = setInterval(() => {
-      const savedMessages = JSON.parse(localStorage.getItem('oranget_messages') || '[]')
-      
-      // Check if there are new messages
-      if (savedMessages.length > messages.length) {
-        const newMessages = savedMessages.slice(messages.length)
-        
-        // Check for pings
-        newMessages.forEach((msg: Message) => {
-          if (msg.content.includes(`@${user?.username}`) && msg.username !== user?.username) {
-            // Play ping sound
-            if (audioRef.current) {
-              audioRef.current.play().catch(e => console.log('Could not play sound:', e))
-            }
-            
-            // Show notification
-            toast({
-              title: "You've been pinged!",
-              description: `${msg.username} mentioned you in chat`,
-            })
-          }
-        })
-        
-        setMessages(savedMessages)
+  const loadMessages = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .order('timestamp', { ascending: true })
+        .limit(100)
+
+      if (error) {
+        console.error('Error loading messages:', error)
+        return
       }
-    }, 500)
+
+      // Get user profiles with blook pfps
+      const messagesWithBlooks = await Promise.all(data.map(async (message) => {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('selected_blook_pfp')
+          .eq('id', message.user_id)
+          .single()
+
+        return {
+          ...message,
+          blook_pfp: profile?.selected_blook_pfp || '🧡'
+        }
+      }))
+
+      setMessages(messagesWithBlooks)
+    } catch (error) {
+      console.error('Error loading messages:', error)
+    }
   }
 
-  const updateOnlineStatus = () => {
-    // Simulate online users - in a real app this would be handled by backend
-    const users = ['Player1', 'Player2', 'Player3', user?.username].filter(Boolean)
-    setOnlineUsers(users as string[])
-  }
-
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (!newMessage.trim() || !user || isTyping) return
 
     setIsTyping(true)
     
-    // Get user's current blook pfp from profile
-    const userProfile = JSON.parse(localStorage.getItem(`oranget_profile_${user.id}`) || '{}')
-    const userBlooks = JSON.parse(localStorage.getItem(`oranget_blooks_${user.id}`) || '[]')
-    
-    const message: Message = {
-      id: `${Date.now()}-${Math.random()}`,
-      username: user.username,
-      content: newMessage.trim(),
-      timestamp: Date.now(),
-      userRole: 'Player',
-      blookPfp: userProfile.selectedBlookPfp || (userBlooks[0]?.image) || '🧡'
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .insert({
+          user_id: user.id,
+          username: user.username,
+          text: newMessage.trim()
+        })
+
+      if (error) {
+        console.error('Error sending message:', error)
+        toast({
+          title: "Error",
+          description: "Failed to send message",
+          variant: "destructive"
+        })
+        return
+      }
+
+      setNewMessage('')
+    } catch (error) {
+      console.error('Error sending message:', error)
+    } finally {
+      setTimeout(() => setIsTyping(false), 500)
     }
-
-    const savedMessages = JSON.parse(localStorage.getItem('oranget_messages') || '[]')
-    const updatedMessages = [...savedMessages, message]
-    localStorage.setItem('oranget_messages', JSON.stringify(updatedMessages))
-    setMessages(updatedMessages)
-
-    setNewMessage('')
-    setTimeout(() => setIsTyping(false), 500)
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -129,37 +153,7 @@ export default function Community() {
     }
   }
 
-  const getRoleColor = (role?: string) => {
-    switch (role) {
-      case 'Admin': return '#ff4757'
-      case 'Moderator': return '#3742fa'
-      case 'Player': return '#ffffff'
-      default: return '#ffffff'
-    }
-  }
-
-  const handleUserClick = (username: string) => {
-    setSelectedUser(username)
-  }
-
-  const addFriend = (username: string) => {
-    toast({
-      title: "Friend Request Sent!",
-      description: `Friend request sent to ${username}`,
-    })
-    setSelectedUser(null)
-  }
-
-  const startTrade = (username: string) => {
-    toast({
-      title: "Trade Request Sent!",
-      description: `Trade request sent to ${username}`,
-    })
-    setSelectedUser(null)
-  }
-
   const formatMessageWithPings = (content: string) => {
-    // Replace @username with highlighted mentions
     const parts = content.split(/(@\w+)/g)
     return parts.map((part, index) => {
       if (part.startsWith('@')) {
@@ -187,7 +181,7 @@ export default function Community() {
         
         <main className="flex-1 relative z-10 flex flex-col h-screen">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 bg-gradient-to-r from-orange-500 to-orange-600 border-b-4 border-orange-400">
+          <div className="flex items-center justify-between p-4 bg-gradient-to-r from-orange-500 to-orange-600 border-b-4 border-orange-400 shrink-0">
             <div className="flex items-center space-x-4">
               <SidebarTrigger className="blacket-button p-2" />
               <div>
@@ -195,76 +189,71 @@ export default function Community() {
                   Chat
                 </h1>
                 <p className="text-orange-100 mt-1 font-medium titan-one-light">
-                  Talk with other players
+                  Talk with other players • Live
                 </p>
               </div>
             </div>
-            <MessageCircle className="w-10 h-10 text-white" />
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+              <span className="text-white text-sm titan-one-light">LIVE</span>
+              <MessageCircle className="w-8 h-8 text-white ml-2" />
+            </div>
           </div>
 
-          {/* Chat Container - Full Screen */}
-          <div className="flex-1 blacket-card m-4 flex flex-col overflow-hidden">
-            {/* Messages Area */}
-            <div className="flex-1 p-4 overflow-y-auto bg-orange-500/20 backdrop-blur-sm">
-              {messages.length === 0 ? (
-                <div className="text-center text-white/70 font-medium titan-one-light">
-                  No messages yet. Start the conversation! Use @username to ping someone.
-                </div>
-              ) : (
-                messages.map((message) => (
-                  <div key={message.id} className="mb-4 flex items-start space-x-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center border-2 border-white/30 cursor-pointer hover:scale-110 transition-transform">
-                      <span className="text-2xl" title={`${message.username}'s Blook`}>
-                        {message.blookPfp || '🧡'}
+          {/* Messages Area - Full Screen */}
+          <div className="flex-1 p-4 overflow-y-auto bg-orange-500/20 backdrop-blur-sm">
+            {messages.length === 0 ? (
+              <div className="text-center text-white/70 font-medium titan-one-light mt-20">
+                No messages yet. Start the conversation! Use @username to ping someone.
+              </div>
+            ) : (
+              messages.map((message) => (
+                <div key={message.id} className="mb-4 flex items-start space-x-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center border-2 border-white/30">
+                    <span className="text-2xl" title={`${message.username}'s Blook`}>
+                      {message.blook_pfp || '🧡'}
+                    </span>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <span 
+                        className="font-bold titan-one-light text-sm text-white cursor-pointer hover:underline"
+                        onClick={() => setSelectedUser(message.username)}
+                      >
+                        {message.username}
+                      </span>
+                      <span className="text-xs text-white/60 titan-one-light">
+                        {new Date(message.timestamp).toLocaleTimeString()}
                       </span>
                     </div>
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-1">
-                        <span 
-                          className="font-bold titan-one-light text-sm cursor-pointer hover:underline"
-                          style={{ color: getRoleColor(message.userRole) }}
-                          onClick={() => handleUserClick(message.username)}
-                        >
-                          {message.username}
-                        </span>
-                        {message.userRole && (
-                          <span className="text-xs px-2 py-1 rounded bg-white/20 text-white/80 titan-one-light">
-                            [{message.userRole}]
-                          </span>
-                        )}
-                        <span className="text-xs text-white/60 titan-one-light">
-                          {new Date(message.timestamp).toLocaleTimeString()}
-                        </span>
-                      </div>
-                      <div className="text-white titan-one-light bg-white/10 rounded-lg p-3 backdrop-blur-sm">
-                        {formatMessageWithPings(message.content)}
-                      </div>
+                    <div className="text-white titan-one-light bg-white/10 rounded-lg p-3 backdrop-blur-sm">
+                      {formatMessageWithPings(message.text)}
                     </div>
                   </div>
-                ))
-              )}
-              <div ref={messagesEndRef} />
-            </div>
+                </div>
+              ))
+            )}
+            <div ref={messagesEndRef} />
+          </div>
 
-            {/* Message Input */}
-            <div className="p-4 bg-gradient-to-r from-orange-500 to-orange-600 border-t-2 border-orange-400">
-              <div className="flex space-x-3">
-                <Input
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="Type your message... Use @username to ping someone"
-                  className="flex-1 bg-white/20 border-white/30 text-white placeholder:text-white/60 rounded-lg titan-one-light backdrop-blur-sm"
-                  disabled={isTyping}
-                />
-                <Button
-                  onClick={sendMessage}
-                  disabled={!newMessage.trim() || isTyping}
-                  className="blacket-button px-6"
-                >
-                  <Send className="w-5 h-5" />
-                </Button>
-              </div>
+          {/* Message Input */}
+          <div className="p-4 bg-gradient-to-r from-orange-500 to-orange-600 border-t-2 border-orange-400 shrink-0">
+            <div className="flex space-x-3">
+              <Input
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Type your message... Use @username to ping someone"
+                className="flex-1 bg-white/20 border-white/30 text-white placeholder:text-white/60 rounded-lg titan-one-light backdrop-blur-sm"
+                disabled={isTyping}
+              />
+              <Button
+                onClick={sendMessage}
+                disabled={!newMessage.trim() || isTyping}
+                className="blacket-button px-6"
+              >
+                <Send className="w-5 h-5" />
+              </Button>
             </div>
           </div>
 
@@ -275,24 +264,10 @@ export default function Community() {
                 <h3 className="text-white text-xl font-bold titan-one-light mb-4">{selectedUser}</h3>
                 <div className="flex space-x-3">
                   <Button
-                    onClick={() => addFriend(selectedUser)}
-                    className="blacket-button flex items-center space-x-2"
-                  >
-                    <UserPlus className="w-4 h-4" />
-                    <span>Add Friend</span>
-                  </Button>
-                  <Button
-                    onClick={() => startTrade(selectedUser)}
-                    className="blacket-button flex items-center space-x-2"
-                  >
-                    <ArrowLeftRight className="w-4 h-4" />
-                    <span>Trade</span>
-                  </Button>
-                  <Button
                     onClick={() => setSelectedUser(null)}
                     className="bg-gray-500 hover:bg-gray-600 text-white rounded-lg px-4 py-2 titan-one-light"
                   >
-                    Cancel
+                    Close
                   </Button>
                 </div>
               </div>

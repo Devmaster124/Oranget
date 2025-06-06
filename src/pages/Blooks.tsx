@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/use-toast'
 import { Crown, Star, Sparkles } from 'lucide-react'
+import { supabase } from "@/integrations/supabase/client"
 
 interface Blook {
   id: string
@@ -25,31 +26,60 @@ export default function Blooks() {
   useEffect(() => {
     if (user) {
       loadUserBlooks()
+      loadSelectedBlook()
     }
   }, [user])
 
   const loadUserBlooks = () => {
     const userBlooks = JSON.parse(localStorage.getItem(`oranget_blooks_${user?.id}`) || '[]')
-    const userProfile = JSON.parse(localStorage.getItem(`oranget_profile_${user?.id}`) || '{}')
-    
     setBlooks(userBlooks)
-    setSelectedBlook(userProfile.selectedBlookPfp || null)
     setLoading(false)
   }
 
-  const selectBlookAsPfp = (blook: Blook) => {
+  const loadSelectedBlook = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('selected_blook_pfp')
+        .eq('id', user?.id)
+        .single()
+
+      if (data && data.selected_blook_pfp) {
+        setSelectedBlook(data.selected_blook_pfp)
+      }
+    } catch (error) {
+      console.error('Error loading selected blook:', error)
+    }
+  }
+
+  const selectBlookAsPfp = async (blook: Blook) => {
     if (!user) return
 
-    const userProfile = JSON.parse(localStorage.getItem(`oranget_profile_${user.id}`) || '{}')
-    userProfile.selectedBlookPfp = blook.image
-    localStorage.setItem(`oranget_profile_${user.id}`, JSON.stringify(userProfile))
-    
-    setSelectedBlook(blook.image)
-    
-    toast({
-      title: "Profile Picture Updated!",
-      description: `${blook.name} is now your profile picture`,
-    })
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ selected_blook_pfp: blook.image })
+        .eq('id', user.id)
+
+      if (error) {
+        console.error('Error updating profile:', error)
+        toast({
+          title: "Error",
+          description: "Failed to update profile picture",
+          variant: "destructive"
+        })
+        return
+      }
+
+      setSelectedBlook(blook.image)
+      
+      toast({
+        title: "Profile Picture Updated!",
+        description: `${blook.name} is now your profile picture`,
+      })
+    } catch (error) {
+      console.error('Error updating profile:', error)
+    }
   }
 
   const getRarityColor = (rarity: string) => {
@@ -64,6 +94,8 @@ export default function Blooks() {
         return 'from-purple-400 to-purple-600'
       case 'legendary':
         return 'from-yellow-400 to-yellow-600'
+      case 'chroma':
+        return 'from-pink-400 via-purple-400 to-blue-400'
       default:
         return 'from-orange-400 to-orange-600'
     }
@@ -81,13 +113,15 @@ export default function Blooks() {
         return <Crown className="w-4 h-4" />
       case 'legendary':
         return <Crown className="w-4 h-4 text-yellow-300" />
+      case 'chroma':
+        return <Crown className="w-4 h-4 text-pink-300" />
       default:
         return null
     }
   }
 
   const getBlooksByRarity = () => {
-    const rarities = ['legendary', 'epic', 'rare', 'uncommon', 'common']
+    const rarities = ['chroma', 'legendary', 'epic', 'rare', 'uncommon', 'common']
     const grouped: { [key: string]: Blook[] } = {}
     
     rarities.forEach(rarity => {
@@ -120,14 +154,14 @@ export default function Blooks() {
       <div className="min-h-screen flex w-full">
         <div className="falling-blooks"></div>
         <AppSidebar />
-        <main className="flex-1 p-6 relative z-10">
+        <main className="flex-1 p-4 relative z-10">
           <div className="max-w-7xl mx-auto">
             {/* Header */}
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center justify-between mb-6">
               <div className="flex items-center space-x-4">
                 <SidebarTrigger className="blacket-button p-2" />
                 <div>
-                  <h1 className="text-6xl text-white font-bold mb-4 titan-one-light">
+                  <h1 className="text-4xl text-white font-bold mb-2 titan-one-light">
                     Blooks
                   </h1>
                   <p className="text-xl text-white font-medium titan-one-light">
@@ -154,20 +188,20 @@ export default function Blooks() {
                 </Button>
               </div>
             ) : (
-              <div className="space-y-8">
+              <div className="space-y-6">
                 {Object.entries(groupedBlooks).map(([rarity, rarityBlooks]) => {
                   if (rarityBlooks.length === 0) return null
                   
                   return (
                     <div key={rarity}>
-                      <div className="flex items-center space-x-3 mb-6">
+                      <div className="flex items-center space-x-3 mb-4">
                         {getRarityIcon(rarity)}
-                        <h2 className="text-3xl text-white font-bold titan-one-light capitalize">
+                        <h2 className="text-2xl text-white font-bold titan-one-light capitalize">
                           {rarity} ({rarityBlooks.length})
                         </h2>
                       </div>
                       
-                      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
+                      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
                         {rarityBlooks.map((blook) => (
                           <Card
                             key={blook.id}
@@ -177,11 +211,11 @@ export default function Blooks() {
                             onClick={() => selectBlookAsPfp(blook)}
                           >
                             <CardContent className="p-0">
-                              <div className={`w-full h-32 bg-gradient-to-br ${getRarityColor(blook.rarity)} flex items-center justify-center relative`}>
-                                <div className="text-4xl">{blook.image}</div>
+                              <div className={`w-full h-24 bg-gradient-to-br ${getRarityColor(blook.rarity)} flex items-center justify-center relative`}>
+                                <div className="text-3xl">{blook.image}</div>
                                 {selectedBlook === blook.image && (
-                                  <div className="absolute top-2 right-2">
-                                    <Crown className="w-5 h-5 text-yellow-400" />
+                                  <div className="absolute top-1 right-1">
+                                    <Crown className="w-4 h-4 text-yellow-400" />
                                   </div>
                                 )}
                                 <div className="absolute bottom-1 left-1 text-xs bg-black/50 text-white px-1 rounded titan-one-light">
@@ -189,7 +223,7 @@ export default function Blooks() {
                                 </div>
                               </div>
                               <div className="p-2 text-center bg-orange-500/20 backdrop-blur-sm">
-                                <h3 className="text-white font-bold text-sm titan-one-light truncate">
+                                <h3 className="text-white font-bold text-xs titan-one-light truncate">
                                   {blook.name}
                                 </h3>
                               </div>

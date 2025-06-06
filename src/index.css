@@ -43,6 +43,10 @@
     --sidebar-accent-foreground: 24 5.9% 10%;
     --sidebar-border: 25 13% 91%;
     --sidebar-ring: 25 100% 60%;
+
+    /* Smaller sidebar */
+    --sidebar-width: 12rem;
+    --sidebar-width-mobile: 12rem;
   }
 
   .dark {
@@ -218,7 +222,7 @@
     }
   }
 
-  /* New pack opening animations */
+  /* Pack opening animations */
   @keyframes keyUnlock {
     0% { 
       transform: translateY(0) rotate(0deg);
