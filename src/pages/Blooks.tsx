@@ -14,6 +14,7 @@ interface Blook {
   name: string
   image: string
   rarity: string
+  count: number
 }
 
 export default function Blooks() {
@@ -31,8 +32,19 @@ export default function Blooks() {
   }, [user])
 
   const loadUserBlooks = () => {
-    const userBlooks = JSON.parse(localStorage.getItem(`oranget_blooks_${user?.id}`) || '[]')
-    setBlooks(userBlooks)
+    const userBlooksData = JSON.parse(localStorage.getItem(`oranget_blooks_${user?.id}`) || '[]')
+    
+    // Group blooks by ID and count duplicates
+    const blookCounts: { [key: string]: Blook } = {}
+    userBlooksData.forEach((blook: any) => {
+      if (blookCounts[blook.id]) {
+        blookCounts[blook.id].count++
+      } else {
+        blookCounts[blook.id] = { ...blook, count: 1 }
+      }
+    })
+    
+    setBlooks(Object.values(blookCounts))
     setLoading(false)
   }
 
@@ -62,13 +74,7 @@ export default function Blooks() {
         .eq('id', user.id)
 
       if (error) {
-        console.error('Error updating profile:', error)
-        toast({
-          title: "Error",
-          description: "Failed to update profile picture",
-          variant: "destructive"
-        })
-        return
+        throw error
       }
 
       setSelectedBlook(blook.image)
@@ -77,8 +83,13 @@ export default function Blooks() {
         title: "Profile Picture Updated!",
         description: `${blook.name} is now your profile picture`,
       })
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating profile:', error)
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update profile picture",
+        variant: "destructive"
+      })
     }
   }
 
@@ -96,6 +107,8 @@ export default function Blooks() {
         return 'from-yellow-400 to-yellow-600'
       case 'chroma':
         return 'from-pink-400 via-purple-400 to-blue-400'
+      case 'mythical':
+        return 'from-red-400 via-orange-400 to-yellow-400'
       default:
         return 'from-orange-400 to-orange-600'
     }
@@ -115,13 +128,15 @@ export default function Blooks() {
         return <Crown className="w-4 h-4 text-yellow-300" />
       case 'chroma':
         return <Crown className="w-4 h-4 text-pink-300" />
+      case 'mythical':
+        return <Crown className="w-4 h-4 text-red-300" />
       default:
         return null
     }
   }
 
   const getBlooksByRarity = () => {
-    const rarities = ['chroma', 'legendary', 'epic', 'rare', 'uncommon', 'common']
+    const rarities = ['mythical', 'chroma', 'legendary', 'epic', 'rare', 'uncommon', 'common']
     const grouped: { [key: string]: Blook[] } = {}
     
     rarities.forEach(rarity => {
@@ -148,6 +163,7 @@ export default function Blooks() {
   }
 
   const groupedBlooks = getBlooksByRarity()
+  const totalBlooks = blooks.reduce((sum, blook) => sum + blook.count, 0)
 
   return (
     <SidebarProvider>
@@ -156,7 +172,6 @@ export default function Blooks() {
         <AppSidebar />
         <main className="flex-1 p-4 relative z-10">
           <div className="max-w-7xl mx-auto">
-            {/* Header */}
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center space-x-4">
                 <SidebarTrigger className="blacket-button p-2" />
@@ -165,7 +180,7 @@ export default function Blooks() {
                     Blooks
                   </h1>
                   <p className="text-xl text-white font-medium titan-one-light">
-                    Your collection • {blooks.length} blooks collected
+                    Your collection • {totalBlooks} blooks collected • {blooks.length} unique
                   </p>
                 </div>
               </div>
@@ -221,6 +236,11 @@ export default function Blooks() {
                                 <div className="absolute bottom-1 left-1 text-xs bg-black/50 text-white px-1 rounded titan-one-light">
                                   {blook.rarity}
                                 </div>
+                                {blook.count > 1 && (
+                                  <div className="absolute top-1 left-1 bg-yellow-400 text-orange-800 text-xs px-1 rounded font-bold">
+                                    x{blook.count}
+                                  </div>
+                                )}
                               </div>
                               <div className="p-2 text-center bg-orange-500/20 backdrop-blur-sm">
                                 <h3 className="text-white font-bold text-xs titan-one-light truncate">

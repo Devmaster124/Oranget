@@ -2,12 +2,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/AppSidebar"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/use-toast'
-import { Send, MessageCircle, UserPlus, ArrowLeftRight } from 'lucide-react'
+import { Send, MessageCircle } from 'lucide-react'
 import { supabase } from "@/integrations/supabase/client"
 
 interface Message {
@@ -24,9 +23,7 @@ export default function Community() {
   const { toast } = useToast()
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState('')
-  const [isTyping, setIsTyping] = useState(false)
-  const [selectedUser, setSelectedUser] = useState<string | null>(null)
-  const [onlineUsers, setOnlineUsers] = useState<string[]>([])
+  const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
@@ -43,12 +40,10 @@ export default function Community() {
       // Initialize ping sound
       audioRef.current = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+Dw0X0jCCZv1OzJgzIGGH/I9tp7MgUYVq7j6qZUFAhBmN7sXg==')
       
-      // Load messages from Supabase
       loadMessages()
       
-      // Set up real-time subscription
       const channel = supabase
-        .channel('schema-db-changes')
+        .channel('messages_realtime')
         .on(
           'postgres_changes',
           {
@@ -56,21 +51,32 @@ export default function Community() {
             schema: 'public',
             table: 'messages'
           },
-          (payload) => {
+          async (payload) => {
             const newMessage = payload.new as Message
+            
+            // Get blook pfp for the new message
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('selected_blook_pfp')
+              .eq('id', newMessage.user_id)
+              .single()
+
+            const messageWithBlook = {
+              ...newMessage,
+              blook_pfp: profile?.selected_blook_pfp || '🧡'
+            }
+            
             if (newMessage.text.includes(`@${user?.username}`) && newMessage.user_id !== user?.id) {
-              // Play ping sound
               if (audioRef.current) {
                 audioRef.current.play().catch(e => console.log('Could not play sound:', e))
               }
               
-              // Show notification
               toast({
                 title: "You've been pinged!",
                 description: `${newMessage.username} mentioned you in chat`,
               })
             }
-            setMessages(prev => [...prev, newMessage])
+            setMessages(prev => [...prev, messageWithBlook])
           }
         )
         .subscribe()
@@ -94,7 +100,6 @@ export default function Community() {
         return
       }
 
-      // Get user profiles with blook pfps
       const messagesWithBlooks = await Promise.all(data.map(async (message) => {
         const { data: profile } = await supabase
           .from('profiles')
@@ -115,34 +120,33 @@ export default function Community() {
   }
 
   const sendMessage = async () => {
-    if (!newMessage.trim() || !user || isTyping) return
+    if (!newMessage.trim() || !user || isLoading) return
 
-    setIsTyping(true)
+    setIsLoading(true)
     
     try {
       const { error } = await supabase
         .from('messages')
         .insert({
           user_id: user.id,
-          username: user.username,
+          username: user.username || 'Anonymous',
           text: newMessage.trim()
         })
 
       if (error) {
-        console.error('Error sending message:', error)
-        toast({
-          title: "Error",
-          description: "Failed to send message",
-          variant: "destructive"
-        })
-        return
+        throw error
       }
 
       setNewMessage('')
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending message:', error)
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send message",
+        variant: "destructive"
+      })
     } finally {
-      setTimeout(() => setIsTyping(false), 500)
+      setIsLoading(false)
     }
   }
 
@@ -180,7 +184,6 @@ export default function Community() {
         <AppSidebar />
         
         <main className="flex-1 relative z-10 flex flex-col h-screen">
-          {/* Header */}
           <div className="flex items-center justify-between p-4 bg-gradient-to-r from-orange-500 to-orange-600 border-b-4 border-orange-400 shrink-0">
             <div className="flex items-center space-x-4">
               <SidebarTrigger className="blacket-button p-2" />
@@ -200,7 +203,6 @@ export default function Community() {
             </div>
           </div>
 
-          {/* Messages Area - Full Screen */}
           <div className="flex-1 p-4 overflow-y-auto bg-orange-500/20 backdrop-blur-sm">
             {messages.length === 0 ? (
               <div className="text-center text-white/70 font-medium titan-one-light mt-20">
@@ -216,10 +218,7 @@ export default function Community() {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-1">
-                      <span 
-                        className="font-bold titan-one-light text-sm text-white cursor-pointer hover:underline"
-                        onClick={() => setSelectedUser(message.username)}
-                      >
+                      <span className="font-bold titan-one-light text-sm text-white">
                         {message.username}
                       </span>
                       <span className="text-xs text-white/60 titan-one-light">
@@ -236,7 +235,6 @@ export default function Community() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Message Input */}
           <div className="p-4 bg-gradient-to-r from-orange-500 to-orange-600 border-t-2 border-orange-400 shrink-0">
             <div className="flex space-x-3">
               <Input
@@ -245,34 +243,21 @@ export default function Community() {
                 onKeyPress={handleKeyPress}
                 placeholder="Type your message... Use @username to ping someone"
                 className="flex-1 bg-white/20 border-white/30 text-white placeholder:text-white/60 rounded-lg titan-one-light backdrop-blur-sm"
-                disabled={isTyping}
+                disabled={isLoading}
               />
               <Button
                 onClick={sendMessage}
-                disabled={!newMessage.trim() || isTyping}
+                disabled={!newMessage.trim() || isLoading}
                 className="blacket-button px-6"
               >
-                <Send className="w-5 h-5" />
+                {isLoading ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Send className="w-5 h-5" />
+                )}
               </Button>
             </div>
           </div>
-
-          {/* User Action Modal */}
-          {selectedUser && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-              <div className="blacket-card p-6 m-4">
-                <h3 className="text-white text-xl font-bold titan-one-light mb-4">{selectedUser}</h3>
-                <div className="flex space-x-3">
-                  <Button
-                    onClick={() => setSelectedUser(null)}
-                    className="bg-gray-500 hover:bg-gray-600 text-white rounded-lg px-4 py-2 titan-one-light"
-                  >
-                    Close
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
         </main>
       </div>
     </SidebarProvider>

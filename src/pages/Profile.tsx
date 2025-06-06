@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react'
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/AppSidebar"
@@ -25,6 +26,7 @@ interface Blook {
   name: string
   image: string
   rarity: string
+  count?: number
 }
 
 export default function Profile() {
@@ -36,6 +38,7 @@ export default function Profile() {
   const [showBlookSelector, setShowBlookSelector] = useState(false)
   const [userBlooks, setUserBlooks] = useState<Blook[]>([])
   const [selectedBlookForPfp, setSelectedBlookForPfp] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     if (authUser) {
@@ -53,59 +56,81 @@ export default function Profile() {
         .single()
 
       if (error) {
-        console.error('Error loading profile:', error)
-        toast({
-          title: "Error",
-          description: "Failed to load profile",
-          variant: "destructive"
-        })
-        return
+        throw error
       }
 
       setUser(data)
       setEditingData({ username: data.username })
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading profile:', error)
+      toast({
+        title: "Error",
+        description: error.message || "Failed to load profile",
+        variant: "destructive"
+      })
     }
   }
 
   const loadUserBlooks = () => {
-    const userBlooks = JSON.parse(localStorage.getItem(`oranget_blooks_${authUser?.id}`) || '[]')
-    setUserBlooks(userBlooks)
+    const blooksData = JSON.parse(localStorage.getItem(`oranget_blooks_${authUser?.id}`) || '[]')
+    
+    // Group blooks by ID and count duplicates
+    const blookCounts: { [key: string]: Blook & { count: number } } = {}
+    blooksData.forEach((blook: Blook) => {
+      if (blookCounts[blook.id]) {
+        blookCounts[blook.id].count++
+      } else {
+        blookCounts[blook.id] = { ...blook, count: 1 }
+      }
+    })
+    
+    setUserBlooks(Object.values(blookCounts))
   }
 
   const saveProfile = async () => {
+    if (!editingData.username.trim()) {
+      toast({
+        title: "Error",
+        description: "Username cannot be empty",
+        variant: "destructive"
+      })
+      return
+    }
+
+    setIsLoading(true)
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ username: editingData.username })
+        .update({ username: editingData.username.trim() })
         .eq('id', authUser?.id)
 
       if (error) {
-        console.error('Error updating profile:', error)
-        toast({
-          title: "Error",
-          description: "Failed to update profile",
-          variant: "destructive"
-        })
-        return
+        throw error
       }
 
-      setUser(prev => ({ ...prev!, username: editingData.username }))
+      setUser(prev => prev ? { ...prev, username: editingData.username.trim() } : null)
       setIsEditing(false)
       
       toast({
         title: "Profile Updated!",
         description: "Your profile has been updated",
       })
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating profile:', error)
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update profile",
+        variant: "destructive"
+      })
+    } finally {
+      setIsLoading(false)
     }
   }
 
   const updateProfilePicture = async () => {
     if (!selectedBlookForPfp) return
 
+    setIsLoading(true)
     try {
       const { error } = await supabase
         .from('profiles')
@@ -113,24 +138,25 @@ export default function Profile() {
         .eq('id', authUser?.id)
 
       if (error) {
-        console.error('Error updating profile picture:', error)
-        toast({
-          title: "Error",
-          description: "Failed to update profile picture",
-          variant: "destructive"
-        })
-        return
+        throw error
       }
 
-      setUser(prev => ({ ...prev!, selected_blook_pfp: selectedBlookForPfp }))
+      setUser(prev => prev ? { ...prev, selected_blook_pfp: selectedBlookForPfp } : null)
       setShowBlookSelector(false)
       
       toast({
         title: "Profile Picture Updated!",
         description: "Your profile picture has been updated",
       })
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating profile picture:', error)
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update profile picture",
+        variant: "destructive"
+      })
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -142,7 +168,6 @@ export default function Profile() {
         <AppSidebar />
         
         <main className="flex-1 relative z-10">
-          {/* Header */}
           <div className="flex items-center justify-between p-6 bg-orange-600/80 backdrop-blur-sm border-b-4 border-orange-300">
             <div className="flex items-center space-x-4">
               <SidebarTrigger className="hover:bg-orange-700 rounded-xl text-white" />
@@ -156,7 +181,6 @@ export default function Profile() {
 
           <div className="p-6">
             <div className="max-w-4xl mx-auto space-y-6">
-              {/* Profile Card */}
               <Card className="bg-orange-500/80 backdrop-blur-sm border-4 border-orange-300 rounded-3xl">
                 <CardHeader>
                   <CardTitle className="text-2xl text-white font-bold titan-one-light flex items-center">
@@ -184,6 +208,7 @@ export default function Profile() {
                           value={editingData.username}
                           onChange={(e) => setEditingData(prev => ({ ...prev, username: e.target.value }))}
                           className="bg-orange-400/50 border-orange-200 text-white placeholder:text-orange-100 rounded-2xl titan-one-light"
+                          disabled={isLoading}
                         />
                       ) : (
                         <p className="text-xl text-white bg-orange-400/50 rounded-2xl p-3 titan-one-light">
@@ -205,13 +230,15 @@ export default function Profile() {
                       <>
                         <Button
                           onClick={saveProfile}
+                          disabled={isLoading}
                           className="bg-green-500 hover:bg-green-600 text-white font-bold px-6 py-3 rounded-2xl titan-one-light"
                         >
                           <Save className="w-4 h-4 mr-2" />
-                          Save Changes
+                          {isLoading ? 'Saving...' : 'Save Changes'}
                         </Button>
                         <Button
                           onClick={() => setIsEditing(false)}
+                          disabled={isLoading}
                           variant="outline"
                           className="border-red-300 text-red-200 hover:bg-red-500 font-bold px-6 py-3 rounded-2xl titan-one-light"
                         >
@@ -238,7 +265,7 @@ export default function Profile() {
                   <CardContent className="p-6 text-center">
                     <Trophy className="w-12 h-12 text-yellow-300 mx-auto mb-4" />
                     <h3 className="text-2xl font-bold text-white mb-2 titan-one-light">Blooks Collected</h3>
-                    <p className="text-3xl text-yellow-300 font-bold titan-one-light">{user?.blooks_unlocked || 0}</p>
+                    <p className="text-3xl text-yellow-300 font-bold titan-one-light">{userBlooks.length}</p>
                   </CardContent>
                 </Card>
 
@@ -284,6 +311,13 @@ export default function Profile() {
                       >
                         <div className="text-3xl text-center">{blook.image}</div>
                         <p className="text-xs text-white text-center mt-1 titan-one-light truncate">{blook.name}</p>
+                        {blook.count && blook.count > 1 && (
+                          <div className="text-center">
+                            <span className="bg-yellow-400 text-orange-800 text-xs px-1 rounded font-bold">
+                              x{blook.count}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -300,9 +334,10 @@ export default function Profile() {
                   {selectedBlookForPfp && (
                     <Button
                       onClick={updateProfilePicture}
+                      disabled={isLoading}
                       className="bg-green-500 hover:bg-green-600 text-white font-bold rounded-2xl titan-one-light"
                     >
-                      Set as Profile Picture
+                      {isLoading ? 'Setting...' : 'Set as Profile Picture'}
                     </Button>
                   )}
                 </div>
