@@ -34,11 +34,6 @@ const items = [
     icon: Trophy,
   },
   {
-    title: "Trading",
-    url: "/trading",
-    icon: ArrowLeftRight,
-  },
-  {
     title: "Guilds",
     url: "/teams",
     icon: Users,
@@ -47,11 +42,6 @@ const items = [
     title: "Games",
     url: "/minigames",
     icon: Gamepad2,
-  },
-  {
-    title: "Music",
-    url: "/music",
-    icon: Music,
   },
   {
     title: "News",
