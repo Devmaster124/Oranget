@@ -33,11 +33,6 @@ const items = [
     icon: Trophy,
   },
   {
-    title: "Guilds",
-    url: "/teams",
-    icon: Users,
-  },
-  {
     title: "Games",
     url: "/minigames",
     icon: Gamepad2,
