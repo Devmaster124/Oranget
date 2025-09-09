@@ -58,7 +58,7 @@ export function AppSidebar() {
   const location = useLocation()
 
   return (
-    <Sidebar className="bg-primary backdrop-blur-md border-r-4 border-primary">
+    <Sidebar className="bg-sidebar backdrop-blur-md border-r-4 border-sidebar-border">
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="text-primary-foreground font-bold text-lg titan-one-light px-2 py-3">
