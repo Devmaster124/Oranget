@@ -458,7 +458,30 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_profiles: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          profile_picture: string | null
+          selected_blook_pfp: string | null
+          username: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          profile_picture?: string | null
+          selected_blook_pfp?: string | null
+          username?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          profile_picture?: string | null
+          selected_blook_pfp?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       check_message_spam: {
