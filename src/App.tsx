@@ -24,13 +24,6 @@ import TetrisGame from "./games/TetrisGame";
 import MemoryGame from "./games/MemoryGame";
 import FlappyGame from "./games/FlappyGame";
 import Game2048 from "./games/Game2048";
-import MinecraftGame from "./games/MinecraftGame";
-import HaloGame from "./games/HaloGame";
-import SplitgateGame from "./games/SplitgateGame";
-import FortniteGame from "./games/FortniteGame";
-import PacmanGame from "./games/PacmanGame";
-import SpaceInvadersGame from "./games/SpaceInvadersGame";
-import FroggerGame from "./games/FroggerGame";
 
 const queryClient = new QueryClient();
 
@@ -117,41 +110,6 @@ const App = () => (
             <Route path="/games/2048" element={
               <ProtectedRoute>
                 <Game2048 />
-              </ProtectedRoute>
-            } />
-            <Route path="/games/minecraft" element={
-              <ProtectedRoute>
-                <MinecraftGame />
-              </ProtectedRoute>
-            } />
-            <Route path="/games/halo" element={
-              <ProtectedRoute>
-                <HaloGame />
-              </ProtectedRoute>
-            } />
-            <Route path="/games/splitgate" element={
-              <ProtectedRoute>
-                <SplitgateGame />
-              </ProtectedRoute>
-            } />
-            <Route path="/games/fortnite" element={
-              <ProtectedRoute>
-                <FortniteGame />
-              </ProtectedRoute>
-            } />
-            <Route path="/games/pacman" element={
-              <ProtectedRoute>
-                <PacmanGame />
-              </ProtectedRoute>
-            } />
-            <Route path="/games/spaceinvaders" element={
-              <ProtectedRoute>
-                <SpaceInvadersGame />
-              </ProtectedRoute>
-            } />
-            <Route path="/games/frogger" element={
-              <ProtectedRoute>
-                <FroggerGame />
               </ProtectedRoute>
             } />
             <Route path="*" element={<NotFound />} />

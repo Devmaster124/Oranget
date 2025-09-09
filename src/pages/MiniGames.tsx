@@ -41,55 +41,6 @@ const games = [
     description: 'Combine tiles to reach 2048!',
     route: '/games/2048',
     emoji: '🔢'
-  },
-  {
-    id: 'minecraft',
-    title: '3D Minecraft',
-    description: 'Build and explore in a 3D minecraft-style world!',
-    route: '/games/minecraft',
-    emoji: '⛏️'
-  },
-  {
-    id: 'halo',
-    title: '3D Halo Arena',
-    description: 'Epic 3D combat arena with futuristic weapons!',
-    route: '/games/halo',
-    emoji: '🚀'
-  },
-  {
-    id: 'splitgate',
-    title: '3D Splitgate Portal',
-    description: 'Portal-based 3D shooter with teleportation mechanics!',
-    route: '/games/splitgate',
-    emoji: '🌀'
-  },
-  {
-    id: 'fortnite',
-    title: '3D Battle Royale',
-    description: 'Fortnite-style battle royale with building mechanics!',
-    route: '/games/fortnite',
-    emoji: '🏗️'
-  },
-  {
-    id: 'pacman',
-    title: 'Pac-Man',
-    description: 'Classic arcade game - eat dots and avoid ghosts!',
-    route: '/games/pacman',
-    emoji: '👾'
-  },
-  {
-    id: 'spaceinvaders',
-    title: 'Space Invaders',
-    description: 'Defend Earth from alien invasion!',
-    route: '/games/spaceinvaders',
-    emoji: '👽'
-  },
-  {
-    id: 'frogger',
-    title: 'Frogger',
-    description: 'Help the frog cross the busy road safely!',
-    route: '/games/frogger',
-    emoji: '🐸'
   }
 ]
 
