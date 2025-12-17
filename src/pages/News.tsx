@@ -7,54 +7,87 @@ import { Newspaper, Calendar, Zap, Users, Gamepad2, ArrowLeftRight } from 'lucid
 
 const newsItems = [
   {
+    id: 7,
+    title: "Beta V1.1 + Music Settings",
+    content:
+      "Beta V1.1 is now shown on the Get Started page, background music can be toggled in Settings (and it saves), and the sidebar is back to the orange theme.",
+    date: "2025-12-17",
+    type: "Update",
+    badge: "NEW",
+  },
+  {
+    id: 8,
+    title: "Live Chat Fix",
+    content:
+      "Chat now stays connected with a realtime listener and simplified avatars so it works reliably across users.",
+    date: "2025-12-17",
+    type: "Bug Fix",
+    badge: "FIXED",
+  },
+  {
+    id: 9,
+    title: "1,000,000 Tokens For Everyone",
+    content:
+      "All accounts are now upgraded to 1,000,000 tokens automatically when you sign in (and new accounts start with 1,000,000).",
+    date: "2025-12-17",
+    type: "Economy",
+    badge: "NEW",
+  },
+  {
     id: 1,
     title: "MEGA UPDATE: Trading & Friends System!",
-    content: "We've just launched our biggest update yet! Now you can trade blooks with friends, send friend requests, and build your network in Oranget. The new Trading Hub lets you negotiate trades and manage your friendships all in one place.",
+    content:
+      "We've just launched our biggest update yet! Now you can trade blooks with friends, send friend requests, and build your network in Oranget. The new Trading Hub lets you negotiate trades and manage your friendships all in one place.",
     date: "2025-06-04",
     type: "Major Update",
-    badge: "NEW"
+    badge: "NEW",
   },
   {
     id: 2,
     title: "Three New Mini Games Added!",
-    content: "Get ready for more fun! We've added Pac-Man, Space Invaders, and Frogger to our mini games collection. Each game features classic gameplay with an orange twist. Challenge your friends and climb the leaderboards!",
+    content:
+      "Get ready for more fun! We've added Pac-Man, Space Invaders, and Frogger to our mini games collection. Each game features classic gameplay with an orange twist. Challenge your friends and climb the leaderboards!",
     date: "2025-06-04",
     type: "Games",
-    badge: "NEW"
+    badge: "NEW",
   },
   {
     id: 3,
     title: "Real-Time Chat Improvements",
-    content: "Chat is now truly real-time! We've fixed the double message issue and improved connection stability. Messages now appear instantly across all connected players. Stay connected with the Oranget community!",
+    content:
+      "Chat is now truly real-time! We've fixed the double message issue and improved connection stability. Messages now appear instantly across all connected players. Stay connected with the Oranget community!",
     date: "2025-06-04",
     type: "Bug Fix",
-    badge: "FIXED"
+    badge: "FIXED",
   },
   {
     id: 4,
     title: "UI Font Consistency Update",
-    content: "We've standardized fonts across all pages for a more cohesive experience. The Titan One font is now used consistently throughout the application, making everything look cleaner and more professional.",
+    content:
+      "We've standardized fonts across all pages for a more cohesive experience. The Titan One font is now used consistently throughout the application, making everything look cleaner and more professional.",
     date: "2025-06-04",
     type: "UI Improvement",
-    badge: "IMPROVED"
+    badge: "IMPROVED",
   },
   {
     id: 5,
     title: "New Welcome Landing Page",
-    content: "First impressions matter! We've created a stunning new welcome page that showcases Oranget's features before you even log in. Check it out and see what makes Oranget special!",
+    content:
+      "First impressions matter! We've created a stunning new welcome page that showcases Oranget's features before you even log in. Check it out and see what makes Oranget special!",
     date: "2025-06-04",
     type: "Feature",
-    badge: "NEW"
+    badge: "NEW",
   },
   {
     id: 6,
     title: "Enhanced Login Persistence",
-    content: "No more accidental logouts! We've improved session management so you stay logged in even after refreshing the page. Your session will only end when you explicitly log out or after 24 hours.",
+    content:
+      "No more accidental logouts! We've improved session management so you stay logged in even after refreshing the page. Your session will only end when you explicitly log out or after 24 hours.",
     date: "2025-06-04",
     type: "Security",
-    badge: "IMPROVED"
-  }
-]
+    badge: "IMPROVED",
+  },
+];
 
 export default function News() {
   return (

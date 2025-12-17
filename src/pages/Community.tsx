@@ -38,10 +38,12 @@ export default function Community() {
   useEffect(() => {
     if (user) {
       // Initialize ping sound
-      audioRef.current = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+Dw0X0jCCZv1OzJgzIGGH/I9tp7MgUYVq7j6qZUFAhBmN7sXg==')
-      
+      audioRef.current = new Audio(
+        'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+Dw0X0jCCZv1OzJgzIGGH/I9tp7MgUYVq7j6qZUFAhBmN7sXg=='
+      )
+
       loadMessages()
-      
+
       const channel = supabase
         .channel('messages_realtime')
         .on(
@@ -49,34 +51,23 @@ export default function Community() {
           {
             event: 'INSERT',
             schema: 'public',
-            table: 'messages'
+            table: 'messages',
           },
-          async (payload) => {
-            const newMessage = payload.new as Message
-            
-            // Get blook pfp for the new message using public_profiles view
-            const { data: profile } = await supabase
-              .from('public_profiles')
-              .select('selected_blook_pfp')
-              .eq('id', newMessage.user_id)
-              .single()
+          (payload) => {
+            const inserted = payload.new as Message
 
-            const messageWithBlook = {
-              ...newMessage,
-              blook_pfp: profile?.selected_blook_pfp || '🧡'
-            }
-            
-            if (newMessage.text.includes(`@${user?.username}`) && newMessage.user_id !== user?.id) {
-              if (audioRef.current) {
-                audioRef.current.play().catch(e => console.log('Could not play sound:', e))
-              }
-              
+            if (
+              inserted.text?.includes(`@${user?.username}`) &&
+              inserted.user_id !== user?.id
+            ) {
+              audioRef.current?.play().catch(() => undefined)
               toast({
                 title: "You've been pinged!",
-                description: `${newMessage.username} mentioned you in chat`,
+                description: `${inserted.username} mentioned you in chat`,
               })
             }
-            setMessages(prev => [...prev, messageWithBlook])
+
+            setMessages((prev) => [...prev, { ...inserted, blook_pfp: '🧡' }])
           }
         )
         .subscribe()
@@ -96,26 +87,26 @@ export default function Community() {
         .limit(100)
 
       if (error) {
-        console.error('Error loading messages:', error)
+        toast({
+          title: 'Chat error',
+          description: error.message,
+          variant: 'destructive',
+        })
         return
       }
 
-      const messagesWithBlooks = await Promise.all(data.map(async (message) => {
-        const { data: profile } = await supabase
-          .from('public_profiles')
-          .select('selected_blook_pfp')
-          .eq('id', message.user_id)
-          .single()
-
-        return {
-          ...message,
-          blook_pfp: profile?.selected_blook_pfp || '🧡'
-        }
-      }))
-
-      setMessages(messagesWithBlooks)
-    } catch (error) {
-      console.error('Error loading messages:', error)
+      setMessages(
+        (data ?? []).map((m) => ({
+          ...(m as unknown as Message),
+          blook_pfp: '🧡',
+        }))
+      )
+    } catch (error: any) {
+      toast({
+        title: 'Chat error',
+        description: error?.message || 'Failed to load messages',
+        variant: 'destructive',
+      })
     }
   }
 

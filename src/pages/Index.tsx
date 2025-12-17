@@ -48,9 +48,6 @@ export default function Index() {
               <h2 className="text-5xl text-white font-black drop-shadow-lg mb-2">
                   Oranget
                 </h2>
-                <span className="inline-block bg-white/20 text-white text-sm font-bold px-3 py-1 rounded-full mb-4 backdrop-blur-sm border border-white/30">
-                  Beta V1.1
-                </span>
                 <p className="text-2xl text-orange-100 font-bold drop-shadow-md">
                   Your Gaming Adventure Begins Here!
                 </p>

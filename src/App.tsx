@@ -6,6 +6,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { BackgroundMusic } from "@/components/BackgroundMusic";
+import { useLocalStorageBoolean } from "@/hooks/useLocalStorage";
 import Landing from "./pages/Landing";
 import Index from "./pages/Index";
 import Community from "./pages/Community";
@@ -27,6 +29,141 @@ import Game2048 from "./games/Game2048";
 
 const queryClient = new QueryClient();
 
+function AppInner() {
+  const [musicEnabled] = useLocalStorageBoolean("oranget_music_enabled", true);
+
+  return (
+    <>
+      <BackgroundMusic enabled={musicEnabled} />
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Index />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/blooks"
+          element={
+            <ProtectedRoute>
+              <Blooks />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/marketplace"
+          element={
+            <ProtectedRoute>
+              <Marketplace />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/exchange"
+          element={
+            <ProtectedRoute>
+              <ExchangeCart />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/trading"
+          element={
+            <ProtectedRoute>
+              <Trading />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/community"
+          element={
+            <ProtectedRoute>
+              <Community />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/minigames"
+          element={
+            <ProtectedRoute>
+              <MiniGames />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <Settings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/news"
+          element={
+            <ProtectedRoute>
+              <News />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/games/snake"
+          element={
+            <ProtectedRoute>
+              <SnakeGame />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/games/tetris"
+          element={
+            <ProtectedRoute>
+              <TetrisGame />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/games/memory"
+          element={
+            <ProtectedRoute>
+              <MemoryGame />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/games/flappy"
+          element={
+            <ProtectedRoute>
+              <FlappyGame />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/games/2048"
+          element={
+            <ProtectedRoute>
+              <Game2048 />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </>
+  );
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
@@ -34,86 +171,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <Index />
-              </ProtectedRoute>
-            } />
-            <Route path="/profile" element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            } />
-            <Route path="/blooks" element={
-              <ProtectedRoute>
-                <Blooks />
-              </ProtectedRoute>
-            } />
-            <Route path="/marketplace" element={
-              <ProtectedRoute>
-                <Marketplace />
-              </ProtectedRoute>
-            } />
-            <Route path="/exchange" element={
-              <ProtectedRoute>
-                <ExchangeCart />
-              </ProtectedRoute>
-            } />
-            <Route path="/trading" element={
-              <ProtectedRoute>
-                <Trading />
-              </ProtectedRoute>
-            } />
-            <Route path="/community" element={
-              <ProtectedRoute>
-                <Community />
-              </ProtectedRoute>
-            } />
-            <Route path="/minigames" element={
-              <ProtectedRoute>
-                <MiniGames />
-              </ProtectedRoute>
-            } />
-            <Route path="/settings" element={
-              <ProtectedRoute>
-                <Settings />
-              </ProtectedRoute>
-            } />
-            <Route path="/news" element={
-              <ProtectedRoute>
-                <News />
-              </ProtectedRoute>
-            } />
-            <Route path="/games/snake" element={
-              <ProtectedRoute>
-                <SnakeGame />
-              </ProtectedRoute>
-            } />
-            <Route path="/games/tetris" element={
-              <ProtectedRoute>
-                <TetrisGame />
-              </ProtectedRoute>
-            } />
-            <Route path="/games/memory" element={
-              <ProtectedRoute>
-                <MemoryGame />
-              </ProtectedRoute>
-            } />
-            <Route path="/games/flappy" element={
-              <ProtectedRoute>
-                <FlappyGame />
-              </ProtectedRoute>
-            } />
-            <Route path="/games/2048" element={
-              <ProtectedRoute>
-                <Game2048 />
-              </ProtectedRoute>
-            } />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <AppInner />
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
@@ -121,3 +179,4 @@ const App = () => (
 );
 
 export default App;
+
