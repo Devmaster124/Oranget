@@ -484,10 +484,7 @@ export type Database = {
       }
     }
     Functions: {
-      check_message_spam: {
-        Args: { user_id_param: string }
-        Returns: boolean
-      }
+      check_message_spam: { Args: { user_id_param: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
