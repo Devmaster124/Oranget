@@ -44,9 +44,9 @@
     --sidebar-border: 25 100% 65%;
     --sidebar-ring: 25 100% 60%;
 
-    /* Smaller sidebar */
-    --sidebar-width: 10rem;
-    --sidebar-width-mobile: 10rem;
+    /* Sidebar width */
+    --sidebar-width: 12rem;
+    --sidebar-width-mobile: 12rem;
   }
 
   .dark {

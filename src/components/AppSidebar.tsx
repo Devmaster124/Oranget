@@ -1,11 +1,11 @@
-import { Home, MessageSquare, Users, Trophy, ShoppingCart, Settings, Gamepad2, Newspaper } from "lucide-react"
-import { Link, useLocation } from "react-router-dom"
+import { Home, MessageSquare, ShoppingCart, Trophy, Gamepad2, Newspaper, Settings, Play } from "lucide-react"
+import { Link, useLocation, useNavigate } from "react-router-dom"
+import { Button } from "@/components/ui/button"
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -23,14 +23,14 @@ const items = [
     icon: MessageSquare,
   },
   {
-    title: "Marketplace",
-    url: "/marketplace", 
-    icon: ShoppingCart,
-  },
-  {
     title: "Blooks",
     url: "/blooks",
     icon: Trophy,
+  },
+  {
+    title: "Market",
+    url: "/marketplace", 
+    icon: ShoppingCart,
   },
   {
     title: "Games",
@@ -51,29 +51,56 @@ const items = [
 
 export function AppSidebar() {
   const location = useLocation()
+  const navigate = useNavigate()
 
   return (
-    <Sidebar className="bg-sidebar backdrop-blur-md border-r-4 border-sidebar-border">
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-primary-foreground font-bold text-lg titan-one-light px-2 py-3">
-            🧡 OrangeT
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
+    <Sidebar className="bg-purple-700 border-r-0 w-48">
+      <SidebarContent className="bg-purple-700">
+        <SidebarGroup className="p-0">
+          {/* Logo */}
+          <div className="px-4 pt-4 pb-2">
+            <h1 className="text-2xl font-black text-white tracking-tight">
+              Oranget
+            </h1>
+          </div>
+
+          {/* Play Button */}
+          <div className="px-3 py-2">
+            <Button 
+              onClick={() => navigate('/minigames')}
+              className="w-full bg-green-500 hover:bg-green-400 text-white font-bold text-lg py-3 rounded-lg shadow-md flex items-center justify-center gap-2 h-12"
+            >
+              <Play className="w-5 h-5 fill-white" />
+              Play
+            </Button>
+          </div>
+
+          {/* Stats Button */}
+          <div className="px-3 py-1">
+            <Button 
+              onClick={() => navigate('/profile')}
+              className="w-full bg-red-500 hover:bg-red-400 text-white font-semibold text-sm py-2 rounded-lg flex items-center justify-center gap-2 h-9"
+            >
+              <span className="text-xs">📊</span>
+              Stats
+            </Button>
+          </div>
+
+          <SidebarGroupContent className="mt-2">
+            <SidebarMenu className="px-2 space-y-0.5">
               {items.map((item) => {
                 const isActive = location.pathname === item.url
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton 
                       asChild
-                      className={`text-primary-foreground hover:bg-primary/70 rounded-xl transition-colors py-1 px-2 h-7 text-xs ${
-                        isActive ? 'bg-primary/80 font-bold' : ''
+                      className={`text-white hover:bg-purple-600 rounded-lg transition-colors py-2 px-3 h-10 text-sm font-medium ${
+                        isActive ? 'bg-purple-600 font-bold' : 'bg-transparent'
                       }`}
                     >
-                      <Link to={item.url} className="flex items-center space-x-2">
-                        <item.icon className="w-3 h-3" />
-                        <span className="titan-one-light">{item.title}</span>
+                      <Link to={item.url} className="flex items-center gap-3">
+                        <item.icon className="w-5 h-5" />
+                        <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

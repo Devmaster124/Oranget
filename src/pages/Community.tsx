@@ -54,9 +54,9 @@ export default function Community() {
           async (payload) => {
             const newMessage = payload.new as Message
             
-            // Get blook pfp for the new message
+            // Get blook pfp for the new message using public_profiles view
             const { data: profile } = await supabase
-              .from('profiles')
+              .from('public_profiles')
               .select('selected_blook_pfp')
               .eq('id', newMessage.user_id)
               .single()
@@ -102,7 +102,7 @@ export default function Community() {
 
       const messagesWithBlooks = await Promise.all(data.map(async (message) => {
         const { data: profile } = await supabase
-          .from('profiles')
+          .from('public_profiles')
           .select('selected_blook_pfp')
           .eq('id', message.user_id)
           .single()
