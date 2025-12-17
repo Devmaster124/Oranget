@@ -87,7 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const newUser: User = {
         id: Date.now().toString(),
         username,
-        tokens: 1000
+        tokens: 1_000_000,
       }
 
       // Store user credentials and data
@@ -116,8 +116,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: false, error: 'Invalid username or password' }
       }
 
-      const userData = existingUsers[username].userData
-      createSession(userData, true)
+      const userData: User = existingUsers[username].userData
+
+      // Ensure everyone has 1,000,000 tokens
+      const upgradedUser: User = {
+        ...userData,
+        tokens: 1_000_000,
+      }
+      existingUsers[username] = { ...existingUsers[username], userData: upgradedUser }
+      localStorage.setItem('oranget_users', JSON.stringify(existingUsers))
+
+      createSession(upgradedUser, true)
 
       toast({
         title: "Welcome back!",
