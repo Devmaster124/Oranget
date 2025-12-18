@@ -101,45 +101,44 @@ const packs: Pack[] = [
   }
 ]
 
+// Custom blooks from user's image - 4x3 grid sprite positions
 const blookPool = [
-  // Common - Cute characters from the image
-  { id: '1', name: 'Money Pug', image: '/blooks/blooks-set.webp', imagePos: '0 0', rarity: 'common' },
-  { id: '2', name: 'Cash Cat', image: '/blooks/blooks-set.webp', imagePos: '33% 0', rarity: 'common' },
-  { id: '3', name: 'Strawberry', image: '/blooks/blooks-set.webp', imagePos: '0 75%', rarity: 'common' },
+  // Row 1: Money Pug, Money Cat, Purple Dragon
+  { id: '1', name: 'Money Pug', image: '/blooks/custom-blooks.png', imagePos: '0% 0%', rarity: 'common' },
+  { id: '2', name: 'Money Cat', image: '/blooks/custom-blooks.png', imagePos: '50% 0%', rarity: 'common' },
+  { id: '3', name: 'Purple Dragon', image: '/blooks/custom-blooks.png', imagePos: '100% 0%', rarity: 'rare' },
   
-  // Uncommon
-  { id: '4', name: 'Red Devil', image: '/blooks/blooks-set.webp', imagePos: '0 25%', rarity: 'uncommon' },
-  { id: '5', name: 'Pink Alien', image: '/blooks/blooks-set.webp', imagePos: '33% 25%', rarity: 'uncommon' },
+  // Row 2: Red Devil, Pink Alien, Ice Monster
+  { id: '4', name: 'Red Devil', image: '/blooks/custom-blooks.png', imagePos: '0% 33%', rarity: 'uncommon' },
+  { id: '5', name: 'Pink Alien', image: '/blooks/custom-blooks.png', imagePos: '50% 33%', rarity: 'uncommon' },
+  { id: '6', name: 'Ice Monster', image: '/blooks/custom-blooks.png', imagePos: '100% 33%', rarity: 'epic' },
   
-  // Rare
-  { id: '6', name: 'Dragon', image: '/blooks/blooks-set.webp', imagePos: '66% 0', rarity: 'rare' },
-  { id: '7', name: 'Mushroom', image: '/blooks/blooks-set.webp', imagePos: '0 50%', rarity: 'rare' },
+  // Row 3: Mushroom, Wizard Bird, Rainbow Narwhal
+  { id: '7', name: 'Mushroom', image: '/blooks/custom-blooks.png', imagePos: '0% 66%', rarity: 'rare' },
+  { id: '8', name: 'Wizard Bird', image: '/blooks/custom-blooks.png', imagePos: '50% 66%', rarity: 'epic' },
+  { id: '9', name: 'Rainbow Narwhal', image: '/blooks/custom-blooks.png', imagePos: '100% 66%', rarity: 'legendary' },
   
-  // Epic
-  { id: '8', name: 'Wizard', image: '/blooks/blooks-set.webp', imagePos: '33% 50%', rarity: 'epic' },
-  { id: '9', name: 'Ice Monster', image: '/blooks/blooks-set.webp', imagePos: '66% 25%', rarity: 'epic' },
-  
-  // Legendary
-  { id: '10', name: 'Unicorn', image: '/blooks/blooks-set.webp', imagePos: '33% 75%', rarity: 'legendary' },
-  { id: '11', name: 'Rainbow Uni', image: '/blooks/blooks-set.webp', imagePos: '66% 50%', rarity: 'legendary' },
-  
-  // Chroma
-  { id: '12', name: 'Octopus', image: '/blooks/blooks-set.webp', imagePos: '66% 75%', rarity: 'chroma' },
-  
-  // Mythical
-  { id: '13', name: 'Cosmic Uni', image: '/blooks/blooks-set.webp', imagePos: '66% 50%', rarity: 'mythical' },
+  // Row 4: Strawberry, Unicorn Cube, Purple Octopus
+  { id: '10', name: 'Strawberry', image: '/blooks/custom-blooks.png', imagePos: '0% 100%', rarity: 'common' },
+  { id: '11', name: 'Unicorn Cube', image: '/blooks/custom-blooks.png', imagePos: '50% 100%', rarity: 'legendary' },
+  { id: '12', name: 'Purple Octopus', image: '/blooks/custom-blooks.png', imagePos: '100% 100%', rarity: 'chroma' },
 ]
 
-// Fallback emojis
+// Emoji fallback blooks mapped to custom blooks
 const emojiBlooks = [
-  { id: 'e1', name: 'Orange', image: '🧡', rarity: 'common' },
-  { id: 'e2', name: 'Apple', image: '🍎', rarity: 'common' },
-  { id: 'e3', name: 'Pizza', image: '🍕', rarity: 'uncommon' },
-  { id: 'e4', name: 'Diamond', image: '💎', rarity: 'rare' },
-  { id: 'e5', name: 'Crown', image: '👑', rarity: 'epic' },
-  { id: 'e6', name: 'Dragon', image: '🐉', rarity: 'legendary' },
-  { id: 'e7', name: 'Rainbow', image: '🌈', rarity: 'chroma' },
-  { id: 'e8', name: 'Cosmic', image: '✨', rarity: 'mythical' },
+  { id: 'e1', name: 'Money Pug', image: '🐶', spriteImage: '/blooks/custom-blooks.png', imagePos: '0% 0%', rarity: 'common' },
+  { id: 'e2', name: 'Money Cat', image: '🐱', spriteImage: '/blooks/custom-blooks.png', imagePos: '50% 0%', rarity: 'common' },
+  { id: 'e3', name: 'Strawberry', image: '🍓', spriteImage: '/blooks/custom-blooks.png', imagePos: '0% 100%', rarity: 'common' },
+  { id: 'e4', name: 'Red Devil', image: '😈', spriteImage: '/blooks/custom-blooks.png', imagePos: '0% 33%', rarity: 'uncommon' },
+  { id: 'e5', name: 'Pink Alien', image: '👾', spriteImage: '/blooks/custom-blooks.png', imagePos: '50% 33%', rarity: 'uncommon' },
+  { id: 'e6', name: 'Purple Dragon', image: '🐲', spriteImage: '/blooks/custom-blooks.png', imagePos: '100% 0%', rarity: 'rare' },
+  { id: 'e7', name: 'Mushroom', image: '🍄', spriteImage: '/blooks/custom-blooks.png', imagePos: '0% 66%', rarity: 'rare' },
+  { id: 'e8', name: 'Ice Monster', image: '🧊', spriteImage: '/blooks/custom-blooks.png', imagePos: '100% 33%', rarity: 'epic' },
+  { id: 'e9', name: 'Wizard Bird', image: '🧙', spriteImage: '/blooks/custom-blooks.png', imagePos: '50% 66%', rarity: 'epic' },
+  { id: 'e10', name: 'Rainbow Narwhal', image: '🦄', spriteImage: '/blooks/custom-blooks.png', imagePos: '100% 66%', rarity: 'legendary' },
+  { id: 'e11', name: 'Unicorn Cube', image: '✨', spriteImage: '/blooks/custom-blooks.png', imagePos: '50% 100%', rarity: 'legendary' },
+  { id: 'e12', name: 'Purple Octopus', image: '🐙', spriteImage: '/blooks/custom-blooks.png', imagePos: '100% 100%', rarity: 'chroma' },
+  { id: 'e13', name: 'Cosmic Dragon', image: '🌟', spriteImage: '/blooks/custom-blooks.png', imagePos: '100% 0%', rarity: 'mythical' },
 ]
 
 export default function Marketplace() {
@@ -383,8 +382,19 @@ export default function Marketplace() {
                 <h2 className="text-3xl text-white font-bold mb-4 titan-one-light">
                   You Got:
                 </h2>
-                <div className="text-8xl mb-4 animate-bounce">
-                  {rewardBlook.image}
+                <div className="w-32 h-32 mx-auto mb-4 animate-bounce">
+                  {rewardBlook.spriteImage ? (
+                    <div 
+                      className="w-full h-full rounded-xl"
+                      style={{
+                        backgroundImage: `url(${rewardBlook.spriteImage})`,
+                        backgroundPosition: rewardBlook.imagePos,
+                        backgroundSize: '300% 400%',
+                      }}
+                    />
+                  ) : (
+                    <span className="text-8xl">{rewardBlook.image}</span>
+                  )}
                 </div>
                 <h3 className="text-2xl text-white font-bold mb-2 titan-one-light">
                   {rewardBlook.name}
