@@ -13,6 +13,8 @@ interface Blook {
   id: string
   name: string
   image: string
+  spriteImage?: string
+  imagePos?: string
   rarity: string
   count: number
 }
@@ -226,8 +228,19 @@ export default function Blooks() {
                             onClick={() => selectBlookAsPfp(blook)}
                           >
                             <CardContent className="p-0">
-                              <div className={`w-full h-24 bg-gradient-to-br ${getRarityColor(blook.rarity)} flex items-center justify-center relative`}>
-                                <div className="text-3xl">{blook.image}</div>
+                                              <div className={`w-full h-24 bg-gradient-to-br ${getRarityColor(blook.rarity)} flex items-center justify-center relative`}>
+                                                {blook.spriteImage ? (
+                                                  <div 
+                                                    className="w-16 h-16 rounded-lg"
+                                                    style={{
+                                                      backgroundImage: `url(${blook.spriteImage})`,
+                                                      backgroundPosition: blook.imagePos || '0% 0%',
+                                                      backgroundSize: '300% 400%',
+                                                    }}
+                                                  />
+                                                ) : (
+                                                  <div className="text-3xl">{blook.image}</div>
+                                                )}
                                 {selectedBlook === blook.image && (
                                   <div className="absolute top-1 right-1">
                                     <Crown className="w-4 h-4 text-yellow-400" />
