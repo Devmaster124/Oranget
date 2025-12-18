@@ -15,7 +15,6 @@ interface Message {
   text: string
   timestamp: string
   user_id: string
-  blook_pfp?: string
 }
 
 export default function Community() {
@@ -36,45 +35,46 @@ export default function Community() {
   }, [messages])
 
   useEffect(() => {
-    if (user) {
-      // Initialize ping sound
-      audioRef.current = new Audio(
-        'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+Dw0X0jCCZv1OzJgzIGGH/I9tp7MgUYVq7j6qZUFAhBmN7sXg=='
-      )
+    // Initialize ping sound
+    audioRef.current = new Audio(
+      'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+Dw0X0jCCZv1OzJgzIGGH/I9tp7MgUYVq7j6qZUFAhBmN7sXg=='
+    )
 
-      loadMessages()
+    loadMessages()
 
-      const channel = supabase
-        .channel('messages_realtime')
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'messages',
-          },
-          (payload) => {
-            const inserted = payload.new as Message
-
-            if (
-              inserted.text?.includes(`@${user?.username}`) &&
-              inserted.user_id !== user?.id
-            ) {
-              audioRef.current?.play().catch(() => undefined)
-              toast({
-                title: "You've been pinged!",
-                description: `${inserted.username} mentioned you in chat`,
-              })
-            }
-
-            setMessages((prev) => [...prev, { ...inserted, blook_pfp: '🧡' }])
+    // Set up real-time subscription
+    const channel = supabase
+      .channel('public-chat')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+        },
+        (payload) => {
+          const newMsg = payload.new as Message
+          
+          // Play sound if user is pinged
+          if (user && newMsg.text?.includes(`@${user.username}`) && newMsg.user_id !== user.id) {
+            audioRef.current?.play().catch(() => undefined)
+            toast({
+              title: "You've been pinged!",
+              description: `${newMsg.username} mentioned you in chat`,
+            })
           }
-        )
-        .subscribe()
 
-      return () => {
-        supabase.removeChannel(channel)
-      }
+          setMessages((prev) => {
+            // Avoid duplicates
+            if (prev.some(m => m.id === newMsg.id)) return prev
+            return [...prev, newMsg]
+          })
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
     }
   }, [user])
 
@@ -87,6 +87,7 @@ export default function Community() {
         .limit(100)
 
       if (error) {
+        console.error('Error loading messages:', error)
         toast({
           title: 'Chat error',
           description: error.message,
@@ -95,18 +96,9 @@ export default function Community() {
         return
       }
 
-      setMessages(
-        (data ?? []).map((m) => ({
-          ...(m as unknown as Message),
-          blook_pfp: '🧡',
-        }))
-      )
+      setMessages(data || [])
     } catch (error: any) {
-      toast({
-        title: 'Chat error',
-        description: error?.message || 'Failed to load messages',
-        variant: 'destructive',
-      })
+      console.error('Chat error:', error)
     }
   }
 
@@ -116,13 +108,16 @@ export default function Community() {
     setIsLoading(true)
     
     try {
+      const messageData = {
+        user_id: user.id,
+        username: user.username || 'Anonymous',
+        text: newMessage.trim(),
+        timestamp: new Date().toISOString()
+      }
+
       const { error } = await supabase
         .from('messages')
-        .insert({
-          user_id: user.id,
-          username: user.username || 'Anonymous',
-          text: newMessage.trim()
-        })
+        .insert(messageData)
 
       if (error) {
         throw error
@@ -203,9 +198,7 @@ export default function Community() {
               messages.map((message) => (
                 <div key={message.id} className="mb-4 flex items-start space-x-3">
                   <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center border-2 border-white/30">
-                    <span className="text-2xl" title={`${message.username}'s Blook`}>
-                      {message.blook_pfp || '🧡'}
-                    </span>
+                    <span className="text-2xl">🧡</span>
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-1">
@@ -232,13 +225,13 @@ export default function Community() {
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Type your message... Use @username to ping someone"
+                placeholder={user ? "Type your message... Use @username to ping" : "Sign in to chat"}
                 className="flex-1 bg-white/20 border-white/30 text-white placeholder:text-white/60 rounded-lg titan-one-light backdrop-blur-sm"
-                disabled={isLoading}
+                disabled={isLoading || !user}
               />
               <Button
                 onClick={sendMessage}
-                disabled={!newMessage.trim() || isLoading}
+                disabled={!newMessage.trim() || isLoading || !user}
                 className="blacket-button px-6"
               >
                 {isLoading ? (

@@ -2,18 +2,18 @@
 import { useState, useEffect } from 'react'
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/AppSidebar"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/use-toast'
-import { ShoppingCart, Lock, Unlock, Star, Crown } from 'lucide-react'
-import { supabase } from "@/integrations/supabase/client"
+import { ShoppingCart, Lock, Unlock, Sparkles } from 'lucide-react'
 
 interface Pack {
   id: string
   name: string
   cost: number
   image: string
+  color: string
+  borderColor: string
   description: string
   rarities: string[]
 }
@@ -21,67 +21,125 @@ interface Pack {
 const packs: Pack[] = [
   {
     id: '1',
-    name: 'Common Pack',
+    name: 'Breakfast',
     cost: 25,
-    image: '📦',
-    description: 'Basic pack with common blooks',
+    image: '🥞',
+    color: 'from-orange-400 to-orange-600',
+    borderColor: 'border-orange-300',
+    description: 'Morning treats!',
     rarities: ['common', 'uncommon']
   },
   {
     id: '2', 
-    name: 'Rare Pack',
-    cost: 100,
-    image: '🎁',
-    description: 'Better chance for rare blooks',
-    rarities: ['common', 'uncommon', 'rare', 'epic']
+    name: 'Dino',
+    cost: 50,
+    image: '🦕',
+    color: 'from-green-400 to-green-600',
+    borderColor: 'border-green-300',
+    description: 'Prehistoric pals',
+    rarities: ['common', 'uncommon', 'rare']
   },
   {
     id: '3',
-    name: 'Epic Pack', 
-    cost: 250,
-    image: '💎',
-    description: 'High chance for epic and legendary blooks',
-    rarities: ['rare', 'epic', 'legendary', 'chroma']
+    name: 'Bot',
+    cost: 100,
+    image: '🤖',
+    color: 'from-blue-400 to-blue-600',
+    borderColor: 'border-blue-300',
+    description: 'Robotic friends!',
+    rarities: ['uncommon', 'rare', 'epic']
   },
   {
     id: '4',
-    name: 'Mythical Pack',
+    name: 'Safari',
+    cost: 150,
+    image: '🦁',
+    color: 'from-yellow-500 to-amber-600',
+    borderColor: 'border-yellow-300',
+    description: 'Wild animals!',
+    rarities: ['rare', 'epic']
+  },
+  {
+    id: '5',
+    name: 'Aquatic',
+    cost: 200,
+    image: '🐠',
+    color: 'from-cyan-400 to-teal-600',
+    borderColor: 'border-cyan-300',
+    description: 'Ocean creatures',
+    rarities: ['rare', 'epic', 'legendary']
+  },
+  {
+    id: '6',
+    name: 'Ice Monster',
+    cost: 300,
+    image: '❄️',
+    color: 'from-sky-300 to-blue-500',
+    borderColor: 'border-sky-200',
+    description: 'Frozen friends',
+    rarities: ['epic', 'legendary']
+  },
+  {
+    id: '7',
+    name: 'Space',
     cost: 500,
-    image: '🌟',
-    description: 'Ultra rare pack with mythical blooks',
-    rarities: ['legendary', 'chroma', 'mythical']
+    image: '🚀',
+    color: 'from-purple-500 to-indigo-700',
+    borderColor: 'border-purple-300',
+    description: 'Galactic blooks!',
+    rarities: ['legendary', 'chroma']
+  },
+  {
+    id: '8',
+    name: 'Legendary',
+    cost: 1000,
+    image: '✨',
+    color: 'from-pink-500 to-rose-600',
+    borderColor: 'border-pink-300',
+    description: 'Ultra rare!',
+    rarities: ['chroma', 'mythical']
   }
 ]
 
 const blookPool = [
-  // Common
-  { id: '1', name: 'Orange', image: '🧡', rarity: 'common' },
-  { id: '2', name: 'Apple', image: '🍎', rarity: 'common' },
-  { id: '3', name: 'Banana', image: '🍌', rarity: 'common' },
+  // Common - Cute characters from the image
+  { id: '1', name: 'Money Pug', image: '/blooks/blooks-set.webp', imagePos: '0 0', rarity: 'common' },
+  { id: '2', name: 'Cash Cat', image: '/blooks/blooks-set.webp', imagePos: '33% 0', rarity: 'common' },
+  { id: '3', name: 'Strawberry', image: '/blooks/blooks-set.webp', imagePos: '0 75%', rarity: 'common' },
   
   // Uncommon
-  { id: '4', name: 'Pizza', image: '🍕', rarity: 'uncommon' },
-  { id: '5', name: 'Burger', image: '🍔', rarity: 'uncommon' },
+  { id: '4', name: 'Red Devil', image: '/blooks/blooks-set.webp', imagePos: '0 25%', rarity: 'uncommon' },
+  { id: '5', name: 'Pink Alien', image: '/blooks/blooks-set.webp', imagePos: '33% 25%', rarity: 'uncommon' },
   
   // Rare
-  { id: '6', name: 'Diamond', image: '💎', rarity: 'rare' },
-  { id: '7', name: 'Gold', image: '🥇', rarity: 'rare' },
+  { id: '6', name: 'Dragon', image: '/blooks/blooks-set.webp', imagePos: '66% 0', rarity: 'rare' },
+  { id: '7', name: 'Mushroom', image: '/blooks/blooks-set.webp', imagePos: '0 50%', rarity: 'rare' },
   
   // Epic
-  { id: '8', name: 'Crown', image: '👑', rarity: 'epic' },
-  { id: '9', name: 'Trophy', image: '🏆', rarity: 'epic' },
+  { id: '8', name: 'Wizard', image: '/blooks/blooks-set.webp', imagePos: '33% 50%', rarity: 'epic' },
+  { id: '9', name: 'Ice Monster', image: '/blooks/blooks-set.webp', imagePos: '66% 25%', rarity: 'epic' },
   
   // Legendary
-  { id: '10', name: 'Dragon', image: '🐉', rarity: 'legendary' },
-  { id: '11', name: 'Phoenix', image: '🔥', rarity: 'legendary' },
+  { id: '10', name: 'Unicorn', image: '/blooks/blooks-set.webp', imagePos: '33% 75%', rarity: 'legendary' },
+  { id: '11', name: 'Rainbow Uni', image: '/blooks/blooks-set.webp', imagePos: '66% 50%', rarity: 'legendary' },
   
   // Chroma
-  { id: '12', name: 'Rainbow', image: '🌈', rarity: 'chroma' },
-  { id: '13', name: 'Galaxy', image: '🌌', rarity: 'chroma' },
+  { id: '12', name: 'Octopus', image: '/blooks/blooks-set.webp', imagePos: '66% 75%', rarity: 'chroma' },
   
   // Mythical
-  { id: '14', name: 'Cosmic', image: '✨', rarity: 'mythical' },
-  { id: '15', name: 'Divine', image: '⭐', rarity: 'mythical' }
+  { id: '13', name: 'Cosmic Uni', image: '/blooks/blooks-set.webp', imagePos: '66% 50%', rarity: 'mythical' },
+]
+
+// Fallback emojis
+const emojiBlooks = [
+  { id: 'e1', name: 'Orange', image: '🧡', rarity: 'common' },
+  { id: 'e2', name: 'Apple', image: '🍎', rarity: 'common' },
+  { id: 'e3', name: 'Pizza', image: '🍕', rarity: 'uncommon' },
+  { id: 'e4', name: 'Diamond', image: '💎', rarity: 'rare' },
+  { id: 'e5', name: 'Crown', image: '👑', rarity: 'epic' },
+  { id: 'e6', name: 'Dragon', image: '🐉', rarity: 'legendary' },
+  { id: 'e7', name: 'Rainbow', image: '🌈', rarity: 'chroma' },
+  { id: 'e8', name: 'Cosmic', image: '✨', rarity: 'mythical' },
 ]
 
 export default function Marketplace() {
@@ -99,18 +157,13 @@ export default function Marketplace() {
     }
   }, [user])
 
-  const loadUserTokens = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('tokens')
-        .eq('id', user?.id)
-        .single()
-
-      if (error) throw error
-      setTokens(data?.tokens || 0)
-    } catch (error) {
-      console.error('Error loading tokens:', error)
+  const loadUserTokens = () => {
+    const existingUsers = JSON.parse(localStorage.getItem('oranget_users') || '{}')
+    const userKey = Object.keys(existingUsers).find(
+      key => existingUsers[key].userData.id === user?.id
+    )
+    if (userKey) {
+      setTokens(existingUsers[userKey].userData.tokens || 0)
     }
   }
 
@@ -141,7 +194,7 @@ export default function Marketplace() {
     const random = Math.random() * totalWeight
     
     let currentWeight = 0
-    let selectedRarity = 'common'
+    let selectedRarity = packRarities[0]
     
     for (const [rarity, weight] of Object.entries(weights)) {
       currentWeight += weight
@@ -151,12 +204,13 @@ export default function Marketplace() {
       }
     }
     
-    const availableBlooks = blookPool.filter(blook => 
+    // Use emoji blooks as they work better
+    const availableBlooks = emojiBlooks.filter(blook => 
       blook.rarity === selectedRarity && packRarities.includes(blook.rarity)
     )
     
     if (availableBlooks.length === 0) {
-      return blookPool.find(blook => blook.rarity === 'common') || blookPool[0]
+      return emojiBlooks.find(blook => packRarities.includes(blook.rarity)) || emojiBlooks[0]
     }
     
     return availableBlooks[Math.floor(Math.random() * availableBlooks.length)]
@@ -175,30 +229,26 @@ export default function Marketplace() {
     setOpeningPack(pack.id)
     setAnimationStage('lock')
     
-    // Deduct tokens
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ tokens: tokens - pack.cost })
-        .eq('id', user?.id)
-      
-      if (error) throw error
-      setTokens(prev => prev - pack.cost)
-    } catch (error) {
-      console.error('Error updating tokens:', error)
-      setOpeningPack(null)
-      return
+    // Deduct tokens from localStorage
+    const existingUsers = JSON.parse(localStorage.getItem('oranget_users') || '{}')
+    const userKey = Object.keys(existingUsers).find(
+      key => existingUsers[key].userData.id === user?.id
+    )
+    
+    if (userKey) {
+      existingUsers[userKey].userData.tokens -= pack.cost
+      localStorage.setItem('oranget_users', JSON.stringify(existingUsers))
+      localStorage.setItem('oranget_user', JSON.stringify(existingUsers[userKey].userData))
+      setTokens(existingUsers[userKey].userData.tokens)
     }
 
-    // Lock stage
+    // Animation sequence
     setTimeout(() => {
       setAnimationStage('key')
       
-      // Key stage
       setTimeout(() => {
         setAnimationStage('unlock')
         
-        // Unlock stage
         setTimeout(() => {
           const newBlook = selectRandomBlook(pack.rarities)
           setRewardBlook(newBlook)
@@ -209,20 +259,32 @@ export default function Marketplace() {
           userBlooks.push(newBlook)
           localStorage.setItem(`oranget_blooks_${user?.id}`, JSON.stringify(userBlooks))
           
-          // Show reward
           setTimeout(() => {
             setShowReward(true)
             setOpeningPack(null)
           }, 500)
         }, 1000)
-      }, 1500)
-    }, 1000)
+      }, 1000)
+    }, 800)
   }
 
   const closeReward = () => {
     setShowReward(false)
     setRewardBlook(null)
     setAnimationStage('lock')
+  }
+
+  const getRarityColor = (rarity: string) => {
+    const colors: { [key: string]: string } = {
+      common: 'text-gray-300',
+      uncommon: 'text-green-400',
+      rare: 'text-blue-400',
+      epic: 'text-purple-400',
+      legendary: 'text-yellow-400',
+      chroma: 'text-pink-400',
+      mythical: 'text-red-400'
+    }
+    return colors[rarity] || 'text-white'
   }
 
   return (
@@ -237,97 +299,77 @@ export default function Marketplace() {
             <div className="flex items-center space-x-4">
               <SidebarTrigger className="hover:bg-orange-700 rounded-xl text-white" />
               <div>
-                <h1 className="text-4xl text-white font-bold drop-shadow-lg titan-one-light">Marketplace</h1>
+                <h1 className="text-4xl text-white font-bold drop-shadow-lg titan-one-light">Market</h1>
                 <p className="text-orange-100 mt-1 font-medium titan-one-light">Open packs to get blooks!</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="bg-yellow-400 text-orange-800 px-4 py-2 rounded-2xl font-bold titan-one-light">
-                🪙 {tokens}
+              <div className="bg-yellow-400 text-orange-800 px-4 py-2 rounded-2xl font-bold titan-one-light text-lg">
+                🪙 {tokens.toLocaleString()}
               </div>
-              <ShoppingCart className="w-12 h-12 text-white" />
+              <ShoppingCart className="w-10 h-10 text-white" />
             </div>
           </div>
 
           <div className="p-6">
             <div className="max-w-6xl mx-auto">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Blooket-style pack grid */}
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {packs.map((pack) => (
-                  <Card 
-                    key={pack.id} 
-                    className={`blacket-card transition-all duration-300 hover:scale-105 ${
-                      openingPack === pack.id ? 'pack-explode' : ''
-                    }`}
+                  <div
+                    key={pack.id}
+                    onClick={() => !openingPack && openPack(pack)}
+                    className={`
+                      relative cursor-pointer group
+                      ${openingPack === pack.id ? 'pointer-events-none' : ''}
+                    `}
                   >
-                    <CardHeader className="text-center">
-                      <div className="text-6xl mb-4 relative">
-                        {openingPack === pack.id ? (
-                          <div className="relative">
-                            {animationStage === 'lock' && (
-                              <div className="animate-pulse">
-                                <Lock className="w-16 h-16 mx-auto text-white" />
-                              </div>
-                            )}
-                            {animationStage === 'key' && (
-                              <div className="key-unlock">
-                                🔑
-                              </div>
-                            )}
-                            {animationStage === 'unlock' && (
-                              <div className="lock-break">
-                                <Unlock className="w-16 h-16 mx-auto text-white" />
-                              </div>
-                            )}
-                            {animationStage === 'reveal' && rewardBlook && (
-                              <div className="animate-bounce text-6xl">
-                                {rewardBlook.image}
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          pack.image
-                        )}
-                      </div>
-                      <CardTitle className="text-white font-bold titan-one-light">
-                        {pack.name}
-                      </CardTitle>
-                      <p className="text-orange-200 text-sm titan-one-light">
-                        {pack.description}
-                      </p>
-                    </CardHeader>
-                    <CardContent className="text-center">
-                      <div className="mb-4">
-                        <div className="flex justify-center space-x-1 mb-2">
-                          {pack.rarities.map((rarity, index) => (
-                            <div key={index} className="flex items-center">
-                              {rarity === 'legendary' || rarity === 'chroma' || rarity === 'mythical' ? (
-                                <Crown className="w-3 h-3 text-yellow-400" />
-                              ) : rarity === 'epic' ? (
-                                <Crown className="w-3 h-3 text-purple-400" />
-                              ) : (
-                                <Star className="w-3 h-3 text-blue-400" />
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                        <p className="text-orange-200 text-xs titan-one-light">
-                          {pack.rarities.join(', ')}
-                        </p>
+                    {/* Pack card - notebook style */}
+                    <div className={`
+                      bg-gradient-to-br ${pack.color}
+                      rounded-2xl border-4 ${pack.borderColor}
+                      p-4 transition-all duration-300
+                      group-hover:scale-105 group-hover:shadow-2xl
+                      ${openingPack === pack.id ? 'animate-pulse' : ''}
+                    `}>
+                      {/* Spiral binding effect */}
+                      <div className="absolute left-2 top-4 bottom-4 w-1 flex flex-col justify-around">
+                        {[...Array(6)].map((_, i) => (
+                          <div key={i} className="w-3 h-3 bg-white/30 rounded-full -ml-1" />
+                        ))}
                       </div>
                       
-                      <Button
-                        onClick={() => openPack(pack)}
-                        disabled={tokens < pack.cost || openingPack === pack.id}
-                        className="w-full blacket-button font-bold titan-one-light"
-                      >
-                        {openingPack === pack.id ? (
-                          'Opening...'
-                        ) : (
-                          <>🪙 {pack.cost}</>
-                        )}
-                      </Button>
-                    </CardContent>
-                  </Card>
+                      {/* Pack content */}
+                      <div className="text-center pl-2">
+                        <div className="text-5xl mb-2">
+                          {openingPack === pack.id ? (
+                            <div className="relative">
+                              {animationStage === 'lock' && <Lock className="w-12 h-12 mx-auto text-white animate-pulse" />}
+                              {animationStage === 'key' && <span className="animate-bounce inline-block">🔑</span>}
+                              {animationStage === 'unlock' && <Unlock className="w-12 h-12 mx-auto text-white animate-spin" />}
+                              {animationStage === 'reveal' && rewardBlook && (
+                                <span className="animate-bounce inline-block text-6xl">{rewardBlook.image}</span>
+                              )}
+                            </div>
+                          ) : (
+                            pack.image
+                          )}
+                        </div>
+                        <h3 className="text-white font-bold titan-one-light text-lg drop-shadow-lg">
+                          {pack.name}
+                        </h3>
+                        <p className="text-white/80 text-xs titan-one-light mb-2">
+                          {pack.description}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Price tag */}
+                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-orange-500 px-4 py-1 rounded-full border-2 border-orange-300 flex items-center space-x-1">
+                      <span className="text-yellow-300">🪙</span>
+                      <span className="text-white font-bold titan-one-light text-sm">{pack.cost}</span>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
@@ -335,10 +377,11 @@ export default function Marketplace() {
 
           {/* Reward Modal */}
           {showReward && rewardBlook && (
-            <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-              <div className="blacket-card p-8 m-4 text-center animate-scale-in">
+            <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+              <div className="bg-gradient-to-br from-orange-500 to-orange-700 rounded-3xl p-8 m-4 text-center border-4 border-orange-300 animate-scale-in max-w-sm">
+                <Sparkles className="w-8 h-8 text-yellow-300 mx-auto mb-2" />
                 <h2 className="text-3xl text-white font-bold mb-4 titan-one-light">
-                  Congratulations! 🎉
+                  You Got:
                 </h2>
                 <div className="text-8xl mb-4 animate-bounce">
                   {rewardBlook.image}
@@ -346,12 +389,12 @@ export default function Marketplace() {
                 <h3 className="text-2xl text-white font-bold mb-2 titan-one-light">
                   {rewardBlook.name}
                 </h3>
-                <p className="text-orange-200 mb-6 titan-one-light capitalize">
-                  {rewardBlook.rarity} Rarity
+                <p className={`text-lg mb-6 titan-one-light capitalize font-bold ${getRarityColor(rewardBlook.rarity)}`}>
+                  {rewardBlook.rarity}
                 </p>
                 <Button
                   onClick={closeReward}
-                  className="blacket-button px-8 py-3 titan-one-light"
+                  className="bg-yellow-400 hover:bg-yellow-500 text-orange-800 px-8 py-3 titan-one-light font-bold rounded-xl text-lg"
                 >
                   Awesome!
                 </Button>
